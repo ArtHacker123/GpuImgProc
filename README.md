@@ -1,1 +1,1 @@
-# GpuImgProc
+# Some image processing algorithms using OpenGL and OpenCL
