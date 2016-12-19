@@ -57,6 +57,33 @@ int toInteger(const CString& data, int& i)
     return _wtoi(temp);
 }
 
+void GetFilePath(const CString& data, int& i, CStringA& fpath)
+{
+    fpath = _T("");
+    while (i < data.GetLength() && data.GetAt(i) != ' ')
+    {
+        fpath.AppendChar(data.GetAt(i));
+        ++i;
+    }
+}
+
+BOOL IsFilePathValid(const CStringA& fpath)
+{
+    FILE* file;
+    BOOL status;
+    fopen_s(&file, fpath, "rb");
+    if (file == 0)
+    {
+        status = FALSE;
+    }
+    else
+    {
+        status = TRUE;
+        fclose(file);
+    }
+    return status;
+}
+
 BOOL ProcessCmdLine(const CString& cmdLine, CStringA& fpath, int& width, int &height)
 {
     int i = 0;
@@ -75,12 +102,7 @@ BOOL ProcessCmdLine(const CString& cmdLine, CStringA& fpath, int& width, int &he
             switch (ch)
             {
             case 'f':
-                fpath = _T("");
-                while (i < cmdLine.GetLength() && cmdLine.GetAt(i) != ' ')
-                {
-                    fpath.AppendChar(cmdLine.GetAt(i));
-                    ++i;
-                }
+                GetFilePath(cmdLine, i, fpath);
                 break;
             case 'w':
                 width = toInteger(cmdLine, i);
@@ -147,9 +169,15 @@ BOOL TestApp::InitInstance()
 
     CStringA fpath;
     BOOL status = ProcessCmdLine(m_lpCmdLine, fpath, width, height);
-    if (status == FALSE)
+    BOOL fileStatus = (status == TRUE) && IsFilePathValid(fpath);
+    if (status == FALSE || fileStatus == FALSE)
     {
-        AfxMessageBox(_T("Command Line Usage:- -f FILE_PATH -w WIDTH -h HEIGHT\n\n\nExample:- EdgeTest.exe -f test.yuv -w 1280 -h 720"));
+        CString msg = _T("Command Line Usage:- -f FILE_PATH -w WIDTH -h HEIGHT\n\n\nExample:- EdgeTest.exe -f test.yuv -w 1280 -h 720");
+        if (status && (fileStatus == FALSE))
+        {
+            msg = _T("Invalid Path: ") + CString(fpath) + _T("\n\n") + msg;
+        }
+        AfxMessageBox(msg);
         return FALSE;
     }
 
