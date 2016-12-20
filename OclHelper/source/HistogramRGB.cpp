@@ -10,8 +10,8 @@ using namespace Ocl;
 const char HistogramRGB::sSource[] = OCL_PROGRAM_SOURCE(
 kernel void histogram_temp_rgb_float(read_only image2d_t image, global unsigned int *hist_data)
 {
-	local unsigned int sh_data[3*256];
-	unsigned int lindex = (get_local_id(1)*get_local_size(0)) + get_local_id(0);
+	local int sh_data[3*256];
+	int lindex = (get_local_id(1)*get_local_size(0)) + get_local_id(0);
 	if (lindex < 256)
 	{
 		sh_data[lindex] = 0;
@@ -39,8 +39,8 @@ kernel void histogram_temp_rgb_float(read_only image2d_t image, global unsigned 
 		}
 	}
 	barrier(CLK_LOCAL_MEM_FENCE);
-	unsigned int max_offset = get_num_groups(0)*get_num_groups(1);
-	unsigned int offset = (get_group_id(1)*get_num_groups(0)) + get_group_id(0);
+	int max_offset = get_num_groups(0)*get_num_groups(1);
+	int offset = (get_group_id(1)*get_num_groups(0)) + get_group_id(0);
 	if (lindex < 256 && offset < max_offset)
 	{
         int off_index = (max_offset*lindex) + offset;
@@ -55,8 +55,8 @@ kernel void histogram_temp_rgb_float(read_only image2d_t image, global unsigned 
 
 kernel void histogram_temp_rgb_uint8(read_only image2d_t image, global unsigned int *hist_data)
 {
-    local unsigned int sh_data[3*256];
-    unsigned int lindex = (get_local_id(1)*get_local_size(0)) + get_local_id(0);
+    local int sh_data[3*256];
+    int lindex = (get_local_id(1)*get_local_size(0)) + get_local_id(0);
     if (lindex < 256)
     {
         sh_data[lindex] = 0;
@@ -84,8 +84,8 @@ kernel void histogram_temp_rgb_uint8(read_only image2d_t image, global unsigned 
         }
     }
     barrier(CLK_LOCAL_MEM_FENCE);
-    unsigned int max_offset = get_num_groups(0)*get_num_groups(1);
-    unsigned int offset = (get_group_id(1)*get_num_groups(0)) + get_group_id(0);
+    int max_offset = get_num_groups(0)*get_num_groups(1);
+    int offset = (get_group_id(1)*get_num_groups(0)) + get_group_id(0);
     if (lindex < 256 && offset < max_offset)
     {
         int off_index = (max_offset*lindex)+offset;
@@ -98,7 +98,7 @@ kernel void histogram_temp_rgb_uint8(read_only image2d_t image, global unsigned 
     //barrier(CLK_GLOBAL_MEM_FENCE);
 }
 
-inline void block_reduce_sum(local int* sh_data)
+inline void block_reduce_sum(local volatile int* sh_data)
 {
     if (get_local_id(0) < 32) sh_data[get_local_id(0)] += sh_data[32 + get_local_id(0)];
     barrier(CLK_LOCAL_MEM_FENCE);
@@ -110,7 +110,7 @@ inline void block_reduce_sum(local int* sh_data)
     barrier(CLK_LOCAL_MEM_FENCE);
 }
 
-kernel void accum_histogram_rgb(global read_only unsigned int *p_int_hist_data, global unsigned int *p_hist_data, size_t count)
+kernel void accum_histogram_rgb(global const int *p_int_hist_data, global int *p_hist_data, int count)
 {
     local int sh_data[64];
     int lid = get_local_id(0);
@@ -227,7 +227,7 @@ size_t HistogramRGB::accumTempHist(size_t count, Ocl::DataBuffer<int>& rgbBins)
 {
     mAccHist.setArg(0, mTempBuff->buffer());
     mAccHist.setArg(1, rgbBins.buffer());
-    mAccHist.setArg(2, count);
+    mAccHist.setArg(2, (int)count);
 
     cl::Event event;
     mQueue.enqueueNDRangeKernel(mAccHist, cl::NullRange, cl::NDRange(3*256*64), cl::NDRange(64), NULL, &event);
