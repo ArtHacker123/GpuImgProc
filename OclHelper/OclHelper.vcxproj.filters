@@ -39,6 +39,12 @@
     <ClInclude Include="source\HarrisCornerPrv.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\CannyEdge.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\CannyEdgePrv.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Compact.cpp">
@@ -60,6 +66,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="source\HarrisCornerPrvKernels.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CannyEdge.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CannyEdgePrv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CannyEdgePrvKernels.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

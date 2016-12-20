@@ -3,9 +3,9 @@
 using namespace Ogl;
 
 Yuv420Image::Yuv420Image(GLsizei w, GLsizei h, void* pData, bool bPyramid)
-	:mY(w, h, GL_RED, GL_UNSIGNED_BYTE, pData, bPyramid),
-	 mU(w/2, h/2, GL_RED, GL_UNSIGNED_BYTE, (pData==0)?0:((uint8_t*)pData+(w*h)), bPyramid),
-	 mV(w/2, h/2, GL_RED, GL_UNSIGNED_BYTE, (pData==0)?0:((uint8_t*)pData+(w*h)+((w*h)>>2)), bPyramid)
+	:mY(w, h, GL_R32F, GL_UNSIGNED_BYTE, pData, bPyramid),
+	 mU(w/2, h/2, GL_R32F, GL_UNSIGNED_BYTE, (pData==0)?0:((uint8_t*)pData+(w*h)), bPyramid),
+	 mV(w/2, h/2, GL_R32F, GL_UNSIGNED_BYTE, (pData==0)?0:((uint8_t*)pData+(w*h)+((w*h)>>2)), bPyramid)
 {
 }
 

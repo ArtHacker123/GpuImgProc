@@ -24,7 +24,7 @@ void GlView::draw(uint8_t* pData)
 	glClear(GL_COLOR_BUFFER_BIT);
 	mYuvPainter.draw(mYuvImg);
 
-    Ogl::IGeometry::Rect viewPort = { 0, mYuvImg.width()>>1, mYuvImg.width()>>1, mYuvImg.height()>>1 };
+    Ogl::IGeometry::Rect viewPort = { mYuvImg.width()>>1, 0, mYuvImg.width()>>1, mYuvImg.height()>>1 };
 	mLumaPainter.draw(viewPort, mEdgeImg);
 }
 

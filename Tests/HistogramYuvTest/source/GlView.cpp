@@ -8,17 +8,14 @@ GlView::GlView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queue)
      mHistPainter(ctxt, queue),
      mRgbBins(mCtxtCL, CL_MEM_READ_WRITE, 256*3),
      mYuvImg(w, h),
-	 mRgbaImg(w, h, GL_RGBA, GL_UNSIGNED_BYTE)
+	 mRgbaImg(w, h, GL_RGBA32F, GL_UNSIGNED_BYTE)
 {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    cl_buffer_region region = { 0, 256*sizeof(int) };
-    mRedBuff = mRgbBins.createSubBuffer(CL_MEM_READ_ONLY, CL_BUFFER_CREATE_TYPE_REGION, &region);
-    region.origin = 256*sizeof(int);
-    mGreenBuff = mRgbBins.createSubBuffer(CL_MEM_READ_ONLY, CL_BUFFER_CREATE_TYPE_REGION, &region);
-    region.origin = 512*sizeof(int);
-    mBlueBuff = mRgbBins.createSubBuffer(CL_MEM_READ_ONLY, CL_BUFFER_CREATE_TYPE_REGION, &region);
+    mRedBuff = mRgbBins.createSubBuffer(CL_MEM_READ_ONLY, 0, 256);
+    mGreenBuff = mRgbBins.createSubBuffer(CL_MEM_READ_ONLY, 256, 256);
+    mBlueBuff = mRgbBins.createSubBuffer(CL_MEM_READ_ONLY, 512, 256);
 }
 
 GlView::~GlView()

@@ -14,7 +14,7 @@
 class GlView
 {
 public:
-	GlView(GLsizei w, GLsizei h, cl::Context& clContext, cl::CommandQueue& clQueue);
+	GlView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queue);
 	~GlView();
 
 public:
@@ -22,8 +22,8 @@ public:
 	void resize(GLsizei w, GLsizei h);
 
 private:
-	cl::Context& mClContext;
-	cl::CommandQueue& mClQueue;
+	cl::Context& mCtxtCL;
+	cl::CommandQueue& mQueueCL;
 
 	Ogl::Image<GL_BGR> mBgrImg;
     Ogl::Image<GL_RED> mGrayImg;

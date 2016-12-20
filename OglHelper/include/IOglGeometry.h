@@ -13,8 +13,8 @@ class IGeometry
 public:
 	struct Rect
 	{
-		int top;
-		int left;
+		int x;
+		int y;
 		int width;
 		int height;
 	};

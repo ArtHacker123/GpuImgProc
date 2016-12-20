@@ -56,7 +56,7 @@ void Shape::draw(Ogl::IShader& shader, const Ogl::IImage& img)
 
 void Shape::draw(Ogl::IShader& shader, const Ogl::IGeometry::Rect& rect, const Ogl::IImage& img)
 {
-	glViewport(rect.left, rect.top, rect.width, rect.height);
+	glViewport(rect.x, rect.y, rect.width, rect.height);
     Ogl::UseShaderImage use(shader, img, GL_TEXTURE0);
 	draw();
 }

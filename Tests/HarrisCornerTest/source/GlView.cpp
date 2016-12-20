@@ -1,14 +1,14 @@
 #include "GlView.h"
 #include "OglImageFormat.h"
 
-GlView::GlView(GLsizei w, GLsizei h, cl::Context& clContext, cl::CommandQueue& clQueue)
-	:mClContext(clContext),
-	 mClQueue(clQueue),
+GlView::GlView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queue)
+	:mCtxtCL(ctxt),
+	 mQueueCL(queue),
 	 mBgrImg(w, h, GL_RGB, GL_UNSIGNED_BYTE),
 	 mGrayImg(w, h, GL_R32F, GL_FLOAT),
-	 mCornerPaint(mClContext, mClQueue),
-	 mHarrisCorner(mClContext, mClQueue),
-	 mCorners(mClContext, CL_MEM_READ_WRITE, 1000)
+	 mCornerPaint(mCtxtCL, mQueueCL),
+	 mHarrisCorner(mCtxtCL, mQueueCL),
+	 mCorners(mCtxtCL, CL_MEM_READ_WRITE, 1000)
 {
 }
 
@@ -22,7 +22,7 @@ void GlView::draw(uint8_t* pData)
     Ogl::ImageFormat::convert(mGrayImg, mBgrImg);
 
     size_t count = 0;
-    cl::ImageGL imgGL(mClContext, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mGrayImg.texture());
+    cl::ImageGL imgGL(mCtxtCL, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mGrayImg.texture());
 	mHarrisCorner.process(imgGL, mCorners, 0.00125f, count);
 
 	mBgrPainter.draw(mBgrImg);

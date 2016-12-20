@@ -38,9 +38,10 @@ public:
         return size;
     };
 
-    cl::Buffer createSubBuffer(cl_mem_flags flags, cl_buffer_create_type type, const void* p_create_info)
+    cl::Buffer createSubBuffer(cl_mem_flags flags, size_t origin, size_t size)
     {
-        return mBuffer.createSubBuffer(flags, type, p_create_info);
+        cl_buffer_region region = { origin*sizeof(Type), size*sizeof(Type) };
+        return mBuffer.createSubBuffer(flags, CL_BUFFER_CREATE_TYPE_REGION, &region);
     }
 
 private:

@@ -172,10 +172,10 @@ BOOL TestApp::InitInstance()
     BOOL fileStatus = (status == TRUE) && IsFilePathValid(fpath);
     if (status == FALSE || fileStatus == FALSE)
     {
-        CString msg = _T("Command Line Usage:- -f FILE_PATH -w WIDTH -h HEIGHT\n\n\nExample:- HistogramYuvTest.exe -f test.yuv -w 1280 -h 720");
+        CString msg = _T("Command Line Usage:- -f FILE_PATH -w WIDTH -h HEIGHT\n\n\nExample:- EdgeOclYuvTest.exe -f test.yuv -w 1280 -h 720");
         if (status && (fileStatus == FALSE))
         {
-            msg = CString("File: " + fpath + " doesn't exist\n\n") + msg;
+            msg = CString("File: "+fpath+" doesn't exist\n\n") + msg;
         }
         AfxMessageBox(msg);
         return FALSE;
@@ -183,7 +183,7 @@ BOOL TestApp::InitInstance()
 
     m_pMainWnd = new TestView(width, height, fpath);
 	LPCTSTR cs = AfxRegisterWndClass(CS_CLASSDC | CS_DBLCLKS, ::LoadCursor(NULL, IDC_ARROW), 0, 0);
-	m_pMainWnd->CreateEx(0, cs, CString("Histogram - "+fpath), WS_OVERLAPPEDWINDOW, xpos, ypos, width, height, 0, 0);
+	m_pMainWnd->CreateEx(0, cs, CString("Canny Edge Detection - "+fpath), WS_OVERLAPPEDWINDOW, xpos, ypos, width, height, 0, 0);
 	m_pMainWnd->ShowWindow(SW_SHOW);
 	m_pMainWnd->UpdateWindow();
 
