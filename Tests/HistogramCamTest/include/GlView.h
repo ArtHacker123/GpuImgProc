@@ -16,23 +16,23 @@
 class GlView
 {
 public:
-	GlView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queue);
-	~GlView();
+    GlView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queue);
+    ~GlView();
 
 public:
-	void draw(uint8_t* pData);
-	void resize(GLsizei w, GLsizei h);
+    void draw(uint8_t* pData);
+    void resize(GLsizei w, GLsizei h);
 
 private:
-	cl::Context& mCtxtCL;
-	cl::CommandQueue& mQueueCL;
+    cl::Context& mCtxtCL;
+    cl::CommandQueue& mQueueCL;
 
     Ogl::Image<GL_BGR> mBgrImg;
-	Ogl::ImagePainter< Ogl::RgbaShader, Ogl::Image<GL_BGR> > mPainter;
+    Ogl::ImagePainter< Ogl::RgbaShader, Ogl::Image<GL_BGR> > mPainter;
 
     Ocl::DataBuffer<int> mRgbBins;
-	Ocl::HistogramRGB mHistogram;
-	Ogl::HistogramPainter mHistPainter;
+    Ocl::HistogramRGB mHistogram;
+    Ogl::HistogramPainter mHistPainter;
 
     Ocl::DataBuffer<int> mRedBuff;
     Ocl::DataBuffer<int> mGreenBuff;

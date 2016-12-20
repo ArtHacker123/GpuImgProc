@@ -2,11 +2,11 @@
 #include "OglImageFormat.h"
 
 GlView::GlView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queue)
-	:mCtxtCL(ctxt),
-	 mQueueCL(queue),
+    :mCtxtCL(ctxt),
+     mQueueCL(queue),
      mBgrImg(w, h, GL_RGBA32F, GL_UNSIGNED_BYTE),
      mRgbBins(mCtxtCL, CL_MEM_READ_WRITE, 768),
-	 mHistogram(mCtxtCL, mQueueCL),
+     mHistogram(mCtxtCL, mQueueCL),
      mHistPainter(mCtxtCL, mQueueCL)
 {
     mRedBuff = mRgbBins.createSubBuffer(CL_MEM_READ_ONLY, 0, 256);
@@ -20,7 +20,7 @@ GlView::~GlView()
 
 void GlView::draw(uint8_t* pData)
 {
-	mBgrImg.load(pData);
+    mBgrImg.load(pData);
 
     cl::ImageGL imgGL(mCtxtCL, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mBgrImg.texture());
     size_t time = mHistogram.compute(imgGL, mRgbBins);
@@ -41,5 +41,5 @@ void GlView::draw(uint8_t* pData)
 
 void GlView::resize(GLsizei w, GLsizei h)
 {
-	glViewport(0, 0, w, h);
+    glViewport(0, 0, w, h);
 }
