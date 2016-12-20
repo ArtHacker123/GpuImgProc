@@ -17,19 +17,18 @@
 class TestApp : public CWinApp
 {
 public:
-	TestApp();
-
+    TestApp();
 
 // Overrides
 public:
-	virtual BOOL InitInstance();
-	virtual int ExitInstance();
+    virtual BOOL InitInstance();
+    virtual int ExitInstance();
 
 // Implementation
 
 public:
-	afx_msg void OnAppAbout();
-	DECLARE_MESSAGE_MAP()
+    afx_msg void OnAppAbout();
+    DECLARE_MESSAGE_MAP()
 };
 
 extern TestApp theApp;
