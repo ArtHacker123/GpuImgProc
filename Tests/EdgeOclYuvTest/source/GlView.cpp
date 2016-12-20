@@ -29,11 +29,10 @@ void GlView::draw(uint8_t* pData)
 
     mCanny.process(inpImgGL, outImgGL, minThresh, maxThresh);
 
-    //mYuvPainter.draw(mYuvImg);
-    mLumaPainter.draw(mEdgeImg);
-
-    //Ogl::IGeometry::Rect viewPort = { mYuvImg.width() >> 1, 0, mYuvImg.width() >> 1, mYuvImg.height() >> 1 };
-    //mLumaPainter.draw(viewPort, mEdgeImg);
+    mYuvPainter.draw(mYuvImg);
+    
+    Ogl::IGeometry::Rect vp = { mYuvImg.width()>>1, 0, mYuvImg.width()>>1, mYuvImg.height()>>1 };
+    mLumaPainter.draw(vp, mEdgeImg);
 }
 
 void GlView::resize(GLsizei w, GLsizei h)
