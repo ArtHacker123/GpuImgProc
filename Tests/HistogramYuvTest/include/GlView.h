@@ -10,12 +10,12 @@
 class GlView
 {
 public:
-	GlView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queue);
-	~GlView();
+    GlView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queue);
+    ~GlView();
 
 public:
-	void draw(uint8_t* pData);
-	void resize(GLsizei w, GLsizei h);
+    void draw(uint8_t* pData);
+    void resize(GLsizei w, GLsizei h);
 
 private:
     cl::Context& mCtxtCL;
@@ -25,12 +25,12 @@ private:
     Ocl::DataBuffer<int> mRgbBins;
     Ogl::HistogramPainter mHistPainter;
 
-	Ogl::Yuv420Image mYuvImg;
-	Ogl::Image<GL_RGBA> mRgbaImg;
+    Ogl::Yuv420Image mYuvImg;
+    Ogl::Image<GL_RGBA> mRgbaImg;
 
     Ocl::DataBuffer<int> mRedBuff;
     Ocl::DataBuffer<int> mGreenBuff;
     Ocl::DataBuffer<int> mBlueBuff;
 
-	Ogl::ImagePainter< Ogl::RgbaShader, Ogl::Image<GL_RGBA> > mRgbaPainter;
+    Ogl::ImagePainter< Ogl::RgbaShader, Ogl::Image<GL_RGBA> > mRgbaPainter;
 };
