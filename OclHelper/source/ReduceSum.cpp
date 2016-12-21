@@ -7,7 +7,7 @@
 using namespace Ocl;
 
 const char ReduceSum::sSource[] = OCL_PROGRAM_SOURCE(
-inline void block_reduce_sum(local int sh_data[SH_MEM_SIZE])
+inline void block_reduce_sum(local volatile int sh_data[SH_MEM_SIZE])
 {
 	if (get_local_id(0) < 128) sh_data[get_local_id(0)] += sh_data[128+get_local_id(0)];
 	barrier(CLK_LOCAL_MEM_FENCE);
