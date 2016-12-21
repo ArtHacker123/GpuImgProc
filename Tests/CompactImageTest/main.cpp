@@ -63,7 +63,7 @@ void test_image_compact(cl::Context& context, cl::CommandQueue& queue)
 		}
 	}
 
-	for (size_t i = 0; i < 50; i++)
+	for (size_t i = 0; i < 5; i++)
 	{
 		int x = rand() % width;
 		int y = rand() % height;

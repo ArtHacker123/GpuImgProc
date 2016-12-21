@@ -60,12 +60,12 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;__CL_ENABLE_EXCEPTIONS;CL_USE_DEPRECATED_OPENCL_1_2_APIS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../../OclHelper/include;$(INTELOCLSDKROOT)/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../OclHelper/include;$(INTELOCLSDKROOT)/include;$(CUDA_PATH_V8_0)/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(INTELOCLSDKROOT)\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(INTELOCLSDKROOT)\lib\x64;$(CUDA_PATH_V8_0)/lib/x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>OpenCL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
