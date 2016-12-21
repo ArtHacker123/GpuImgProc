@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "OclInclusiveScan.h"
+#include "Scan.h"
 
 int main(int argc, char** argv)
 {
@@ -25,19 +25,19 @@ int main(int argc, char** argv)
 		std::cout << name << std::endl;
 
         size_t dataSize = 640*480;
-		cl::Buffer buff(context, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, (size_t)(dataSize*sizeof(int)));
-		int* pData = (int *)queue.enqueueMapBuffer(buff, CL_TRUE, CL_MAP_WRITE, 0, dataSize*sizeof(int));
+		Ocl::DataBuffer<int> buff(context, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, dataSize);
+		int* pData = buff.map(queue, CL_TRUE, CL_MAP_WRITE, 0, dataSize);
 		for (size_t i = 0; i < dataSize; i++)
 		{
 			pData[i] = 1;
 		}
-		queue.enqueueUnmapMemObject(buff, pData);
+		buff.unmap(queue, pData);
 
-		const int DEPTH = 9;
-		OclInclusiveScan iscan(DEPTH, context, queue);
-		iscan.process(buff);
+		Ocl::Scan scan(context, queue);
+		size_t time = scan.process(buff);
+		printf("\nTime: %d ns", time);
 		
-		pData = (int *)queue.enqueueMapBuffer(buff, CL_TRUE, CL_MAP_READ, 0, dataSize*sizeof(int));
+		pData = buff.map(queue, CL_TRUE, CL_MAP_READ, 0, dataSize);;
 		for (size_t i = 0; i < dataSize; i++)
 		{
 			if (pData[i] != (int)(i + 1))
@@ -46,7 +46,7 @@ int main(int argc, char** argv)
 				break;
 			}
 		}
-		queue.enqueueUnmapMemObject(buff, pData);
+		buff.unmap(queue, pData);
 	}
 
 	catch (cl::Error error)

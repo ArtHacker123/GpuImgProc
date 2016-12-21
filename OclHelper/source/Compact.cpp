@@ -7,9 +7,10 @@
 using namespace Ocl;
 
 const char Compact::sSource[] = OCL_PROGRAM_SOURCE(
-inline void block_reduce_sum(const int index, local int* sh_data)
+inline void block_reduce_sum(const int index, local volatile int* sh_data)
 {
 	if (index < 32) sh_data[index] += sh_data[32+index];
+	barrier(CLK_LOCAL_MEM_FENCE);
 	if (index < 16) sh_data[index] += sh_data[16+index];
     if (index < 8) sh_data[index] += sh_data[8+index];
     if (index < 4) sh_data[index] += sh_data[4+index];
@@ -40,7 +41,7 @@ kernel void reduce_sum(read_only image2d_t image, float value, global int* p_blo
 	}
 }
 
-inline void warp_scan(int wid, int i, local int* sh_data)
+inline void warp_scan(int wid, int i, local volatile int* sh_data)
 {
 	if (wid >= 1) sh_data[i] += sh_data[i - 1];
 	if (wid >= 2) sh_data[i] += sh_data[i - 2];
@@ -52,7 +53,7 @@ inline void warp_scan(int wid, int i, local int* sh_data)
 	#endif*/
 }
 
-inline void block_scan(const int i, local int* sh_data)
+inline void block_scan(const int i, local volatile int* sh_data)
 {
 	const int j = i%WARP_SIZE;
 	const int k = i/WARP_SIZE;
@@ -64,16 +65,14 @@ inline void block_scan(const int i, local int* sh_data)
 	}
 	barrier(CLK_LOCAL_MEM_FENCE);
 
-	if (k == 0)
+	if (i == 0)
 	{
-		if (i == 0)
-		{
-			sh_data[SH_MEM_SIZE] = 0;
-		}
-		else
-		{
-			sh_data[SH_MEM_SIZE + i] = sh_data[((i - 1)*WARP_SIZE) + (WARP_SIZE - 1)];
-		}
+		sh_data[SH_MEM_SIZE] = 0;
+	}
+
+	if (i < 8)
+	{
+		sh_data[SH_MEM_SIZE + i + 1] = sh_data[(i*WARP_SIZE) + (WARP_SIZE - 1)];
 	}
 	barrier(CLK_LOCAL_MEM_FENCE);
 

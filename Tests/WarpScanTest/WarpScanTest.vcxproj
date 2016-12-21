@@ -17,6 +17,11 @@
   <ItemGroup>
     <ClInclude Include="OclInclusiveScan.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\OclHelper\OclHelper.vcxproj">
+      <Project>{7761eac9-c421-462b-8287-b92019afb46a}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0F9AF116-156E-4B54-AA1F-160D6B6C8488}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -59,12 +64,12 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;__CL_ENABLE_EXCEPTIONS;CL_USE_DEPRECATED_OPENCL_1_2_APIS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(INTELOCLSDKROOT)/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(INTELOCLSDKROOT)/include;$(CUDA_PATH_V8_0)/include;../../OclHelper/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(INTELOCLSDKROOT)\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(INTELOCLSDKROOT)\lib\x64;$(CUDA_PATH_V8_0)/lib/x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>OpenCL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

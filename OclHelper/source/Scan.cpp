@@ -7,7 +7,7 @@ using namespace Ocl;
 #define OCL_PROGRAM_SOURCE(s) #s
 
 const char Scan::sSource[] = OCL_PROGRAM_SOURCE(
-inline void warp_scan(int wid, int i, local int* sh_data)
+inline void warp_scan(int wid, int i, local volatile int* sh_data)
 {
 	if (wid >= 1) sh_data[i] += sh_data[i-1];
 	if (wid >= 2) sh_data[i] += sh_data[i-2];
@@ -19,29 +19,24 @@ inline void warp_scan(int wid, int i, local int* sh_data)
 	#endif*/
 }
 
-inline void block_scan(local int* sh_data)
+inline void block_scan(local volatile int* sh_data)
 {
 	const int i = get_local_id(0);
 	const int j = i%WARP_SIZE;
 	const int k = i/WARP_SIZE;
 
-	for (int p = 0; p < 2; p++)
-	{
-		int index = (get_local_size(0)*p)+i;
-		warp_scan(j, index, sh_data);
-	}
+	warp_scan(j, i, sh_data);
+	warp_scan(j, (int)(get_local_size(0) + i), sh_data);
 	barrier(CLK_LOCAL_MEM_FENCE);
 
-	if (k == 0)
+	if (i == 0)
 	{
-		if (i == 0)
-		{
-			sh_data[SH_MEM_SIZE] = 0;
-		}
-		else
-		{
-			sh_data[SH_MEM_SIZE+i] = sh_data[((i-1)*WARP_SIZE) + (WARP_SIZE-1)];
-		}
+		sh_data[SH_MEM_SIZE] = 0;
+	}
+
+	if (i < 8)
+	{
+		sh_data[SH_MEM_SIZE + i + 1] = sh_data[(i*WARP_SIZE) + (WARP_SIZE - 1)];
 	}
 	barrier(CLK_LOCAL_MEM_FENCE);
 
@@ -84,7 +79,7 @@ kernel void gather_scan(global const int* p_data, int start, int count, global i
 {
 	local int sh_data[SH_MEM_SIZE+WARP_SIZE];
 	const int i = (get_local_id(0)*2);
-	const int j = mad(i, SH_MEM_SIZE, (start-1));
+	const int j = (SH_MEM_SIZE*i)+(start-1); //mad(i, SH_MEM_SIZE, (start-1));
 	sh_data[i] = (j < count) ? p_data[j] : 0;
 	sh_data[i+1] = ((j+SH_MEM_SIZE) < count) ? p_data[j+SH_MEM_SIZE]:0;
 	barrier(CLK_LOCAL_MEM_FENCE);
