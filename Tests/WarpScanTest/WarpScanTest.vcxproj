@@ -11,11 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="OclInclusiveScan.cpp" />
     <ClCompile Include="main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="OclInclusiveScan.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\OclHelper\OclHelper.vcxproj">
