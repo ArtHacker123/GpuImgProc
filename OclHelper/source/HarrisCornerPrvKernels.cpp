@@ -6,7 +6,7 @@ using namespace Ocl;
 
 const char HarrisCornerPrv::sSource[] = OCL_PROGRAM_SOURCE(
 
-kernel void gradient(read_only image2d_t inpImg, write_only image2d_t ixiyImg)
+kernel void gradient(read_only image2d_t inpImg, write_only image2d_t outImg)
 {
     const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE|CLK_ADDRESS_CLAMP|CLK_FILTER_LINEAR;
     local float sh_img_data[BLK_SIZE_Y+2][BLK_SIZE_X+2];
@@ -45,9 +45,7 @@ kernel void gradient(read_only image2d_t inpImg, write_only image2d_t ixiyImg)
     iy += sh_img_data[q - 1][p + 1];
     iy -= sh_img_data[q + 1][p + 1];
     iy += 2.0f*(sh_img_data[q - 1][p] - sh_img_data[q + 1][p]);
-    //float idata = sqrt((ix*ix) + (iy*iy));
-    //write_imagef(ixiyImg, (int2)(get_global_id(0), get_global_id(1)), idata);
-    write_imagef(ixiyImg, (int2)(get_global_id(0), get_global_id(1)), (float4)(ix, iy, 0.0f, 0.0f));
+    write_imagef(outImg, (int2)(get_global_id(0), get_global_id(1)), (float4)(ix, iy, 0.0f, 0.0f));
 }
 
 kernel void eigen(read_only image2d_t inpImg, write_only image2d_t mImg, global const float* p_coeffs)

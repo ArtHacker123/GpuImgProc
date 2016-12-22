@@ -32,8 +32,8 @@ private:
     cl::Kernel mReduceKernel;
     cl::Kernel mCompactScanKernel;
 
-    cl::Buffer mIntBuffScan;
-    std::unique_ptr< DataBuffer<int> > mBuffReduce;
+    Ocl::DataBuffer<int> mOutSize;
+    std::unique_ptr< Ocl::DataBuffer<int> > mBuffReduce;
     Ocl::Scan mScan;
 
     static const char sSource[];

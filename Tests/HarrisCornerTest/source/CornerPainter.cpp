@@ -21,9 +21,11 @@ kernel void extract_coords(global int2 *p_pos_corner, int count, global float2* 
 }
 );
 
-CornerPainter::CornerPainter(cl::Context& ctxt, cl::CommandQueue& queue)
-    :mContext(ctxt),
-     mQueue(queue)
+CornerPainter::CornerPainter(cl::Context& ctxt, cl::CommandQueue& queue, size_t maxCorners)
+    :mMaxCorners(maxCorners),
+	 mContext(ctxt),
+     mQueue(queue),
+	 mCornerBuff(GL_ARRAY_BUFFER, (8*mMaxCorners*sizeof(GLfloat)), 0, GL_DYNAMIC_DRAW)
 {
     try
     {
@@ -52,8 +54,11 @@ void CornerPainter::draw(Ocl::DataBuffer<Ocl::Pos>& corners, size_t width, size_
         return;
     }
 
-    Ogl::Buffer cornerBuff(GL_ARRAY_BUFFER, count*sizeof(GLfloat)*8, 0, GL_DYNAMIC_DRAW);
-    cl::BufferGL buffGL(mContext, CL_MEM_READ_WRITE, cornerBuff.buffer());
+	if (count > mMaxCorners)
+	{
+		count = mMaxCorners;
+	}
+    cl::BufferGL buffGL(mContext, CL_MEM_READ_WRITE, mCornerBuff.buffer());
 
     cl::Event event;
     std::vector<cl::Memory> gl_objs = { buffGL };
@@ -69,5 +74,5 @@ void CornerPainter::draw(Ocl::DataBuffer<Ocl::Pos>& corners, size_t width, size_
     event.wait();
     mQueue.enqueueReleaseGLObjects(&gl_objs);
 
-    mPainter.draw(GL_LINES, 0, (GLsizei)(count*8), cornerBuff);
+    mPainter.draw(GL_LINES, 0, (GLsizei)(count*4), mCornerBuff);
 }

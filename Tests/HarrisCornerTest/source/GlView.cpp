@@ -1,14 +1,16 @@
 #include "GlView.h"
 #include "OglImageFormat.h"
 
+#define MAX_CORNER_COUNT 10000
+
 GlView::GlView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queue)
     :mCtxtCL(ctxt),
      mQueueCL(queue),
      mBgrImg(w, h, GL_RGB, GL_UNSIGNED_BYTE),
      mGrayImg(w, h, GL_R32F, GL_FLOAT),
-     mCornerPaint(mCtxtCL, mQueueCL),
+     mCornerPaint(mCtxtCL, mQueueCL, MAX_CORNER_COUNT),
      mHarrisCorner(mCtxtCL, mQueueCL),
-     mCorners(mCtxtCL, CL_MEM_READ_WRITE, 1000)
+     mCorners(mCtxtCL, CL_MEM_READ_WRITE, MAX_CORNER_COUNT)
 {
 }
 
