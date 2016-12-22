@@ -113,7 +113,7 @@ int ReduceSum::process(Ocl::DataBuffer<int>& buffer)
     }
 
     int retValue;
-    int* pData = mBuff->map(mQueue, CL_TRUE, CL_MAP_READ, 0, sizeof(int));
+    int* pData = mBuff->map(mQueue, CL_TRUE, CL_MAP_READ, 0, 1);
     retValue = *pData;
     mBuff->unmap(mQueue, pData);
 
