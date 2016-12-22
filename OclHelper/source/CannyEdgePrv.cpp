@@ -1,35 +1,59 @@
 #include "CannyEdgePrv.h"
+#include "OclUtils.h"
 #include <sstream>
 
 using namespace Ocl;
 
 CannyEdgePrv::CannyEdgePrv(cl::Context& ctxt, cl::CommandQueue& q)
-	:mContext(ctxt),
+	:mSizeX(16),
+     mSizeY(16),
+     mContext(ctxt),
 	 mQueue(q),
 	 mCoeffBuff(mContext, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, 25)
 {
-	cl::Program::Sources source(1, std::make_pair(sSource, strlen(sSource)));
-	mPgm = cl::Program(mContext, source);
-	cl_int err = mPgm.build();
+    try
+    {
+        init();
+        loadGaussCoeffs();
+    }
 
-	mGradKernel = cl::Kernel(mPgm, "gradient");
-	mEigenKernel = cl::Kernel(mPgm, "eigen");
-	mCornerKernel = cl::Kernel(mPgm, "suppress_non_max");
-
-	static float gaussCoeffs[] = { 
-		(float)(2.0/159.0), (float)(4.0/159.0), (float)(5.0/159.0), (float)(4.0/159.0), (float)(2.0/159.0),
-		(float)(4.0/159.0), (float)(9.0/159.0), (float)(12.0/159.0), (float)(9.0/159.0), (float)(4.0/159.0),
-		(float)(5.0/159.0), (float)(12.0/159.0), (float)(15.0/159.0), (float)(12.0/159.0), (float)(5.0/159.0),
-		(float)(4.0/159.0), (float)(9.0/159.0), (float)(12.0/159.0), (float)(9.0/159.0), (float)(4.0/159.0),
-		(float)(2.0/159.0), (float)(4.0/159.0), (float)(5.0/159.0), (float)(4.0/159.0), (float)(2.0/159.0) };
-
-    float* pCoeff = mCoeffBuff.map(mQueue, CL_TRUE, CL_MAP_WRITE, 0, 25);
-	memcpy(pCoeff, gaussCoeffs, 25*sizeof(float));
-    mCoeffBuff.unmap(mQueue, pCoeff);
+    catch (cl::Error error)
+    {
+        fprintf(stderr, "%s", error.what());
+        exit(0);
+    }
 }
 
 CannyEdgePrv::~CannyEdgePrv()
 {
+}
+
+void CannyEdgePrv::init()
+{
+    cl::Program::Sources source(1, std::make_pair(sSource, strlen(sSource)));
+    mPgm = cl::Program(mContext, source);
+
+    std::ostringstream options;
+    options << " -DBLK_SIZE_X=" << mSizeX << " -DBLK_SIZE_Y=" << mSizeY;
+    cl_int err = mPgm.build(options.str().c_str());
+
+    mGradKernel = cl::Kernel(mPgm, "gradient");
+    mEigenKernel = cl::Kernel(mPgm, "eigen");
+    mCornerKernel = cl::Kernel(mPgm, "suppress_non_max");
+}
+
+void CannyEdgePrv::loadGaussCoeffs()
+{
+    static float gaussCoeffs[] = {
+        (float)(2.0 / 159.0), (float)(4.0 / 159.0), (float)(5.0 / 159.0), (float)(4.0 / 159.0), (float)(2.0 / 159.0),
+        (float)(4.0 / 159.0), (float)(9.0 / 159.0), (float)(12.0 / 159.0), (float)(9.0 / 159.0), (float)(4.0 / 159.0),
+        (float)(5.0 / 159.0), (float)(12.0 / 159.0), (float)(15.0 / 159.0), (float)(12.0 / 159.0), (float)(5.0 / 159.0),
+        (float)(4.0 / 159.0), (float)(9.0 / 159.0), (float)(12.0 / 159.0), (float)(9.0 / 159.0), (float)(4.0 / 159.0),
+        (float)(2.0 / 159.0), (float)(4.0 / 159.0), (float)(5.0 / 159.0), (float)(4.0 / 159.0), (float)(2.0 / 159.0) };
+
+    float* pCoeff = mCoeffBuff.map(mQueue, CL_TRUE, CL_MAP_WRITE, 0, 25);
+    memcpy(pCoeff, gaussCoeffs, 25 * sizeof(float));
+    mCoeffBuff.unmap(mQueue, pCoeff);
 }
 
 void CannyEdgePrv::createIntImages(size_t w, size_t h)
@@ -58,7 +82,7 @@ size_t CannyEdgePrv::gradient(const cl::Image& inpImg, cl::Image& outImg)
 
 	mGradKernel.setArg(0, inpImg);
 	mGradKernel.setArg(1, outImg);
-	mQueue.enqueueNDRangeKernel(mGradKernel, cl::NullRange, cl::NDRange(width, height), cl::NDRange(8, 8), NULL, &event);
+	mQueue.enqueueNDRangeKernel(mGradKernel, cl::NullRange, cl::NDRange(width, height), cl::NDRange(mSizeX, mSizeY), NULL, &event);
 	event.wait();
 	return (event.getProfilingInfo<CL_PROFILING_COMMAND_END>() - event.getProfilingInfo<CL_PROFILING_COMMAND_START>());
 }
@@ -93,12 +117,25 @@ size_t CannyEdgePrv::suppress(const cl::Image& inpImg, cl::Image& outImg, float 
 	return (event.getProfilingInfo<CL_PROFILING_COMMAND_END>() - event.getProfilingInfo<CL_PROFILING_COMMAND_START>());
 }
 
+void CannyEdgePrv::checkLocalGroupSizes(size_t w, size_t h)
+{
+    size_t xSize = Ocl::localGroupSize(w);
+    size_t ySize = Ocl::localGroupSize(h);
+    if (xSize != mSizeX || ySize != mSizeY)
+    {
+        mSizeX = xSize;
+        mSizeY = ySize;
+        init();
+    }
+}
+
 size_t CannyEdgePrv::process(const cl::Image2D& inpImg, cl::Image2D& outImage, float minThresh, float maxThresh)
 {
 	size_t width, height;
 	inpImg.getImageInfo<size_t>(CL_IMAGE_WIDTH, &width);
 	inpImg.getImageInfo<size_t>(CL_IMAGE_HEIGHT, &height);
 	createIntImages(width, height);
+    checkLocalGroupSizes(width, height);
 	size_t time = gradient(inpImg, *mIxIyImg);
 	time += eigen(*mIxIyImg, *mEigenImg);
 	//time += suppress(*mEigenImg, *mCornerImg, value);
@@ -113,6 +150,7 @@ size_t CannyEdgePrv::process(const cl::ImageGL& inpImg, cl::ImageGL& outImg, flo
 	inpImg.getImageInfo<size_t>(CL_IMAGE_WIDTH, &width);
 	inpImg.getImageInfo<size_t>(CL_IMAGE_HEIGHT, &height);
 	createIntImages(width, height);
+    checkLocalGroupSizes(width, height);
     std::vector<cl::Memory> gl_objs = { inpImg, outImg };
     mQueue.enqueueAcquireGLObjects(&gl_objs);
 	size_t time = gradient(inpImg, outImg);

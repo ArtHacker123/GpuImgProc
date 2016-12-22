@@ -17,12 +17,17 @@ public:
     size_t process(const cl::ImageGL& inImage, cl::ImageGL& outImage, float minThresh, float maxThresh);
 
 private:
+    void init();
+    void loadGaussCoeffs();
     void createIntImages(size_t w, size_t h);
+    void checkLocalGroupSizes(size_t w, size_t h);
     size_t eigen(const cl::Image& inpImg, cl::Image& outImg);
     size_t gradient(const cl::Image& inpImg, cl::Image& outImg);
     size_t suppress(const cl::Image& inpImg, cl::Image& outImg, float value);
 
 private:
+    size_t mSizeX;
+    size_t mSizeY;
     cl::Context& mContext;
     cl::CommandQueue& mQueue;
 

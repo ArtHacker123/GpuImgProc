@@ -8,23 +8,23 @@ const char HarrisCornerPrv::sSource[] = OCL_PROGRAM_SOURCE(
 
 kernel void gradient(read_only image2d_t inpImg, write_only image2d_t ixiyImg)
 {
-    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_LINEAR;
-    local float sh_img_data[18][18];
+    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE|CLK_ADDRESS_CLAMP|CLK_FILTER_LINEAR;
+    local float sh_img_data[BLK_SIZE_Y+2][BLK_SIZE_X+2];
 
-    const int x = (get_group_id(0) << 4) - 1;
-    const int y = (get_group_id(1) << 4) - 1;
+    const int x = (get_group_id(0)*get_local_size(0))-1;
+    const int y = (get_group_id(1)*get_local_size(1))-1;
 
     for (int j = 0; j < 2; j++)
     {
-        int n = get_local_id(1) + (j*get_local_size(1));
-        if (n < 18)
+        int n = get_local_id(1)+(j*get_local_size(1));
+        if (n < (BLK_SIZE_Y+2))
         {
             for (int i = 0; i < 2; i++)
             {
                 int m = get_local_id(0) + (i*get_local_size(0));
-                if (m < 18)
+                if (m < (BLK_SIZE_X+2))
                 {
-                    int2 coord = (int2)(x + m, y + n);
+                    int2 coord = (int2)(x+m, y+n);
                     sh_img_data[n][m] = read_imagef(inpImg, sampler, coord).x;
                     coord.x += get_local_size(0);
                 }
@@ -53,7 +53,7 @@ kernel void gradient(read_only image2d_t inpImg, write_only image2d_t ixiyImg)
 kernel void eigen(read_only image2d_t inpImg, write_only image2d_t mImg, global const float* p_coeffs)
 {
     local float sh_coeffs[25];
-    local float2 sh_img_data[20][20];
+    local float2 sh_img_data[BLK_SIZE_Y+4][BLK_SIZE_X+4];
     const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_LINEAR;
 
     int index = (get_local_size(0)*get_local_id(1)) + get_local_id(0);
@@ -63,18 +63,18 @@ kernel void eigen(read_only image2d_t inpImg, write_only image2d_t mImg, global 
     }
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    const int x = (get_group_id(0) << 4) - 2;
-    const int y = (get_group_id(1) << 4) - 2;
+    const int x = (get_group_id(0)*get_local_size(0))-2;
+    const int y = (get_group_id(1)*get_local_size(1))-2;
 
     for (int j = 0; j < 2; j++)
     {
         int n = get_local_id(1) + (j*get_local_size(1));
-        if (n < 20)
+        if (n < (BLK_SIZE_Y+4))
         {
             for (int i = 0; i < 2; i++)
             {
                 int m = get_local_id(0) + (i*get_local_size(0));
-                if (m < 20)
+                if (m < (BLK_SIZE_X+4))
                 {
                     int2 coord = (int2)(x + m, y + n);
                     sh_img_data[n][m] = read_imagef(inpImg, sampler, coord).xy;
@@ -109,21 +109,21 @@ kernel void eigen(read_only image2d_t inpImg, write_only image2d_t mImg, global 
 
 kernel void suppress_non_max(read_only image2d_t inpImg, write_only image2d_t outImg, float limit)
 {
-    local float shImgData[18][18];
+    local float shImgData[BLK_SIZE_Y+2][BLK_SIZE_X+2];
     const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_LINEAR;
 
-    const int x = (get_group_id(0) << 4) - 1;
-    const int y = (get_group_id(1) << 4) - 1;
+    const int x = (get_group_id(0)*get_local_size(0))-1;
+    const int y = (get_group_id(1)*get_local_size(1))-1;
 
     for (int j = 0; j < 2; j++)
     {
         int n = get_local_id(1) + (j*get_local_size(1));
-        if (n < 18)
+        if (n < (BLK_SIZE_Y+2))
         {
             for (int i = 0; i < 2; i++)
             {
                 int m = get_local_id(0) + (i*get_local_size(0));
-                if (m < 18)
+                if (m < (BLK_SIZE_X+2))
                 {
                     int2 coord = (int2)(x + m, y + n);
                     shImgData[n][m] = read_imagef(inpImg, sampler, coord).x;

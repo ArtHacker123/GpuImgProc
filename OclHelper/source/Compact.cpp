@@ -70,9 +70,9 @@ inline void block_scan(const int i, local volatile int* sh_data)
 		sh_data[SH_MEM_SIZE] = 0;
 	}
 
-	if (i < 8)
+	if (i < ((SH_MEM_SIZE/WARP_SIZE)-1))
 	{
-		sh_data[SH_MEM_SIZE + i + 1] = sh_data[(i*WARP_SIZE) + (WARP_SIZE - 1)];
+		sh_data[SH_MEM_SIZE+i+1] = sh_data[(i*WARP_SIZE) + (WARP_SIZE - 1)];
 	}
 	barrier(CLK_LOCAL_MEM_FENCE);
 

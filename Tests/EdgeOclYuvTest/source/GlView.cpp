@@ -2,12 +2,12 @@
 
 GlView::GlView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queue)
     :mCtxtCL(ctxt),
-    mQueueCL(queue),
-    mCanny(ctxt, queue),
-    mYuvImg(w, h),
-    mEdgeImg(w, h, GL_R32F, GL_FLOAT),
-    minThresh((float)(20.0/256.0)),
-    maxThresh((float)(70.0/256.0))
+     mQueueCL(queue),
+     mCanny(ctxt, queue),
+     mYuvImg(w, h),
+     mEdgeImg(w, h, GL_R32F, GL_FLOAT),
+     minThresh((float)(20.0/256.0)),
+     maxThresh((float)(70.0/256.0))
 {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);

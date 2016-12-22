@@ -9,20 +9,20 @@ const char CannyEdgePrv::sSource[] = OCL_PROGRAM_SOURCE(
 kernel void gradient(read_only image2d_t inpImg, write_only image2d_t outImg)
 {
     const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_LINEAR;
-    local float sh_img_data[10][10];
+    local float sh_img_data[BLK_SIZE_Y+2][BLK_SIZE_X+2];
 
-    const int x = (get_group_id(0) << 3) - 1;
-    const int y = (get_group_id(1) << 3) - 1;
+    const int x = (get_group_id(0)*get_local_size(0)) - 1;
+    const int y = (get_group_id(1)*get_local_size(1)) - 1;
 
     for (int j = 0; j < 2; j++)
     {
         int n = get_local_id(1) + (j*get_local_size(1));
-        if (n < 10)
+        if (n < (BLK_SIZE_Y+2))
         {
             for (int i = 0; i < 2; i++)
             {
                 int m = get_local_id(0) + (i*get_local_size(0));
-                if (m < 10)
+                if (m < (BLK_SIZE_X+2))
                 {
                     int2 coord = (int2)(x + m, y + n);
                     sh_img_data[n][m] = read_imagef(inpImg, sampler, coord).x;

@@ -21,6 +21,7 @@
     <ClInclude Include="include\Scan.h" />
     <ClInclude Include="source\CannyEdgePrv.h" />
     <ClInclude Include="source\HarrisCornerPrv.h" />
+    <ClInclude Include="source\OclUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\CannyEdge.cpp" />
@@ -33,6 +34,7 @@
     <ClCompile Include="source\HistogramRGB.cpp" />
     <ClCompile Include="source\ReduceSum.cpp" />
     <ClCompile Include="source\Scan.cpp" />
+    <ClCompile Include="source\OclUtils.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{7761EAC9-C421-462B-8287-B92019AFB46A}</ProjectGuid>
