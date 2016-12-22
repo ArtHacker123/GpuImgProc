@@ -10,47 +10,47 @@ using namespace Ocl;
 const char HistogramRGB::sSource[] = OCL_PROGRAM_SOURCE(
 kernel void histogram_temp_rgb_float(read_only image2d_t image, global unsigned int *hist_data)
 {
-	local int sh_data[3*256];
-	int lindex = (get_local_id(1)*get_local_size(0)) + get_local_id(0);
-	if (lindex < 256)
-	{
-		sh_data[lindex] = 0;
-		sh_data[256+lindex] = 0;
-		sh_data[512+lindex] = 0;
-	}
-	barrier(CLK_LOCAL_MEM_FENCE);
+    local int sh_data[3*256];
+    int lindex = (get_local_id(1)*get_local_size(0)) + get_local_id(0);
+    if (lindex < 256)
+    {
+        sh_data[lindex] = 0;
+        sh_data[256+lindex] = 0;
+        sh_data[512+lindex] = 0;
+    }
+    barrier(CLK_LOCAL_MEM_FENCE);
 
-	int2 coord;
-	coord.x = (get_global_id(0)<<2);
-	coord.y = get_global_id(1)<<2;
-	if (coord.x < get_image_width(image) && coord.y < get_image_height(image))
-	{
-		for (int i = 0; i < 4; i++)
-		{
-			coord.y = get_global_id(1)<<2;
-			for (int j = 0; j < 4; j++)
-			{
-				atomic_inc(&sh_data[(int)ceil(255.0*read_imagef(image, coord).x)]);
-				atomic_inc(&sh_data[256+(int)ceil(255.0*read_imagef(image, coord).y)]);
-				atomic_inc(&sh_data[512+(int)ceil(255.0*read_imagef(image, coord).z)]);
-				++coord.y;
-			}
-			++coord.x;
-		}
-	}
-	barrier(CLK_LOCAL_MEM_FENCE);
-	int max_offset = get_num_groups(0)*get_num_groups(1);
-	int offset = (get_group_id(1)*get_num_groups(0)) + get_group_id(0);
-	if (lindex < 256 && offset < max_offset)
-	{
+    int2 coord;
+    coord.x = (get_global_id(0)<<2);
+    coord.y = get_global_id(1)<<2;
+    if (coord.x < get_image_width(image) && coord.y < get_image_height(image))
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            coord.y = get_global_id(1)<<2;
+            for (int j = 0; j < 4; j++)
+            {
+                atomic_inc(&sh_data[(int)ceil(255.0*read_imagef(image, coord).x)]);
+                atomic_inc(&sh_data[256+(int)ceil(255.0*read_imagef(image, coord).y)]);
+                atomic_inc(&sh_data[512+(int)ceil(255.0*read_imagef(image, coord).z)]);
+                ++coord.y;
+            }
+            ++coord.x;
+        }
+    }
+    barrier(CLK_LOCAL_MEM_FENCE);
+    int max_offset = get_num_groups(0)*get_num_groups(1);
+    int offset = (get_group_id(1)*get_num_groups(0)) + get_group_id(0);
+    if (lindex < 256 && offset < max_offset)
+    {
         int off_index = (max_offset*lindex) + offset;
         hist_data[off_index] = sh_data[lindex];
         off_index += (max_offset * 256);
         hist_data[off_index] = sh_data[256 + lindex];
         off_index += (max_offset * 256);
         hist_data[off_index] = sh_data[512 + lindex];
-	}
-	//barrier(CLK_GLOBAL_MEM_FENCE);
+    }
+    //barrier(CLK_GLOBAL_MEM_FENCE);
 }
 
 kernel void histogram_temp_rgb_uint8(read_only image2d_t image, global unsigned int *hist_data)
@@ -132,8 +132,8 @@ kernel void accum_histogram_rgb(global const int *p_int_hist_data, global int *p
 );
 
 HistogramRGB::HistogramRGB(cl::Context& ctxt, cl::CommandQueue& queue)
-	:mContext(ctxt),
-	 mQueue(queue)
+    :mContext(ctxt),
+     mQueue(queue)
 {
     try
     {
@@ -241,12 +241,12 @@ size_t HistogramRGB::accumTempHist(size_t count, Ocl::DataBuffer<int>& rgbBins)
 size_t HistogramRGB::compute(const cl::ImageGL& image, Ocl::DataBuffer<int>& rgbBins)
 {
     size_t count = 0;
-	std::vector<cl::Memory> gl_objs = { image };
-	mQueue.enqueueAcquireGLObjects(&gl_objs);
+    std::vector<cl::Memory> gl_objs = { image };
+    mQueue.enqueueAcquireGLObjects(&gl_objs);
     size_t time = computeTempHist(image, count);
-	mQueue.enqueueReleaseGLObjects(&gl_objs);
+    mQueue.enqueueReleaseGLObjects(&gl_objs);
     time += accumTempHist(count, rgbBins);
-	return time;
+    return time;
 }
 
 size_t HistogramRGB::compute(const cl::Image2D& image, Ocl::DataBuffer<int>& rgbBins)
