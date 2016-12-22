@@ -16,6 +16,8 @@ inline void block_reduce_sum(local volatile int sh_data[SH_MEM_SIZE])
     barrier(CLK_LOCAL_MEM_FENCE);
 
     if (get_local_id(0) < 32) sh_data[get_local_id(0)] += sh_data[32 + get_local_id(0)];
+	barrier(CLK_LOCAL_MEM_FENCE);
+
     if (get_local_id(0) < 16) sh_data[get_local_id(0)] += sh_data[16 + get_local_id(0)];
     if (get_local_id(0) < 8) sh_data[get_local_id(0)] += sh_data[8 + get_local_id(0)];
     if (get_local_id(0) < 4) sh_data[get_local_id(0)] += sh_data[4 + get_local_id(0)];
