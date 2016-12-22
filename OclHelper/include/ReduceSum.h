@@ -28,7 +28,7 @@ private:
 
     cl::Kernel mKernel;
     cl::Program mProgram;
-    std::unique_ptr<cl::Buffer> mIntBuff;
+    std::unique_ptr< Ocl::DataBuffer<int> > mBuff;
 
     static const char sSource[];
 };

@@ -70,15 +70,14 @@ void ReduceSum::createIntBuffer(size_t buffSize)
 {
     size_t memSize = 0;
     size_t intBuffSize = (buffSize/mBlkSize)+(((buffSize%mBlkSize)==0)?0:1);
-    if (mIntBuff.get() != 0)
+    if (mBuff.get() != 0)
     {
-        mIntBuff->getInfo<size_t>(CL_MEM_SIZE, &memSize);
-        memSize /= sizeof(int);
+        memSize = mBuff->count();
     }
 
     if (memSize < intBuffSize)
     {
-        mIntBuff.reset(new cl::Buffer(mContext, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, (size_t)(intBuffSize*sizeof(int))));
+        mBuff.reset(new Ocl::DataBuffer<int>(mContext, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, intBuffSize));
     }
 }
 
@@ -91,7 +90,7 @@ int ReduceSum::process(Ocl::DataBuffer<int>& buffer)
 
     mKernel.setArg(0, buffer.buffer());
     mKernel.setArg(1, (int)buffSize);
-    mKernel.setArg(2, *mIntBuff);
+    mKernel.setArg(2, mBuff->buffer());
 
     size_t buffSize1 = buffSize/4;
     size_t globalSize = ((buffSize1/mBlkSize)+(((buffSize1%mBlkSize) == 0)?0:1))*mBlkSize;
@@ -102,9 +101,9 @@ int ReduceSum::process(Ocl::DataBuffer<int>& buffer)
     size_t groupCount = (buffSize/mBlkSize)+(((buffSize%mBlkSize)==0)?0:1);
     while (groupCount > 1)
     {
-        mKernel.setArg(0, *mIntBuff);
+        mKernel.setArg(0, mBuff->buffer());
         mKernel.setArg(1, (int)groupCount);
-        mKernel.setArg(2, *mIntBuff);
+        mKernel.setArg(2, mBuff->buffer());
         size_t groupCount1 = (groupCount > 4)?(groupCount/4):1;
         globalSize = ((groupCount1/mBlkSize)+(((groupCount1%mBlkSize)==0)?0:1))*mBlkSize;
         mQueue.enqueueNDRangeKernel(mKernel, cl::NullRange, cl::NDRange(globalSize), cl::NDRange(mBlkSize), NULL, &event);
@@ -114,9 +113,9 @@ int ReduceSum::process(Ocl::DataBuffer<int>& buffer)
     }
 
     int retValue;
-    int* pData = (int *)mQueue.enqueueMapBuffer(*mIntBuff, CL_TRUE, CL_MAP_READ, 0, sizeof(int));
+    int* pData = mBuff->map(mQueue, CL_TRUE, CL_MAP_READ, 0, sizeof(int));
     retValue = *pData;
-    mQueue.enqueueUnmapMemObject(*mIntBuff, pData);
+    mBuff->unmap(mQueue, pData);
 
     return retValue;
 }
