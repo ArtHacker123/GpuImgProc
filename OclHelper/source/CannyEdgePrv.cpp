@@ -5,11 +5,13 @@
 using namespace Ocl;
 
 CannyEdgePrv::CannyEdgePrv(cl::Context& ctxt, cl::CommandQueue& q)
-	:mSizeX(16),
-     mSizeY(16),
+    :mWidth(0),
+     mHeight(0),
+     mLocSizeX(16),
+     mLocSizeY(16),
      mContext(ctxt),
-	 mQueue(q),
-	 mCoeffBuff(mContext, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, 25)
+     mQueue(q),
+     mCoeffBuff(mContext, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, 25)
 {
     try
     {
@@ -54,105 +56,88 @@ void CannyEdgePrv::loadGaussCoeffs()
     mCoeffBuff.unmap(mQueue, pCoeff);
 }
 
-void CannyEdgePrv::createIntImages(size_t w, size_t h)
+void CannyEdgePrv::createIntImages(const cl::Image& inpImg)
 {
-	size_t width = 0, height = 0;
-	if (mGradImg.get() != 0)
-	{
-		mGradImg->getImageInfo<size_t>(CL_IMAGE_WIDTH, &width);
-		mGradImg->getImageInfo<size_t>(CL_IMAGE_HEIGHT, &height);
-	}
+    size_t w = 0, h = 0;
+    inpImg.getImageInfo<size_t>(CL_IMAGE_WIDTH, &mWidth);
+    inpImg.getImageInfo<size_t>(CL_IMAGE_HEIGHT, &mHeight);
 
-	if (w != width || h != height)
-	{
-		mGradImg.reset(new cl::Image2D(mContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_RG, CL_FLOAT), w, h));
-		mGaussImg.reset(new cl::Image2D(mContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), w, h));
-        mNmesImg.reset(new cl::Image2D(mContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), w, h));
-	}
+    if (mGradImg.get() != 0)
+    {
+        mGradImg->getImageInfo<size_t>(CL_IMAGE_WIDTH, &w);
+        mGradImg->getImageInfo<size_t>(CL_IMAGE_HEIGHT, &h);
+    }
+
+    if (w != mWidth || h != mHeight)
+    {
+        mGradImg.reset(new cl::Image2D(mContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_RG, CL_FLOAT), mWidth, mHeight));
+        mGaussImg.reset(new cl::Image2D(mContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), mWidth, mHeight));
+        mNmesImg.reset(new cl::Image2D(mContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), mWidth, mHeight));
+    }
+
+    checkLocalGroupSizes();
 }
 
 size_t CannyEdgePrv::gradient(const cl::Image& inpImg, cl::Image& outImg)
 {
-	cl::Event event;
-	size_t width, height;
-	inpImg.getImageInfo<size_t>(CL_IMAGE_WIDTH, &width);
-	inpImg.getImageInfo<size_t>(CL_IMAGE_HEIGHT, &height);
-    size_t shMemSize = (mSizeX+2)*(mSizeY+2)*sizeof(float);
-	mGradKernel.setArg(0, inpImg);
-	mGradKernel.setArg(1, outImg);
+    cl::Event event;
+    size_t shMemSize = (mLocSizeX+2)*(mLocSizeY+2)*sizeof(float);
+    mGradKernel.setArg(0, inpImg);
+    mGradKernel.setArg(1, outImg);
     mGradKernel.setArg(2, shMemSize, 0);
-	mQueue.enqueueNDRangeKernel(mGradKernel, cl::NullRange, cl::NDRange(width, height), cl::NDRange(mSizeX, mSizeY), NULL, &event);
-	event.wait();
-	return (event.getProfilingInfo<CL_PROFILING_COMMAND_END>() - event.getProfilingInfo<CL_PROFILING_COMMAND_START>());
+    mQueue.enqueueNDRangeKernel(mGradKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
+    event.wait();
+    return kernelExecTime(mQueue, event);
 }
 
 size_t CannyEdgePrv::gauss(const cl::Image& inpImg, cl::Image& outImg)
 {
-	cl::Event event;
-	size_t width, height;
-	inpImg.getImageInfo<size_t>(CL_IMAGE_WIDTH, &width);
-	inpImg.getImageInfo<size_t>(CL_IMAGE_HEIGHT, &height);
-    size_t shMemSize = (mSizeX+4)*(mSizeY+4)*sizeof(float);
-	mGaussKernel.setArg(0, inpImg);
-	mGaussKernel.setArg(1, outImg);
-	mGaussKernel.setArg(2, mCoeffBuff);
+    cl::Event event;
+    size_t shMemSize = (mLocSizeX+4)*(mLocSizeY+4)*sizeof(float);
+    mGaussKernel.setArg(0, inpImg);
+    mGaussKernel.setArg(1, outImg);
+    mGaussKernel.setArg(2, mCoeffBuff);
     mGaussKernel.setArg(3, shMemSize, 0);
-	mQueue.enqueueNDRangeKernel(mGaussKernel, cl::NullRange, cl::NDRange(width, height), cl::NDRange(mSizeX, mSizeY), NULL, &event);
-	event.wait();
-	return (event.getProfilingInfo<CL_PROFILING_COMMAND_END>() - event.getProfilingInfo<CL_PROFILING_COMMAND_START>());
+    mQueue.enqueueNDRangeKernel(mGaussKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
+    event.wait();
+    return kernelExecTime(mQueue, event);
 }
 
 size_t CannyEdgePrv::suppress(const cl::Image& inpImg, cl::Image& outImg)
 {
-	cl::Event event;
-	size_t width, height;
-	inpImg.getImageInfo<size_t>(CL_IMAGE_WIDTH, &width);
-	inpImg.getImageInfo<size_t>(CL_IMAGE_HEIGHT, &height);
-    size_t shMemSize = 2*(mSizeX+4)*(mSizeY+4)*sizeof(float);
-
-	mNmesKernel.setArg(0, inpImg);
-	mNmesKernel.setArg(1, outImg);
-	mNmesKernel.setArg(2, shMemSize, 0);
-	mQueue.enqueueNDRangeKernel(mNmesKernel, cl::NullRange, cl::NDRange(width, height), cl::NDRange(mSizeX, mSizeY), NULL, &event);
-	event.wait();
-	return (event.getProfilingInfo<CL_PROFILING_COMMAND_END>() - event.getProfilingInfo<CL_PROFILING_COMMAND_START>());
+    cl::Event event;
+    size_t shMemSize = 2*(mLocSizeX+4)*(mLocSizeY+4)*sizeof(float);
+    mNmesKernel.setArg(0, inpImg);
+    mNmesKernel.setArg(1, outImg);
+    mNmesKernel.setArg(2, shMemSize, 0);
+    mQueue.enqueueNDRangeKernel(mNmesKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
+    event.wait();
+    return kernelExecTime(mQueue, event);
 }
 
-void CannyEdgePrv::checkLocalGroupSizes(size_t w, size_t h)
+void CannyEdgePrv::checkLocalGroupSizes()
 {
-    size_t xSize = Ocl::localGroupSize(w);
-    size_t ySize = Ocl::localGroupSize(h);
-    if (xSize != mSizeX || ySize != mSizeY)
-    {
-        mSizeX = xSize;
-        mSizeY = ySize;
-    }
+    mLocSizeX = Ocl::localGroupSize(mWidth);
+    mLocSizeY = Ocl::localGroupSize(mHeight);
 }
 
 size_t CannyEdgePrv::binaryThreshold(const cl::Image& inpImg, cl::Image& outImg, float minThresh, float maxThresh)
 {
-	cl::Event event;
-	size_t width, height;
-	inpImg.getImageInfo<size_t>(CL_IMAGE_WIDTH, &width);
-	inpImg.getImageInfo<size_t>(CL_IMAGE_HEIGHT, &height);
-    size_t shMemSize = (mSizeX+2)*(mSizeY+2)*sizeof(float);
+    cl::Event event;
+    size_t shMemSize = (mLocSizeX+2)*(mLocSizeY+2)*sizeof(float);
     mBinThreshKernel.setArg(0, inpImg);
     mBinThreshKernel.setArg(1, outImg);
     mBinThreshKernel.setArg(2, minThresh);
     mBinThreshKernel.setArg(3, maxThresh);
     mBinThreshKernel.setArg(4, shMemSize, 0);
-	mQueue.enqueueNDRangeKernel(mBinThreshKernel, cl::NullRange, cl::NDRange(width, height), cl::NDRange(mSizeX, mSizeY), NULL, &event);
-	event.wait();
-	return (event.getProfilingInfo<CL_PROFILING_COMMAND_END>() - event.getProfilingInfo<CL_PROFILING_COMMAND_START>());
+    mQueue.enqueueNDRangeKernel(mBinThreshKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
+    event.wait();
+    return kernelExecTime(mQueue, event);
 }
 
 size_t CannyEdgePrv::process(const cl::Image2D& inpImg, cl::Image2D& outImg, float minThresh, float maxThresh)
 {
-    size_t width, height;
-    inpImg.getImageInfo<size_t>(CL_IMAGE_WIDTH, &width);
-    inpImg.getImageInfo<size_t>(CL_IMAGE_HEIGHT, &height);
-    createIntImages(width, height);
-    checkLocalGroupSizes(width, height);
+    createIntImages(inpImg);
     size_t time = gauss(inpImg, *mGaussImg);
     time += gradient(*mGaussImg, *mGradImg);
     time += suppress(*mGradImg, *mNmesImg);
@@ -162,14 +147,10 @@ size_t CannyEdgePrv::process(const cl::Image2D& inpImg, cl::Image2D& outImg, flo
 
 size_t CannyEdgePrv::process(const cl::ImageGL& inpImg, cl::ImageGL& outImg, float minThresh, float maxThresh)
 {
-	size_t width, height;
-	inpImg.getImageInfo<size_t>(CL_IMAGE_WIDTH, &width);
-	inpImg.getImageInfo<size_t>(CL_IMAGE_HEIGHT, &height);
-	createIntImages(width, height);
-    checkLocalGroupSizes(width, height);
+    createIntImages(inpImg);
     std::vector<cl::Memory> gl_objs = { inpImg, outImg };
     mQueue.enqueueAcquireGLObjects(&gl_objs);
-	size_t time = gauss(inpImg, *mGaussImg);
+    size_t time = gauss(inpImg, *mGaussImg);
     time += gradient(*mGaussImg, *mGradImg);
     time += suppress(*mGradImg, *mNmesImg);
     time += binaryThreshold(*mNmesImg, outImg, minThresh, maxThresh);

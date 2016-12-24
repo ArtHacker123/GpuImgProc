@@ -19,16 +19,18 @@ public:
 private:
     void init();
     void loadGaussCoeffs();
-    void createIntImages(size_t w, size_t h);
-    void checkLocalGroupSizes(size_t w, size_t h);
+    void checkLocalGroupSizes();
+    void createIntImages(const cl::Image& inpImg);
     size_t gauss(const cl::Image& inpImg, cl::Image& outImg);
     size_t gradient(const cl::Image& inpImg, cl::Image& outImg);
     size_t suppress(const cl::Image& inpImg, cl::Image& outImg);
     size_t binaryThreshold(const cl::Image& inpImg, cl::Image& outImg, float minThresh, float maxThresh);
 
 private:
-    size_t mSizeX;
-    size_t mSizeY;
+    size_t mWidth;
+    size_t mHeight;
+    size_t mLocSizeX;
+    size_t mLocSizeY;
     cl::Context& mContext;
     cl::CommandQueue& mQueue;
 

@@ -21,9 +21,6 @@ void GlView::draw(uint8_t* pData)
 {
     mYuvImg.load(pData);
 
-    //Ogl::Image<GL_RG> image(640, 480, GL_RGBA32F, GL_UNSIGNED_BYTE);
-    //cl::ImageGL test(mCtxtCL, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, image.texture());
-
     cl::ImageGL outImgGL(mCtxtCL, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D, 0, mEdgeImg.texture());
     cl::ImageGL inpImgGL(mCtxtCL, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mYuvImg.yImage().texture());
 

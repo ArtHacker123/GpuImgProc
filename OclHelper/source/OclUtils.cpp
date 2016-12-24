@@ -14,3 +14,14 @@ size_t Ocl::localGroupSize(size_t size)
 
     return 0;
 }
+
+size_t Ocl::kernelExecTime(cl::CommandQueue& queue, cl::Event& event)
+{
+    cl_command_queue_properties qProp;
+    queue.getInfo<cl_command_queue_properties>(CL_QUEUE_PROPERTIES, &qProp);
+    if (qProp & CL_QUEUE_PROFILING_ENABLE)
+    {
+        return (event.getProfilingInfo<CL_PROFILING_COMMAND_END>() - event.getProfilingInfo<CL_PROFILING_COMMAND_START>());
+    }
+    return 0;
+}
