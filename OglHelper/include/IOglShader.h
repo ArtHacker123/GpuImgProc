@@ -9,30 +9,30 @@ namespace Ogl
 
 class IShader
 {
-	friend class UseShader;
+    friend class UseShader;
     friend class UseShaderImage;
 public:
-	virtual ~IShader() {};
-	
-	void activate(GLenum tex) { mPgm->use(); ApplyParameters(tex); };
-	void deactivate() { mPgm->release(); };
-	GLint GetAttribLocation(const GLchar* name) { return mPgm->GetAttribLocation(name); };
+    virtual ~IShader() {};
+    
+    void activate(GLenum tex) { mPgm->use(); ApplyParameters(tex); };
+    void deactivate() { mPgm->release(); };
+    GLint GetAttribLocation(const GLchar* name) { return mPgm->GetAttribLocation(name); };
 
 protected:
-	virtual void ApplyParameters(GLenum tex) = 0;
+    virtual void ApplyParameters(GLenum tex) = 0;
 
 protected:
-	std::unique_ptr<Ogl::Program> mPgm;
+    std::unique_ptr<Ogl::Program> mPgm;
 };
 
 class UseShader
 {
 public:
-	UseShader(Ogl::IShader& shader);
-	~UseShader();
+    UseShader(Ogl::IShader& shader);
+    ~UseShader();
 
 private:
-	Ogl::IShader& mShader;
+    Ogl::IShader& mShader;
 };
 
 class UseShaderImage

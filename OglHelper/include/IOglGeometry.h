@@ -11,19 +11,19 @@ namespace Ogl
 class IGeometry
 {
 public:
-	struct Rect
-	{
-		int x;
-		int y;
-		int width;
-		int height;
-	};
+    struct Rect
+    {
+        int x;
+        int y;
+        int width;
+        int height;
+    };
 
-	virtual ~IGeometry() {};
+    virtual ~IGeometry() {};
 
 public:
-	virtual void draw(Ogl::IShader& shader, const Ogl::IImage& img) = 0;
-	virtual void draw(Ogl::IShader& shader, const Rect& rect, const Ogl::IImage& img) = 0;
+    virtual void draw(Ogl::IShader& shader, const Ogl::IImage& img) = 0;
+    virtual void draw(Ogl::IShader& shader, const Rect& rect, const Ogl::IImage& img) = 0;
 
 };
 

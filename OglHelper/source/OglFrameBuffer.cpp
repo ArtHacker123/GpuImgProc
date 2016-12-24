@@ -3,22 +3,22 @@
 using namespace Ogl;
 
 FrameBuffer::FrameBuffer()
-	:mFb(0)
+    :mFb(0)
 {
-	glGenFramebuffers(1, &mFb);
+    glGenFramebuffers(1, &mFb);
 }
 
 FrameBuffer::~FrameBuffer()
 {
-	glDeleteFramebuffers(1, &mFb);
+    glDeleteFramebuffers(1, &mFb);
 }
 
 void FrameBuffer::bind(GLenum target)
 {
-	glBindFramebuffer(target, mFb);
+    glBindFramebuffer(target, mFb);
 }
 
 void FrameBuffer::release(GLenum target)
 {
-	glBindFramebuffer(target, 0);
+    glBindFramebuffer(target, 0);
 }

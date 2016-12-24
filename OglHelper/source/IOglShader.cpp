@@ -15,18 +15,18 @@ UseShader::~UseShader()
 }
 
 UseShaderImage::UseShaderImage(Ogl::IShader& shader, const Ogl::IImage& img, GLenum tex)
-	:mShader(shader),
+    :mShader(shader),
      mImage(img),
-	 mActTex(tex)
+     mActTex(tex)
 {
-	mShader.mPgm->use();
+    mShader.mPgm->use();
     mImage.bind(mActTex);
-	mShader.ApplyParameters(mActTex);
+    mShader.ApplyParameters(mActTex);
 }
 
 UseShaderImage::~UseShaderImage()
 {
-	glUseProgram(0);
-	mImage.unbind(mActTex);
+    glUseProgram(0);
+    mImage.unbind(mActTex);
 }
 
