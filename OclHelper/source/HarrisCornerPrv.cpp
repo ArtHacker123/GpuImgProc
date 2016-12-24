@@ -5,7 +5,9 @@
 using namespace Ocl;
 
 HarrisCornerPrv::HarrisCornerPrv(cl::Context& ctxt, cl::CommandQueue& q)
-    :mLocSizeX(16),
+    :mWidth(0),
+     mHeight(0),
+     mLocSizeX(16),
      mLocSizeY(16),
      mContext(ctxt),
      mQueue(q),
@@ -58,10 +60,10 @@ void HarrisCornerPrv::loadGaussCoeffs()
     mCoeffBuff.unmap(mQueue, pCoeff);
 }
 
-void HarrisCornerPrv::checkLocalGroupSizes(size_t w, size_t h)
+void HarrisCornerPrv::checkLocalGroupSizes()
 {
-    size_t xSize = Ocl::localGroupSize(w);
-    size_t ySize = Ocl::localGroupSize(h);
+    size_t xSize = Ocl::localGroupSize(mWidth);
+    size_t ySize = Ocl::localGroupSize(mHeight);
     if (xSize != mLocSizeX || ySize != mLocSizeY)
     {
         mLocSizeX = xSize;
@@ -70,72 +72,62 @@ void HarrisCornerPrv::checkLocalGroupSizes(size_t w, size_t h)
     }
 }
 
-void HarrisCornerPrv::createIntImages(size_t w, size_t h)
+void HarrisCornerPrv::createIntImages(const cl::Image& inpImg)
 {
-    size_t width = 0, height = 0;
+    size_t w = 0, h = 0;
+    inpImg.getImageInfo<size_t>(CL_IMAGE_WIDTH, &mWidth);
+    inpImg.getImageInfo<size_t>(CL_IMAGE_HEIGHT, &mHeight);
+
     if (mIxIyImg.get() != 0)
     {
-        mIxIyImg->getImageInfo<size_t>(CL_IMAGE_WIDTH, &width);
-        mIxIyImg->getImageInfo<size_t>(CL_IMAGE_HEIGHT, &height);
+        mIxIyImg->getImageInfo<size_t>(CL_IMAGE_WIDTH, &w);
+        mIxIyImg->getImageInfo<size_t>(CL_IMAGE_HEIGHT, &h);
     }
 
-    if (w != width || h != height)
+    if (w != mWidth || h != mHeight)
     {
-        mIxIyImg.reset(new cl::Image2D(mContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_RG, CL_FLOAT), w, h));
-        mEigenImg.reset(new cl::Image2D(mContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), w, h));
-        mCornerImg.reset(new cl::Image2D(mContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_HALF_FLOAT), w, h));
+        mIxIyImg.reset(new cl::Image2D(mContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_RG, CL_FLOAT), mWidth, mHeight));
+        mEigenImg.reset(new cl::Image2D(mContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), mWidth, mHeight));
+        mCornerImg.reset(new cl::Image2D(mContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), mWidth, mHeight));
     }
+    checkLocalGroupSizes();
 }
 
 size_t HarrisCornerPrv::gradient(const cl::Image& inpImg, cl::Image& outImg)
 {
     cl::Event event;
-    size_t width, height;
-    inpImg.getImageInfo<size_t>(CL_IMAGE_WIDTH, &width);
-    inpImg.getImageInfo<size_t>(CL_IMAGE_HEIGHT, &height);
     mGradKernel.setArg(0, inpImg);
     mGradKernel.setArg(1, outImg);
-    mQueue.enqueueNDRangeKernel(mGradKernel, cl::NullRange, cl::NDRange(width, height), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
+    mQueue.enqueueNDRangeKernel(mGradKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
     event.wait();
-    return (event.getProfilingInfo<CL_PROFILING_COMMAND_END>() - event.getProfilingInfo<CL_PROFILING_COMMAND_START>());
+    return kernelExecTime(mQueue, event);
 }
 
 size_t HarrisCornerPrv::eigen(const cl::Image& inpImg, cl::Image& outImg)
 {
     cl::Event event;
-    size_t width, height;
-    inpImg.getImageInfo<size_t>(CL_IMAGE_WIDTH, &width);
-    inpImg.getImageInfo<size_t>(CL_IMAGE_HEIGHT, &height);
-
     mEigenKernel.setArg(0, inpImg);
     mEigenKernel.setArg(1, outImg);
     mEigenKernel.setArg(2, mCoeffBuff.buffer());
-    mQueue.enqueueNDRangeKernel(mEigenKernel, cl::NullRange, cl::NDRange(width, height), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
+    mQueue.enqueueNDRangeKernel(mEigenKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
     event.wait();
-    return (event.getProfilingInfo<CL_PROFILING_COMMAND_END>() - event.getProfilingInfo<CL_PROFILING_COMMAND_START>());
+    return kernelExecTime(mQueue, event);
 }
 
 size_t HarrisCornerPrv::suppress(const cl::Image& inpImg, cl::Image& outImg, float value)
 {
     cl::Event event;
-    size_t width, height;
-    inpImg.getImageInfo<size_t>(CL_IMAGE_WIDTH, &width);
-    inpImg.getImageInfo<size_t>(CL_IMAGE_HEIGHT, &height);
     mCornerKernel.setArg(0, inpImg);
     mCornerKernel.setArg(1, outImg);
     mCornerKernel.setArg(2, value);
-    mQueue.enqueueNDRangeKernel(mCornerKernel, cl::NullRange, cl::NDRange(width, height), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
+    mQueue.enqueueNDRangeKernel(mCornerKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
     event.wait();
-    return (event.getProfilingInfo<CL_PROFILING_COMMAND_END>() - event.getProfilingInfo<CL_PROFILING_COMMAND_START>());
+    return kernelExecTime(mQueue, event);
 }
 
 size_t HarrisCornerPrv::process(const cl::Image2D& inpImg, Ocl::DataBuffer<Ocl::Pos>& corners, float value, size_t& count)
 {
-    size_t width, height;
-    inpImg.getImageInfo<size_t>(CL_IMAGE_WIDTH, &width);
-    inpImg.getImageInfo<size_t>(CL_IMAGE_HEIGHT, &height);
-    createIntImages(width, height);
-    checkLocalGroupSizes(width, height);
+    createIntImages(inpImg);
     size_t time = gradient(inpImg, *mIxIyImg);
     time += eigen(*mIxIyImg, *mEigenImg);
     time += suppress(*mEigenImg, *mCornerImg, value);
@@ -145,11 +137,7 @@ size_t HarrisCornerPrv::process(const cl::Image2D& inpImg, Ocl::DataBuffer<Ocl::
 
 size_t HarrisCornerPrv::process(const cl::ImageGL& inpImg, Ocl::DataBuffer<Ocl::Pos>& corners, float value, size_t& count)
 {
-    size_t width, height;
-    inpImg.getImageInfo<size_t>(CL_IMAGE_WIDTH, &width);
-    inpImg.getImageInfo<size_t>(CL_IMAGE_HEIGHT, &height);
-    createIntImages(width, height);
-    checkLocalGroupSizes(width, height);
+    createIntImages(inpImg);
     std::vector<cl::Memory> gl_objs = { inpImg };
     mQueue.enqueueAcquireGLObjects(&gl_objs);
     size_t time = gradient(inpImg, *mIxIyImg);
