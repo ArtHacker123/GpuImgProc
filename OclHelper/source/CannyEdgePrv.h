@@ -21,9 +21,10 @@ private:
     void loadGaussCoeffs();
     void createIntImages(size_t w, size_t h);
     void checkLocalGroupSizes(size_t w, size_t h);
-    size_t eigen(const cl::Image& inpImg, cl::Image& outImg);
+    size_t gauss(const cl::Image& inpImg, cl::Image& outImg);
     size_t gradient(const cl::Image& inpImg, cl::Image& outImg);
-    size_t suppress(const cl::Image& inpImg, cl::Image& outImg, float value);
+    size_t suppress(const cl::Image& inpImg, cl::Image& outImg);
+    size_t binaryThreshold(const cl::Image& inpImg, cl::Image& outImg, float minThresh, float maxThresh);
 
 private:
     size_t mSizeX;
@@ -34,14 +35,15 @@ private:
     cl::Program mPgm;
 
     cl::Kernel mGradKernel;
-    cl::Kernel mEigenKernel;
-    cl::Kernel mCornerKernel;
+    cl::Kernel mGaussKernel;
+    cl::Kernel mNmesKernel;
+    cl::Kernel mBinThreshKernel;
 
     Ocl::DataBuffer<float> mCoeffBuff;
 
-    std::unique_ptr<cl::Image2D> mIxIyImg;
-    std::unique_ptr<cl::Image2D> mEigenImg;
-    std::unique_ptr<cl::Image2D> mCornerImg;
+    std::unique_ptr<cl::Image2D> mGradImg;
+    std::unique_ptr<cl::Image2D> mGaussImg;
+    std::unique_ptr<cl::Image2D> mNmesImg;
 
     static const char sSource[];
 };

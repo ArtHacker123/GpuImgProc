@@ -6,149 +6,193 @@ using namespace Ocl;
 
 const char CannyEdgePrv::sSource[] = OCL_PROGRAM_SOURCE(
 
-kernel void gradient(read_only image2d_t inpImg, write_only image2d_t outImg)
+inline void loadImageData(read_only image2d_t inpImg, local float* shImgData, const int p, const int q)
 {
-    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_LINEAR;
-    local float sh_img_data[BLK_SIZE_Y+2][BLK_SIZE_X+2];
+    const int xwidth = get_local_size(0)+(p*2);
+    const int ywidth = get_local_size(1)+(q*2);
+    const int x = (get_group_id(0)*get_local_size(0))-p;
+    const int y = (get_group_id(1)*get_local_size(1))-q;
+    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE|CLK_ADDRESS_CLAMP|CLK_FILTER_LINEAR;
 
-    const int x = (get_group_id(0)*get_local_size(0)) - 1;
-    const int y = (get_group_id(1)*get_local_size(1)) - 1;
-
-    for (int j = 0; j < 2; j++)
+    for (int n = get_local_id(1); n < ywidth; n += get_local_size(1))
     {
-        int n = get_local_id(1) + (j*get_local_size(1));
-        if (n < (BLK_SIZE_Y+2))
+        for (int m = get_local_id(0); m < xwidth; m += get_local_size(0))
         {
-            for (int i = 0; i < 2; i++)
-            {
-                int m = get_local_id(0) + (i*get_local_size(0));
-                if (m < (BLK_SIZE_X+2))
-                {
-                    int2 coord = (int2)(x + m, y + n);
-                    sh_img_data[n][m] = read_imagef(inpImg, sampler, coord).x;
-                    coord.x += get_local_size(0);
-                }
-            }
+            shImgData[(n*xwidth)+m] = read_imagef(inpImg, sampler, (int2)(x+m, y+n)).x;
         }
     }
+}
+
+inline void loadImageDataFloat2(read_only image2d_t inpImg, local float2* shImgData, const int p, const int q)
+{
+    const int xwidth = get_local_size(0)+(p*2);
+    const int ywidth = get_local_size(1)+(q*2);
+    const int x = (get_group_id(0)*get_local_size(0))-p;
+    const int y = (get_group_id(1)*get_local_size(1))-q;
+    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE|CLK_ADDRESS_CLAMP|CLK_FILTER_LINEAR;
+
+    for (int n = get_local_id(1); n < ywidth; n += get_local_size(1))
+    {
+        for (int m = get_local_id(0); m < xwidth; m += get_local_size(0))
+        {
+            shImgData[(n*xwidth) + m] = read_imagef(inpImg, sampler, (int2)(x + m, y + n)).xy;
+        }
+    }
+}
+
+inline void loadCoeffs(global const float* pCoeffs, local float* shCoeffs, int count)
+{
+    int index = (get_local_size(0)*get_local_id(1)) + get_local_id(0);
+    if (index < count)
+    {
+        shCoeffs[index] = pCoeffs[index];
+    }
+}
+
+kernel void gradient(read_only image2d_t inpImg, write_only image2d_t outImg, local float* shImgData)
+{
+    loadImageData(inpImg, shImgData, 1, 1);
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    const int p = get_local_id(0) + 1;
-    const int q = get_local_id(1) + 1;
-    float ix = sh_img_data[q - 1][p + 1];
-    ix += sh_img_data[q + 1][p + 1];
-    ix -= sh_img_data[q - 1][p - 1];
-    ix -= sh_img_data[q + 1][p - 1];
-    ix += 2.0f*(sh_img_data[q][p + 1] - sh_img_data[q][p - 1]);
-    float iy = sh_img_data[q - 1][p - 1];
-    iy -= sh_img_data[q + 1][p - 1];
-    iy += sh_img_data[q - 1][p + 1];
-    iy -= sh_img_data[q + 1][p + 1];
-    iy += 2.0f*(sh_img_data[q - 1][p] - sh_img_data[q + 1][p]);
+    const int xwidth = get_local_size(0)+2;
+    int index = (xwidth*get_local_id(1))+get_local_id(0);
+
+    float ix = -shImgData[index];
+    float iy = shImgData[index];
+    iy += (2.0f*shImgData[index+1]);
+    ix += shImgData[index+2];
+    iy += shImgData[index+2];
+    index += xwidth;
+    ix -= (2.0f*shImgData[index]);
+    ix += (2.0f*shImgData[index+2]);
+    index += xwidth;
+    ix -= shImgData[index];
+    iy -= shImgData[index];
+    iy -= (2.0f*shImgData[index+1]);
+    ix += shImgData[index+2];
+    iy -= shImgData[index+2];
+
     float idata = sqrt((ix*ix) + (iy*iy));
+    float theta = 180.0f*atan2pi(fabs(iy), fabs(ix));
+
+    if (ix >= 0.0f && iy >= 0.0f)
+        theta += 0.0f;
+    else if (ix < 0.0f && iy >= 0.0f)
+        theta = 180.0f - theta;
+    else if (ix < 0.0f && iy < 0.0f)
+        theta = 180.0f + theta;
+    else
+        theta = 360.0f - theta;
+
+    /*if ((theta >= 22.5f && theta < 67.5f) || (theta >= 202.5f && theta < 247.5f))
+        theta = 0.25f;
+    else if ((theta >= 67.5f && theta < 112.5f) || (theta >= 247.5f && theta < 292.5f))
+        theta = 0.5f;
+    else if ((theta >= 112.5f && theta < 157.5f) || (theta >= 292.5f && theta < 337.5f))
+        theta = 0.75f;
+    else
+        theta = 0.0f;*/
+
+    write_imagef(outImg, (int2)(get_global_id(0), get_global_id(1)), (float4)(idata, theta, 0.0f, 0.0f));
+}
+
+kernel void gauss(read_only image2d_t inpImg, write_only image2d_t outImg, global const float* pCoeffs, local float* shImgData)
+{
+    local float shCoeffs[25];
+    loadImageData(inpImg, shImgData, 2, 2);
+
+    loadCoeffs(pCoeffs, shCoeffs, 25);
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    int index = 0;
+    float idata = 0.0f;
+    int xwidth = get_local_size(0)+4;
+    for (int j = 0; j < 5; j++)
+    {
+        int y = (get_local_id(1)+j)*xwidth;
+        for (int i = 0; i < 5; i++)
+        {
+            int offset = y+get_local_id(0)+i;
+            idata += (shCoeffs[index++]*shImgData[offset]);
+        }
+    }
     write_imagef(outImg, (int2)(get_global_id(0), get_global_id(1)), idata);
 }
 
-kernel void eigen(read_only image2d_t inpImg, write_only image2d_t mImg, global const float* p_coeffs)
+kernel void non_max_edge_suppress(read_only image2d_t inpImg, write_only image2d_t outImg, local float2* shImgData)
 {
-    local float sh_coeffs[25];
-    local float2 sh_img_data[20][20];
-    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_LINEAR;
-
-    int index = (get_local_size(0)*get_local_id(1)) + get_local_id(0);
-    if (index < 25)
-    {
-        sh_coeffs[index] = p_coeffs[index];
-    }
+    loadImageDataFloat2(inpImg, shImgData, 1, 1);
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    const int x = (get_group_id(0) << 4) - 2;
-    const int y = (get_group_id(1) << 4) - 2;
-
-    for (int j = 0; j < 2; j++)
+    const int p = get_local_id(0)+1;
+    const int q = get_local_id(1)+1;
+    const int xwidth = (get_local_size(0)+2);
+    int index = (xwidth*q)+p;
+    float idata = shImgData[index].x;
+    float theta = shImgData[index].y;
+    if ((theta >= 22.5f && theta < 67.5f) || (theta >= 202.5f && theta < 247.5f))
     {
-        int n = get_local_id(1) + (j*get_local_size(1));
-        if (n < 20)
+        if (idata <= shImgData[(xwidth*(q-1))+p+1].x || idata <= shImgData[(xwidth*(q+1))+p-1].x)
         {
-            for (int i = 0; i < 2; i++)
-            {
-                int m = get_local_id(0) + (i*get_local_size(0));
-                if (m < 20)
-                {
-                    int2 coord = (int2)(x + m, y + n);
-                    sh_img_data[n][m] = read_imagef(inpImg, sampler, coord).xy;
-                    coord.x += get_local_size(0);
-                }
-            }
+            idata = 0.0f;
         }
     }
-    barrier(CLK_LOCAL_MEM_FENCE);
-
-    index = 0;
-    float ix2 = 0.0f;
-    float iy2 = 0.0f;
-    float ixiy = 0.0f;
-    for (int i = -2; i <= 2; i++)
+    else if ((theta >= 67.5f && theta < 112.5f) || (theta >= 247.5f && theta < 292.5f))
     {
-        const int q = get_local_id(1) + i + 2;
-        for (int j = -2; j <= 2; j++)
+        if (idata <= shImgData[index-xwidth].x || idata <= shImgData[index+xwidth].x)
         {
-            const int p = get_local_id(0) + j + 2;
-            ix2 += (sh_coeffs[index] * sh_img_data[q][p].x*sh_img_data[q][p].x);
-            iy2 += (sh_coeffs[index] * sh_img_data[q][p].y*sh_img_data[q][p].y);
-            ixiy += (sh_coeffs[index] * sh_img_data[q][p].x*sh_img_data[q][p].y);
-            ++index;
+            idata = 0.0f;
         }
     }
-    float detA = (ix2*iy2) - (ixiy*ixiy);
-    float traceA = (ix2 + iy2);
-    float mValue = detA - (0.04*traceA*traceA);
-    write_imagef(mImg, (int2)(get_global_id(0), get_global_id(1)), mValue);
+    else if ((theta >= 112.5f && theta < 157.5f) || (theta >= 292.5f && theta < 337.5f))
+    {
+        if (idata <= shImgData[(xwidth*(q-1))+p-1].x || idata <= shImgData[(xwidth*(q+1))+p+1].x)
+        {
+            idata = 0.0f;
+        }
+    }
+    else
+    {
+        if (idata <= shImgData[index - 1].x || idata <= shImgData[index + 1].x)
+        {
+            idata = 0.0f;
+        }
+    }
+    write_imagef(outImg, (int2)(get_global_id(0), get_global_id(1)), idata);
 }
 
-kernel void suppress_non_max(read_only image2d_t inpImg, write_only image2d_t outImg, float limit)
+kernel void binary_threshold(read_only image2d_t inpImg, write_only image2d_t outImg, float minThresh, float maxThresh, local float* shImgData)
 {
-    local float shImgData[18][18];
-    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_LINEAR;
-
-    const int x = (get_group_id(0) << 4) - 1;
-    const int y = (get_group_id(1) << 4) - 1;
-
-    for (int j = 0; j < 2; j++)
-    {
-        int n = get_local_id(1) + (j*get_local_size(1));
-        if (n < 18)
-        {
-            for (int i = 0; i < 2; i++)
-            {
-                int m = get_local_id(0) + (i*get_local_size(0));
-                if (m < 18)
-                {
-                    int2 coord = (int2)(x + m, y + n);
-                    shImgData[n][m] = read_imagef(inpImg, sampler, coord).x;
-                    coord.x += get_local_size(0);
-                }
-            }
-        }
-    }
+    loadImageData(inpImg, shImgData, 1, 1);
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    const int p = get_local_id(0) + 1;
-    const int q = get_local_id(1) + 1;
-    float data = shImgData[q][p];
-    if (shImgData[q][p - 1] >= data) data = 0.0f;
-    if (shImgData[q][p + 1] >= data) data = 0.0f;
-    if (shImgData[q - 1][p - 1] >= data) data = 0.0f;
-    if (shImgData[q - 1][p] >= data) data = 0.0f;
-    if (shImgData[q - 1][p + 1] >= data) data = 0.0f;
-    if (shImgData[q + 1][p - 1] >= data) data = 0.0f;
-    if (shImgData[q + 1][p] >= data) data = 0.0f;
-    if (shImgData[q + 1][p + 1] >= data) data = 0.0f;
-    if (data >= limit)
+    const int p = get_local_id(0)+1;
+    const int q = get_local_id(1)+1;
+    const int xwidth = (get_local_size(0)+2);
+    int index = (xwidth*q) + p;
+    float idata = shImgData[index];
+    if (idata >= maxThresh)
     {
-        data = 1.0f;
+        idata = 1.0f;
     }
-    write_imagef(outImg, (int2)(get_global_id(0), get_global_id(1)), data);
+    else if (idata >= minThresh)
+    {
+        int flag = 1;
+        if (maxThresh >= shImgData[index-1]) flag = 0;
+        if (maxThresh >= shImgData[index+1]) flag = 0;
+        if (maxThresh >= shImgData[index-xwidth-1]) flag = 0;
+        if (maxThresh >= shImgData[index-xwidth]) flag = 0;
+        if (maxThresh >= shImgData[index-xwidth+1]) flag = 0;
+        if (maxThresh >= shImgData[index+xwidth-1]) flag = 0;
+        if (maxThresh >= shImgData[index+xwidth]) flag = 0;
+        if (maxThresh >= shImgData[index+xwidth+1]) flag = 0;
+        idata = (flag) ? 0.0f : 1.0f;
+    }
+    else
+    {
+        idata = 0.0f;
+    }
+    write_imagef(outImg, (int2)(get_global_id(0), get_global_id(1)), idata);
 }
 
 );
