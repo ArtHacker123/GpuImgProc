@@ -1,1 +1,1 @@
-# image processing using OpenGL and OpenCL
+# Image, Video processing using OpenGL and OpenCL
