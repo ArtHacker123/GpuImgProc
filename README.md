@@ -1,1 +1,1 @@
-# Some image processing algorithms using OpenGL and OpenCL
+# image processing using OpenGL and OpenCL
