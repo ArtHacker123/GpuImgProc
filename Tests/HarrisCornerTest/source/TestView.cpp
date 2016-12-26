@@ -119,7 +119,8 @@ void TestView::initGL()
     }
 
     mCamera.open(0);
-    mCamera.set(cv::CAP_PROP_MODE, cv::CAP_MODE_RGB);
+    //mCamera.set(cv::CAP_PROP_FRAME_WIDTH, 1920);
+    //mCamera.set(cv::CAP_PROP_FRAME_HEIGHT, 1080);
     if (!mCamera.isOpened())
     {
         exit(0);
