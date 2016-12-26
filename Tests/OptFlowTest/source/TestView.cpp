@@ -25,63 +25,63 @@ TestView::~TestView()
 }
 
 BEGIN_MESSAGE_MAP(TestView, CWnd)
-	ON_WM_PAINT()
-	ON_WM_CREATE()
-	ON_WM_SIZE()
-	ON_WM_DESTROY()
-	ON_WM_TIMER()
-	ON_WM_KEYDOWN()
+    ON_WM_PAINT()
+    ON_WM_CREATE()
+    ON_WM_SIZE()
+    ON_WM_DESTROY()
+    ON_WM_TIMER()
+    ON_WM_KEYDOWN()
 END_MESSAGE_MAP()
 
 // OptFlowView message handlers
 BOOL TestView::PreCreateWindow(CREATESTRUCT& cs)
 {
-	if (!CWnd::PreCreateWindow(cs))
-		return FALSE;
+    if (!CWnd::PreCreateWindow(cs))
+        return FALSE;
 
-	cs.dwExStyle |= WS_EX_CLIENTEDGE;
-	cs.style &= ~WS_BORDER;
-	cs.lpszClass = AfxRegisterWndClass(CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS, 
-		::LoadCursor(NULL, IDC_ARROW), reinterpret_cast<HBRUSH>(COLOR_WINDOW+1), NULL);
+    cs.dwExStyle |= WS_EX_CLIENTEDGE;
+    cs.style &= ~WS_BORDER;
+    cs.lpszClass = AfxRegisterWndClass(CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS, 
+        ::LoadCursor(NULL, IDC_ARROW), reinterpret_cast<HBRUSH>(COLOR_WINDOW+1), NULL);
 
-	return TRUE;
+    return TRUE;
 }
 
 void TestView::OnPaint()
 {
-	CPaintDC dc(this); // device context for painting
-	
-	// TODO: Add your message handler code here
-	Ogl::UseWinGlContext use(*mCtxtGL);
-	mCamera.read(mFrame);
-	mView->draw(mFrame.data);
-	// Do not call CWnd::OnPaint() for painting messages
+    CPaintDC dc(this); // device context for painting
+    
+    // TODO: Add your message handler code here
+    Ogl::UseWinGlContext use(*mCtxtGL);
+    mCamera.read(mFrame);
+    mView->draw(mFrame.data);
+    // Do not call CWnd::OnPaint() for painting messages
 }
 
 void TestView::createOpenGLContext()
 {
-	PIXELFORMATDESCRIPTOR pfd;
+    PIXELFORMATDESCRIPTOR pfd;
 
-	memset(&pfd, 0, sizeof(pfd));
-	pfd.nSize = sizeof(pfd);
-	pfd.nVersion = 1;
-	pfd.iPixelType = PFD_TYPE_RGBA;
-	pfd.dwFlags = PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW;
-	pfd.cColorBits = 32;
-	pfd.cDepthBits = 16;
+    memset(&pfd, 0, sizeof(pfd));
+    pfd.nSize = sizeof(pfd);
+    pfd.nVersion = 1;
+    pfd.iPixelType = PFD_TYPE_RGBA;
+    pfd.dwFlags = PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW;
+    pfd.cColorBits = 32;
+    pfd.cDepthBits = 16;
 
-	int pixFmt = ChoosePixelFormat(GetDC()->m_hDC, &pfd);
-	SetPixelFormat(GetDC()->m_hDC, pixFmt, &pfd);
+    int pixFmt = ChoosePixelFormat(GetDC()->m_hDC, &pfd);
+    SetPixelFormat(GetDC()->m_hDC, pixFmt, &pfd);
 
-	mCtxtGL.reset(new Ogl::WinGlContext(this));
+    mCtxtGL.reset(new Ogl::WinGlContext(this));
 }
 
 void TestView::initGL()
 {
-	createOpenGLContext();
-	Ogl::UseWinGlContext use(*mCtxtGL);
+    createOpenGLContext();
+    Ogl::UseWinGlContext use(*mCtxtGL);
 
-	glewInit();
+    glewInit();
     try
     {
         std::vector<cl::Platform> platforms;
@@ -108,65 +108,65 @@ void TestView::initGL()
         exit(0);
     }
 
-	mCamera.open(0);
-	//mCamera.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
+    mCamera.open(0);
+    //mCamera.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
     //mCamera.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
-	if (!mCamera.isOpened())
-	{
-		exit(0);
-	}
-	mCamera.read(mFrame);
-	mView.reset(new OglView(mFrame.cols, mFrame.rows, *mCtxtCL, *mQueueCL, mFrame.data));
+    if (!mCamera.isOpened())
+    {
+        exit(0);
+    }
+    mCamera.read(mFrame);
+    mView.reset(new OglView(mFrame.cols, mFrame.rows, *mCtxtCL, *mQueueCL, mFrame.data));
 }
 
 int TestView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-	if (CWnd::OnCreate(lpCreateStruct) == -1)
-		return -1;
+    if (CWnd::OnCreate(lpCreateStruct) == -1)
+        return -1;
 
-	// TODO:  Add your specialized creation code here
-	initGL();
+    // TODO:  Add your specialized creation code here
+    initGL();
 
-	SetTimer(1, 25, 0);
-	return 0;
+    SetTimer(1, 25, 0);
+    return 0;
 }
 
 
 void TestView::OnSize(UINT nType, int cx, int cy)
 {
-	CWnd::OnSize(nType, cx, cy);
+    CWnd::OnSize(nType, cx, cy);
 
-	// TODO: Add your message handler code here
-	Ogl::UseWinGlContext use(*mCtxtGL);
-	mView->resize(cx, cy);
+    // TODO: Add your message handler code here
+    Ogl::UseWinGlContext use(*mCtxtGL);
+    mView->resize(cx, cy);
 }
 
 
 void TestView::OnDestroy()
 {
-	CWnd::OnDestroy();
+    CWnd::OnDestroy();
 
-	// TODO: Add your message handler code here
-	{
-		Ogl::UseWinGlContext use(*mCtxtGL);
-		mView.reset();
-		mQueueCL.reset();
-		mCtxtCL.reset();
-	}
-	mCtxtGL.reset();
-	mCamera.release();
+    // TODO: Add your message handler code here
+    {
+        Ogl::UseWinGlContext use(*mCtxtGL);
+        mView.reset();
+        mQueueCL.reset();
+        mCtxtCL.reset();
+    }
+    mCtxtGL.reset();
+    mCamera.release();
 }
 
 
 void TestView::OnTimer(UINT_PTR nIDEvent)
 {
-	// TODO: Add your message handler code here and/or call default
-	SendMessage(WM_PAINT);
-	CWnd::OnTimer(nIDEvent);
+    // TODO: Add your message handler code here and/or call default
+    SendMessage(WM_PAINT);
+    CWnd::OnTimer(nIDEvent);
 }
 
 
 void TestView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
-	CWnd::OnKeyDown(nChar, nRepCnt, nFlags);
+    CWnd::OnKeyDown(nChar, nRepCnt, nFlags);
 }

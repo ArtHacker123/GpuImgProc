@@ -4,7 +4,7 @@
 #pragma once
 
 #ifndef __AFXWIN_H__
-	#error "include 'stdafx.h' before including this file for PCH"
+    #error "include 'stdafx.h' before including this file for PCH"
 #endif
 
 
@@ -15,18 +15,18 @@
 class TestApp : public CWinApp
 {
 public:
-	TestApp();
+    TestApp();
 
 
 // Overrides
 public:
-	virtual BOOL InitInstance();
-	virtual int ExitInstance();
+    virtual BOOL InitInstance();
+    virtual int ExitInstance();
 
 // Implementation
 
 public:
-	DECLARE_MESSAGE_MAP()
+    DECLARE_MESSAGE_MAP()
 };
 
 extern TestApp theApp;
