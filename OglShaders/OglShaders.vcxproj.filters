@@ -75,9 +75,6 @@
     <ClInclude Include="include\OglRgbaShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\OglSplitUvShader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\OglUvShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -144,9 +141,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="source\OglRgbaShader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\OglSplitUvShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="source\OglUvShader.cpp">

@@ -81,7 +81,6 @@
     <ClInclude Include="include\OglImagePainter.h" />
     <ClInclude Include="include\OglPainter.h" />
     <ClInclude Include="include\OglRgbaShader.h" />
-    <ClInclude Include="include\OglSplitUvShader.h" />
     <ClInclude Include="include\OglUvShader.h" />
     <ClInclude Include="include\OglYuv420HsvShader.h" />
     <ClInclude Include="include\OglYuv420Shader.h" />
@@ -106,7 +105,6 @@
     <ClCompile Include="source\OglOptFlow3Shader.cpp" />
     <ClCompile Include="source\OglImagePainter.cpp" />
     <ClCompile Include="source\OglRgbaShader.cpp" />
-    <ClCompile Include="source\OglSplitUvShader.cpp" />
     <ClCompile Include="source\OglUvShader.cpp" />
     <ClCompile Include="source\OglYuv420HsvShader.cpp" />
     <ClCompile Include="source\OglYuv420Shader.cpp" />

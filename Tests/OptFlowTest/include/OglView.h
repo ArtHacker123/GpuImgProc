@@ -7,7 +7,6 @@
 #include "OglColorShader.h"
 #include "ExtractCoords.h"
 #include "OglPainter.h"
-#include "GlSplitUv.h"
 #include "OglShape.h"
 #include "OglOptFlow.h"
 
