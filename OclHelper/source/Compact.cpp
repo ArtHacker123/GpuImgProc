@@ -22,19 +22,19 @@ inline void block_reduce_sum(const int index, local volatile int* sh_data)
 kernel void reduce_sum(read_only image2d_t image, float value, global int* p_block_sum)
 {
     local int sh_data[SH_MEM_SIZE_REDUCE];
-    const int x = 2*get_global_id(0);
-    const int y = 2*get_global_id(1);
+    const int x = 4*get_global_id(0);
+    const int y = get_global_id(1);
     const int index = (get_local_size(0)*get_local_id(1))+get_local_id(0);
     int data = (read_imagef(image, (int2)(x, y)).x >= value)?1:0;
     data += (read_imagef(image, (int2)(x+1, y)).x >= value)?1:0;
-    data += (read_imagef(image, (int2)(x, y+1)).x >= value)?1:0;
-    data += (read_imagef(image, (int2)(x+1, y+1)).x >= value)?1:0;
+    data += (read_imagef(image, (int2)(x+2, y)).x >= value)?1:0;
+    data += (read_imagef(image, (int2)(x+3, y)).x >= value)?1:0;
     sh_data[index] = data;
     barrier(CLK_LOCAL_MEM_FENCE);
     block_reduce_sum(index, sh_data);
     if (index == 0)
     {
-        const int xwidth = get_image_width(image)/16;
+        const int xwidth = get_image_width(image)/32;
         const int id = (get_group_id(1)*xwidth)+get_group_id(0);
         p_block_sum[id] = sh_data[0];
     }
@@ -87,17 +87,17 @@ kernel void prefix_sum_compact(read_only image2d_t image, float value, global in
 {
     local int sum_blk;
     local int sh_data[SH_MEM_SIZE+WARP_SIZE];
-    const int x = get_global_id(0);
-    const int y = 2*get_global_id(1);
-    const int index = (2*get_local_id(1)*get_local_size(0))+get_local_id(0);
+    const int x = 2*get_global_id(0);
+    const int y = get_global_id(1);
+    const int index = (get_local_id(1)*get_local_size(0)*2)+get_local_id(0);
     sh_data[index] = (read_imagef(image, (int2)(x, y)).x >= value)?1:0;
-    sh_data[index+get_local_size(0)] = (read_imagef(image, (int2)(x, y+1)).x >= value)?1:0;
+    sh_data[index+get_local_size(0)] = (read_imagef(image, (int2)(x+1, y)).x >= value)?1:0;
     barrier(CLK_LOCAL_MEM_FENCE);
     block_scan((get_local_id(1)*get_local_size(0))+get_local_id(0), sh_data);
 
     if (index == 0)
     {
-        const int xwidth = get_image_width(image)/16;
+        const int xwidth = get_image_width(image)/32;
         const int id = (get_group_id(1)*xwidth) + get_group_id(0);
         sum_blk = (id == 0) ? 0 : p_blk_sum[id-1];
     }
@@ -118,12 +118,12 @@ kernel void prefix_sum_compact(read_only image2d_t image, float value, global in
         }
     }
 
-    if (read_imagef(image, (int2)(x, y+1)).x >= value)
+    if (read_imagef(image, (int2)(x+1, y)).x >= value)
     {
         sh_data[index+get_local_size(0)] += sum_blk;
-        if (sh_data[index+get_local_size(0)] < maxOutSize)
+        if (sh_data[index+ get_local_size(0)] < maxOutSize)
         {
-            p_out[sh_data[index+get_local_size(0)]-1] = (int2)(x, y+1);
+            p_out[sh_data[index+ get_local_size(0)]-1] = (int2)(x+1, y);
         }
     }
 }
@@ -181,7 +181,7 @@ size_t Compact::process(cl::Image& inpImage, Ocl::DataBuffer<Ocl::Pos>& out, flo
     mReduceKernel.setArg(1, value);
     mReduceKernel.setArg(2, *mBuffReduce);
     cl::Event event;
-    mQueue.enqueueNDRangeKernel(mReduceKernel, cl::NullRange, cl::NDRange(width/2, height/2), cl::NDRange(8, 8), NULL, &event);
+    mQueue.enqueueNDRangeKernel(mReduceKernel, cl::NullRange, cl::NDRange(width/4, height), cl::NDRange(8, 8), NULL, &event);
     event.wait();
     size_t time = (event.getProfilingInfo<CL_PROFILING_COMMAND_END>() - event.getProfilingInfo<CL_PROFILING_COMMAND_START>());
 
@@ -194,7 +194,7 @@ size_t Compact::process(cl::Image& inpImage, Ocl::DataBuffer<Ocl::Pos>& out, flo
     mCompactScanKernel.setArg(4, (int)maxOutSize);
     mCompactScanKernel.setArg(5, mOutSize);
 
-    mQueue.enqueueNDRangeKernel(mCompactScanKernel, cl::NullRange, cl::NDRange(width, height/2), cl::NDRange(16, 8), NULL, &event);
+    mQueue.enqueueNDRangeKernel(mCompactScanKernel, cl::NullRange, cl::NDRange(width/2, height), cl::NDRange(16, 8), NULL, &event);
     event.wait();
     time += (event.getProfilingInfo<CL_PROFILING_COMMAND_END>() - event.getProfilingInfo<CL_PROFILING_COMMAND_START>());
 
