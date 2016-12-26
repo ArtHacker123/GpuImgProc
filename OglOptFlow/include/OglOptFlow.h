@@ -23,14 +23,13 @@ public:
     ~OptFlow();
 
 public:
-    void process(std::vector< std::unique_ptr< Ogl::Image<GL_RG> > >& uvImg, const Ogl::Yuv420Image& currImg, const Ogl::Yuv420Image& prevImg);
-    void process(std::vector< std::unique_ptr< Ogl::Image<GL_RG> > >& uvImg, const Ogl::Image<GL_RED>& currImg, const Ogl::Image<GL_RED>& prevImg);
+    void process(std::vector< std::unique_ptr< Ogl::Image<GL_RG> > >& uvImg, const Ogl::Image<GL_RED>& currImg, const Ogl::Image<GL_RED>& prevImg, GLfloat rvalue);
 
 protected:
     void createImages(GLsizei w, GLsizei h);
     void computeIxIy(const Ogl::IImage& currImg, const Ogl::IImage& prevImg);
-    void computeUV(std::vector< std::unique_ptr< Ogl::Image<GL_RG> > >&uvImg, const Ogl::IImage& currImg, const Ogl::IImage& prevImg);
-    void process(std::vector< std::unique_ptr< Ogl::Image<GL_RG> > >&vuImg, const Ogl::IImage& currImg, const Ogl::IImage& prevImg);
+    void computeUV(std::vector< std::unique_ptr< Ogl::Image<GL_RG> > >&uvImg, const Ogl::IImage& currImg, const Ogl::IImage& prevImg, GLfloat rvalue);
+    void process(std::vector< std::unique_ptr< Ogl::Image<GL_RG> > >&vuImg, const Ogl::IImage& currImg, const Ogl::IImage& prevImg, GLfloat rvalue);
 
 private:
     GLsizei mLevels;

@@ -24,6 +24,9 @@ public:
     void draw(uint8_t* pData);
     void resize(GLsizei w, GLsizei h);
 
+    void thresholdUp();
+    void thresholdDown();
+
 protected:
     void drawOptFlow();
 
@@ -31,7 +34,7 @@ private:
     cl::Context& mCtxtCL;
     cl::CommandQueue& mQueueCL;
 
-    size_t mLineCount;
+    GLfloat mRvalue;
     Ogl::Image<GL_RED>* m_pPrevImg;
     Ogl::Image<GL_RED>* m_pCurrImg;
 

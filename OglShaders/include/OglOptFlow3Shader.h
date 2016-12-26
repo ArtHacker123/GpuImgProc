@@ -8,21 +8,21 @@ namespace Ogl
 class OptFlow3Shader:public Ogl::IShader
 {
 public:
-	OptFlow3Shader();
-	~OptFlow3Shader();
+    OptFlow3Shader();
+    ~OptFlow3Shader();
 
-	void SetGain(GLfloat gain) { mGain = gain; };
-	void SetSearch(GLint search) { mSearch = search; };
-
-protected:
-	void ApplyParameters(GLenum tex);
+    void SetGain(GLfloat gain) { mGain = gain; };
+    void SetRvalue(GLfloat rvalue) { mRvalue = rvalue; };
 
 protected:
-	GLfloat mGain;
-	GLint mSearch;
+    void ApplyParameters(GLenum tex);
 
-	static const GLchar vsCode[];
-	static const GLchar fsCode[];
+protected:
+    GLfloat mGain;
+    GLfloat mRvalue;
+
+    static const GLchar vsCode[];
+    static const GLchar fsCode[];
 };
 
 };

@@ -78,7 +78,7 @@ void OptFlow::computeIxIy(const Ogl::IImage& currImg, const Ogl::IImage& prevImg
     }
 }
 
-void OptFlow::computeUV(std::vector< std::unique_ptr<Ogl::Image<GL_RG>> >& uvImg, const Ogl::IImage& currImg, const Ogl::IImage& prevImg)
+void OptFlow::computeUV(std::vector< std::unique_ptr<Ogl::Image<GL_RG>> >& uvImg, const Ogl::IImage& currImg, const Ogl::IImage& prevImg, GLfloat rvalue)
 {
     Ogl::FrameBuffer fb;
     GLsizei w = mIxImg[0]->width();
@@ -107,6 +107,7 @@ void OptFlow::computeUV(std::vector< std::unique_ptr<Ogl::Image<GL_RG>> >& uvImg
         glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_pUVImg[i]->texture(), 0);
 
         mOptFlow3Shader->SetGain((i == (mLevels-1)) ? 0.0f : 2.0f);
+        mOptFlow3Shader->SetRvalue(rvalue);
 
         mIxImg[i]->bind(GL_TEXTURE1);
         mIyImg[i]->bind(GL_TEXTURE2);
@@ -118,22 +119,17 @@ void OptFlow::computeUV(std::vector< std::unique_ptr<Ogl::Image<GL_RG>> >& uvImg
     }
 }
 
-void OptFlow::process(std::vector< std::unique_ptr<Ogl::Image<GL_RG>> >& uvImg, const Ogl::IImage& currImg, const Ogl::IImage& prevImg)
+void OptFlow::process(std::vector< std::unique_ptr<Ogl::Image<GL_RG>> >& uvImg, const Ogl::IImage& currImg, const Ogl::IImage& prevImg, GLfloat rvalue)
 {
     GLint params[4];
     glGetIntegerv(GL_VIEWPORT, params);
     createImages(currImg.width(), currImg.height());
     computeIxIy(currImg, prevImg);
-    computeUV(uvImg, currImg, prevImg);
+    computeUV(uvImg, currImg, prevImg, rvalue);
     glViewport(params[0], params[1], params[2], params[3]);
 }
 
-void OptFlow::process(std::vector< std::unique_ptr<Ogl::Image<GL_RG>> >& uvImg, const Ogl::Yuv420Image& currImg, const Ogl::Yuv420Image& prevImg)
+void OptFlow::process(std::vector< std::unique_ptr<Ogl::Image<GL_RG>> >& uvImg, const Ogl::Image<GL_RED>& currImg, const Ogl::Image<GL_RED>& prevImg, GLfloat rvalue)
 {
-    process(uvImg, (const Ogl::IImage&)currImg, (const Ogl::IImage&)prevImg);
-}
-
-void OptFlow::process(std::vector< std::unique_ptr<Ogl::Image<GL_RG>> >& uvImg, const Ogl::Image<GL_RED>& currImg, const Ogl::Image<GL_RED>& prevImg)
-{
-    process(uvImg, (const Ogl::IImage&)currImg, (const Ogl::IImage&)prevImg);
+    process(uvImg, (const Ogl::IImage&)currImg, (const Ogl::IImage&)prevImg, rvalue);
 }

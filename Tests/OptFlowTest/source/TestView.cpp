@@ -168,5 +168,14 @@ void TestView::OnTimer(UINT_PTR nIDEvent)
 
 void TestView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
+    switch (nChar)
+    {
+        case VK_UP:
+            mView->thresholdUp();
+            break;
+        case VK_DOWN:
+            mView->thresholdDown();
+            break;
+    }
     CWnd::OnKeyDown(nChar, nRepCnt, nFlags);
 }
