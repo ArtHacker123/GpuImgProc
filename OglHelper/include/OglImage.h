@@ -15,6 +15,8 @@ public:
     GLsizei width() const { return mTexture.width(); };
     GLsizei height() const { return mTexture.height(); };
 
+    bool isPyramid() const { return mTexture.isPyramid(); };
+
     GLuint texture() const { return mTexture.texture(); };
 
     void load(void* pData) { return mTexture.load(pData); };

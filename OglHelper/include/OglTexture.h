@@ -24,6 +24,7 @@ public:
     GLenum type() const { return mType; };
     GLenum format() const { return mFormat; };
     GLint internalFormat() const { return mIntFormat; };
+    bool isPyramid() const { return mPyramid; };
 
     GLuint texture() const { return mTexture; };
 

@@ -75,7 +75,7 @@ void main(void)
 	A[1][0] = A[0][1];
 	float trace = (A[0][0] + A[1][1]);
 	float R = determinant(A)-(0.04*trace*trace);
-	if (R >= 0.0000125f)
+	if (R >= 0.000000250f)
 	{
 		uv += (inverse(A)*X);
 		//uv += clamp((inverse(A)*X), -1.0, +1.0);

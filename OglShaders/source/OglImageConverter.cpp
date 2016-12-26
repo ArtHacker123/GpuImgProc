@@ -41,6 +41,12 @@ void ImgRgbaGrayConverter::convert(Ogl::Image<GL_RED>& destImg, const Ogl::Image
     glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, destImg.texture(), 0);
     mRect->draw(mRgbaGrayShader, srcImg);
     Ogl::FrameBuffer::release(GL_DRAW_FRAMEBUFFER);
+    if (destImg.isPyramid())
+    {
+        destImg.bind(GL_TEXTURE0);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        destImg.unbind(GL_TEXTURE0);
+    }
     glViewport(params[0], params[1], params[2], params[3]);
 }
 
