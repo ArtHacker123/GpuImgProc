@@ -9,19 +9,19 @@ class OptFlowNmsShader:public IShader
 {
 public:
     OptFlowNmsShader();
-	~OptFlowNmsShader();
+    ~OptFlowNmsShader();
 
-	float threshold() const { return mThreshold; };
-	void setThreshold(float thr) { mThreshold = thr; };
-
-protected:
-	void ApplyParameters(GLenum tex);
+    float threshold() const { return mThreshold; };
+    void setThreshold(float thr) { mThreshold = thr; };
 
 protected:
-	float mThreshold;
+    void ApplyParameters(GLenum tex);
 
-	static const GLchar vsCode[];
-	static const GLchar fsCode[];
+protected:
+    float mThreshold;
+
+    static const GLchar vsCode[];
+    static const GLchar fsCode[];
 };
 
 };
