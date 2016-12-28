@@ -54,7 +54,16 @@ void TestView::OnPaint()
     // TODO: Add your message handler code here
     Ogl::UseWinGlContext use(*mCtxtGL);
     mCamera.read(mFrame);
-    mView->draw(mFrame.data);
+    try
+    {
+        mView->draw(mFrame.data);
+    }
+    catch (cl::Error error)
+    {
+        CStringA str = error.what();
+        AfxMessageBox(CString("OpenCL Error: " + str));
+        exit(0);
+    }
     // Do not call CWnd::OnPaint() for painting messages
 }
 
@@ -104,15 +113,17 @@ void TestView::initGL()
 
     catch (cl::Error error)
     {
-        AfxMessageBox(_T("No support for OpenCL"));
+        CStringA str = error.what();
+        AfxMessageBox(CString("OpenCL Error: "+str));
         exit(0);
     }
 
     mCamera.open(0);
-    //mCamera.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
-    //mCamera.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
+    //mCamera.set(cv::CAP_PROP_FRAME_WIDTH, 1920);
+    //mCamera.set(cv::CAP_PROP_FRAME_HEIGHT, 1080);
     if (!mCamera.isOpened())
     {
+        AfxMessageBox(_T("Failed to Open Camera"));
         exit(0);
     }
     mCamera.read(mFrame);
