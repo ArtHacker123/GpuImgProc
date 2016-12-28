@@ -188,7 +188,7 @@ size_t Compact::process(cl::Image& inpImage, Ocl::DataBuffer<Ocl::Pos>& out, flo
     time += mScan.process(*mBuffReduce);
 
     mCompactScanKernel.setArg(0, inpImage);
-    mCompactScanKernel.setArg(1, 0.5f);
+    mCompactScanKernel.setArg(1, value);
     mCompactScanKernel.setArg(2, *mBuffReduce);
     mCompactScanKernel.setArg(3, out.buffer());
     mCompactScanKernel.setArg(4, (int)maxOutSize);
