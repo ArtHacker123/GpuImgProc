@@ -45,7 +45,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>include;../../OglHelper/include;../../OglShaders/include;../../OglOptFlow/include;../../glew-1.10.0/include/GL;$(OPENCV_DIR)\include;$(INTELOCLSDKROOT)\include;$(CUDA_PATH_V8_0)/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;../../OglHelper/include;../../OclHelper/include;../../OglShaders/include;../../OclPainter/include;../../OglOptFlow/include;../../glew-1.10.0/include/GL;$(OPENCV_DIR)\include;$(INTELOCLSDKROOT)\include;$(CUDA_PATH_V8_0)/include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_UNICODE;UNICODE;__SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;__CL_ENABLE_EXCEPTIONS;CL_USE_DEPRECATED_OPENCL_1_2_APIS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -69,7 +69,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\ExtractCoords.h" />
     <ClInclude Include="include\OglView.h" />
     <ClInclude Include="include\stdafx.h" />
     <ClInclude Include="include\targetver.h" />
@@ -83,6 +82,9 @@
     <ClCompile Include="source\TestView.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\OclPainter\OclPainter.vcxproj">
+      <Project>{57ec957d-27bb-4582-88f6-1eaead0f401c}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\OglHelper\OglHelper.vcxproj">
       <Project>{fb46b4c1-abe8-48a2-9c4e-cc4f96b240ea}</Project>
     </ProjectReference>

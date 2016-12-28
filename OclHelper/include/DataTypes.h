@@ -9,4 +9,12 @@ struct Pos
     int y;
 };
 
+struct OptFlowData
+{
+    int x;
+    int y;
+    float u;
+    float v;
+};
+
 };

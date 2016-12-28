@@ -20,11 +20,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\HistogramPainter.h" />
+    <ClInclude Include="include\OptFlowPainter.h" />
     <ClInclude Include="source\HistogramPainterPrv.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\HistogramPainter.cpp" />
     <ClCompile Include="source\HistogramPainterPrv.cpp" />
+    <ClCompile Include="source\OptFlowPainter.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{57EC957D-27BB-4582-88F6-1EAEAD0F401C}</ProjectGuid>

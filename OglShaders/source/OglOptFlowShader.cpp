@@ -1,8 +1,8 @@
-#include "OglOptFlow3Shader.h"
+#include "OglOptFlowShader.h"
 
 using namespace Ogl;
 
-const GLchar OptFlow3Shader::vsCode[] = SHADER_SOURCE_CODE(
+const GLchar OptFlowShader::vsCode[] = SHADER_SOURCE_CODE(
 #version 150\n
 in vec4 inVc;
 in vec2 inTc;
@@ -14,10 +14,10 @@ void main(void)
 }
 );
 
-const GLchar OptFlow3Shader::fsCode[] = SHADER_SOURCE_CODE(
+const GLchar OptFlowShader::fsCode[] = SHADER_SOURCE_CODE(
 #version 150\n
 in vec2 tc;
-out vec2 uv;
+out vec3 uv;
     
 uniform float gain = 2.0;
 uniform float rvalue = 0.000000250f;
@@ -48,10 +48,10 @@ void main(void)
     mat2 A = mat2(0.0, 0.0, 0.0, 0.0);
     vec2 texSize = vec2(textureSize(tex_ix, 0));
     vec2 curr = tc*texSize;
-    uv = 2.0*texture2D(tex_puv, tc).rg;
+    uv.rg = 2.0*texture2D(tex_puv, tc).rg;
     for (int i = 0; i < offset.length(); i++) {
         vec2 pos = (curr+offset[i])/texSize;
-        vec2 pos1 = pos+(uv/texSize);
+        vec2 pos1 = pos+(uv.rg/texSize);
         float ix = texture2D(tex_ix, pos).r;
         float iy = texture2D(tex_iy, pos).r;
         float it = (texture2D(tex2, pos1).r-texture2D(tex1, pos).r);
@@ -69,23 +69,28 @@ void main(void)
     float R = determinant(A)-(0.04*trace*trace);
     if (R >= rvalue)
     {
-        uv += (inverse(A)*X);
+        uv.rg += (inverse(A)*X);
+        uv.b = length(uv.rg);
+    }
+    else
+    {
+        uv = vec3(0.0, 0.0, 0.0);
     }
 }
 );
 
-OptFlow3Shader::OptFlow3Shader()
+OptFlowShader::OptFlowShader()
     :mGain(1.0),
      mRvalue(0.000000250f)
 {
     mPgm.reset(new Ogl::Program(vsCode, sizeof(vsCode), fsCode, sizeof(fsCode)));
 }
 
-OptFlow3Shader::~OptFlow3Shader()
+OptFlowShader::~OptFlowShader()
 {
 }
 
-void OptFlow3Shader::ApplyParameters(GLenum tex)
+void OptFlowShader::ApplyParameters(GLenum tex)
 {
     GLint id = (tex - GL_TEXTURE0);
     mPgm->setUniform1f("gain", mGain);

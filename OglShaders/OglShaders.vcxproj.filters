@@ -57,15 +57,6 @@
     <ClInclude Include="include\OglNmsShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\OglOptFlow1Shader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\OglOptFlow2Shader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\OglOptFlow3Shader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\OglPainter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -82,6 +73,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\OglYuv420Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\OglOptFlowNmsShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\OglOptFlowShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -128,15 +125,6 @@
     <ClCompile Include="source\OglNmsShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\OglOptFlow1Shader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\OglOptFlow2Shader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\OglOptFlow3Shader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="source\OglRgbaGrayShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -150,6 +138,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="source\OglYuv420Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\OglOptFlowNmsShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\OglOptFlowShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -44,7 +44,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>include;../OglHelper/include;../OglShaders/include;../glew-1.10.0/include/GL</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;../OglHelper/include;../OglShaders/include;../glew-1.10.0/include/GL;../OclHelper/include;$(INTELOCLSDKROOT)/include;$(CUDA_PATH_V8_0)/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -66,11 +66,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\OglOptFlow.h" />
+    <ClInclude Include="source\OglOptFlowPrv.h" />
+    <ClInclude Include="source\OptFlowCompact.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\OglOptFlowPrv.cpp" />
     <ClCompile Include="source\OglOptFlow.cpp" />
+    <ClCompile Include="source\OptFlowCompact.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\OclHelper\OclHelper.vcxproj">
+      <Project>{7761eac9-c421-462b-8287-b92019afb46a}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\OglHelper\OglHelper.vcxproj">
       <Project>{fb46b4c1-abe8-48a2-9c4e-cc4f96b240ea}</Project>
     </ProjectReference>

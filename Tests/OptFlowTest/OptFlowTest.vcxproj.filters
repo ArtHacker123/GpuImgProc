@@ -15,9 +15,6 @@
     <ClInclude Include="include\targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\ExtractCoords.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\OglView.h">
       <Filter>Header Files</Filter>
     </ClInclude>

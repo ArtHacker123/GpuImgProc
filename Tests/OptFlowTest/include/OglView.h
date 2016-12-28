@@ -5,10 +5,10 @@
 
 #include "OglBuffer.h"
 #include "OglColorShader.h"
-#include "ExtractCoords.h"
 #include "OglPainter.h"
 #include "OglShape.h"
 #include "OglOptFlow.h"
+#include "OptFlowPainter.h"
 
 #include <CL/cl.hpp>
 
@@ -28,7 +28,7 @@ public:
     void thresholdDown();
 
 protected:
-    void drawOptFlow();
+    void swap();
 
 private:
     cl::Context& mCtxtCL;
@@ -45,10 +45,8 @@ private:
     std::vector< std::unique_ptr<Ogl::Image<GL_RG>> > mUVImg;
 
     Ogl::OptFlow mOptFlow;
+    Ocl::DataBuffer<Ocl::OptFlowData> mFlowData;
 
-    Ogl::Buffer mBuffer;
-    ExtractCoords mCoordExtract;
-
-    Ogl::Painter<Ogl::ColorShader> mPainter;
+    OptFlowPainter mFlowPainter;
     Ogl::ImagePainter<Ogl::RgbaShader, Ogl::Image<GL_BGR>> mBgrPainter;
 };

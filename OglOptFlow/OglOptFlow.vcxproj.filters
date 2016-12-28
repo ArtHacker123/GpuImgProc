@@ -18,9 +18,21 @@
     <ClInclude Include="include\OglOptFlow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="source\OglOptFlowPrv.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\OptFlowCompact.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\OglOptFlowPrv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="source\OglOptFlow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\OptFlowCompact.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

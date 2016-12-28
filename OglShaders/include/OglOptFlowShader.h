@@ -5,11 +5,11 @@
 namespace Ogl
 {
 
-class OptFlow3Shader:public Ogl::IShader
+class OptFlowShader:public Ogl::IShader
 {
 public:
-    OptFlow3Shader();
-    ~OptFlow3Shader();
+    OptFlowShader();
+    ~OptFlowShader();
 
     void SetGain(GLfloat gain) { mGain = gain; };
     void SetRvalue(GLfloat rvalue) { mRvalue = rvalue; };
