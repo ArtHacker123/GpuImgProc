@@ -60,7 +60,8 @@ BinaryShader::~BinaryShader()
 
 void BinaryShader::ApplyParameters(GLenum tex)
 {
-	mPgm->setUniform1i("tex_in", 0);
+    GLint id = (tex-GL_TEXTURE0);
+	mPgm->setUniform1i("tex_in", id);
 	mPgm->setUniform1f("min", minThresh);
 	mPgm->setUniform1f("max", maxThresh);
 }

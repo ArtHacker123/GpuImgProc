@@ -39,7 +39,7 @@ void HarrisCornerPrv::init()
 
     std::ostringstream options;
     options << " -DBLK_SIZE_X=" << mLocSizeX << " -DBLK_SIZE_Y=" << mLocSizeY;
-    cl_int err = mPgm.build(options.str().c_str());
+    mPgm.build(options.str().c_str());
 
     mGradKernel = cl::Kernel(mPgm, "gradient");
     mEigenKernel = cl::Kernel(mPgm, "eigen");

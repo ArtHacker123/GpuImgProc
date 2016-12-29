@@ -34,7 +34,7 @@ void CannyEdgePrv::init()
 {
     cl::Program::Sources source(1, std::make_pair(sSource, strlen(sSource)));
     mPgm = cl::Program(mContext, source);
-    cl_int err = mPgm.build();
+    mPgm.build();
 
     mGradKernel = cl::Kernel(mPgm, "gradient");
     mGaussKernel = cl::Kernel(mPgm, "gauss");
