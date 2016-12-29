@@ -3,8 +3,7 @@
 #include "OglImage.h"
 #include "OglImagePainter.h"
 
-#include <CL/cl.hpp>
-#include "CannyEdge.h"
+#include "OclCannyEdge.h"
 
 class GlView
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DataBuffer.h"
+#include "OclDataBuffer.h"
 #include <memory>
 
 namespace Ocl

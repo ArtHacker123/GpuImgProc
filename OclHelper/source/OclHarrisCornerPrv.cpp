@@ -1,4 +1,4 @@
-#include "HarrisCornerPrv.h"
+#include "OclHarrisCornerPrv.h"
 #include "OclUtils.h"
 #include <sstream>
 

@@ -1,5 +1,5 @@
-#include "HarrisCorner.h"
-#include "HarrisCornerPrv.h"
+#include "OclHarrisCorner.h"
+#include "OclHarrisCornerPrv.h"
 
 using namespace Ocl;
 

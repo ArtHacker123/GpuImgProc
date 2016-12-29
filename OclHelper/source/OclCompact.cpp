@@ -1,4 +1,4 @@
-#include "Compact.h"
+#include "OclCompact.h"
 
 #include <sstream>
 

@@ -1,4 +1,4 @@
-#include "CannyEdgePrv.h"
+#include "OclCannyEdgePrv.h"
 
 #define OCL_PROGRAM_SOURCE(s) #s
 

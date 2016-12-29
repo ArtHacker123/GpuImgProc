@@ -8,7 +8,7 @@
 #include "OglPainter.h"
 #include "OglShape.h"
 
-#include "HarrisCorner.h"
+#include "OclHarrisCorner.h"
 #include "OglPointPainter.h"
 
 class GlView

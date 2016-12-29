@@ -7,7 +7,7 @@
 #include "OglColorShader.h"
 
 #include <CL/cl.hpp>
-#include "DataBuffer.h"
+#include "OclDataBuffer.h"
 
 namespace Ogl
 {

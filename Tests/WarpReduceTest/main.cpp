@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "ReduceSum.h"
+#include "OclReduceSum.h"
 
 int main(int argc, char** argv)
 {

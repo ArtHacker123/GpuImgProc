@@ -5,11 +5,8 @@
 
 #include "OglBuffer.h"
 #include "OglColorShader.h"
-#include "HistogramRGB.h"
+#include "OclHistogramRGB.h"
 #include "OglHistogramPainter.h"
-#include "OglBuffer.h"
-#include "OglPainter.h"
-#include "OglShape.h"
 
 #include <CL/cl.hpp>
 

@@ -4,10 +4,8 @@
 #include "OglPainter.h"
 #include "OglColorShader.h"
 
-#include "DataTypes.h"
-#include "DataBuffer.h"
-
-#include <CL/cl.hpp>
+#include "OclDataTypes.h"
+#include "OclDataBuffer.h"
 
 namespace Ogl
 {

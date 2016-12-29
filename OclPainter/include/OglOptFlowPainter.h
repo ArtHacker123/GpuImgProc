@@ -1,7 +1,7 @@
 #pragma once
 
-#include "DataTypes.h"
-#include "DataBuffer.h"
+#include "OclDataTypes.h"
+#include "OclDataBuffer.h"
 #include <memory>
 
 namespace Ogl

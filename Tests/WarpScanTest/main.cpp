@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "Scan.h"
+#include "OclScan.h"
 
 int main(int argc, char** argv)
 {

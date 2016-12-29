@@ -1,5 +1,5 @@
-#include "CannyEdge.h"
-#include "CannyEdgePrv.h"
+#include "OclCannyEdge.h"
+#include "OclCannyEdgePrv.h"
 
 using namespace Ocl;
 

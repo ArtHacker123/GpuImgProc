@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Compact.h"
-#include "DataBuffer.h"
+#include "OclCompact.h"
+#include "OclDataBuffer.h"
 
 namespace Ocl
 {

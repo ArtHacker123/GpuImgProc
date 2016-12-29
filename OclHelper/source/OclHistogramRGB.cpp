@@ -1,4 +1,4 @@
-#include "HistogramRGB.h"
+#include "OclHistogramRGB.h"
 
 #define LSIZE_X 16
 #define LSIZE_Y 16

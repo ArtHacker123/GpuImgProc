@@ -1,4 +1,4 @@
-#include "ReduceSum.h"
+#include "OclReduceSum.h"
 
 #include <sstream>
 

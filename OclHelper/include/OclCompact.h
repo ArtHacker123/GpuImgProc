@@ -1,8 +1,7 @@
 #pragma once
 
-#include "DataTypes.h"
-#include "Scan.h"
-#include "DataBuffer.h"
+#include "OclDataTypes.h"
+#include "OclScan.h"
 
 #include <memory>
 

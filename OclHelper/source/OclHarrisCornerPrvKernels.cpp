@@ -1,4 +1,4 @@
-#include "HarrisCornerPrv.h"
+#include "OclHarrisCornerPrv.h"
 
 #define OCL_PROGRAM_SOURCE(s) #s
 

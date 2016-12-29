@@ -3,7 +3,7 @@
 #include <CL/cl.hpp>
 #include <memory>
 
-#include "DataBuffer.h"
+#include "OclDataBuffer.h"
 
 namespace Ocl
 {

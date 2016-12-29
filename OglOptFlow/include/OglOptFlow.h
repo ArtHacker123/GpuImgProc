@@ -1,8 +1,8 @@
 #pragma once
 
 #include "OglImage.h"
-#include "DataTypes.h"
-#include "DataBuffer.h"
+#include "OclDataTypes.h"
+#include "OclDataBuffer.h"
 
 #include <memory>
 #include <vector>

@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "Compact.h"
+#include "OclCompact.h"
 
 void test_image_compact(cl::Context& context, cl::CommandQueue& queue);
 

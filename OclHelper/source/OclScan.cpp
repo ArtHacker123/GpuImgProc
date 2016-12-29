@@ -1,4 +1,4 @@
-#include "Scan.h"
+#include "OclScan.h"
 
 #include <sstream>
 

@@ -1,4 +1,4 @@
-#include "CannyEdgePrv.h"
+#include "OclCannyEdgePrv.h"
 #include "OclUtils.h"
 #include <sstream>
 

@@ -4,7 +4,7 @@
 #include "OglImagePainter.h"
 
 #include <CL/cl.hpp>
-#include "HistogramRGB.h"
+#include "OclHistogramRGB.h"
 #include "OglHistogramPainter.h"
 
 class GlView
