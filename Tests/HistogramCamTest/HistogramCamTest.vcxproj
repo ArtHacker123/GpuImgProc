@@ -51,7 +51,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>../../glew-1.10.0/lib/Release/x64;$(INTELOCLSDKROOT)/lib/x64;$(OPENCV_DIR)/x64/vc14/lib;$(CUDA_PATH_V8_0)/lib/x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../glew-1.10.0/lib/Release/x64;$(INTELOCLSDKROOT)/lib/x64;$(OPENCV_DIR)/x64/vc14/lib;$(OPENCV_DIR)/x64/vc12/lib;$(CUDA_PATH_V8_0)/lib/x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>OpenCL.lib;opencv_core310d.lib;opencv_videoio310d.lib;</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

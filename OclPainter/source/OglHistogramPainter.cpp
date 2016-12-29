@@ -1,5 +1,5 @@
-#include "HistogramPainter.h"
-#include "HistogramPainterPrv.h"
+#include "OglHistogramPainter.h"
+#include "OglHistogramPainterPrv.h"
 
 namespace Ogl
 {

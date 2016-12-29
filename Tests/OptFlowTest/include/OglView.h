@@ -8,7 +8,7 @@
 #include "OglPainter.h"
 #include "OglShape.h"
 #include "OglOptFlow.h"
-#include "OptFlowPainter.h"
+#include "OglOptFlowPainter.h"
 
 #include <CL/cl.hpp>
 
@@ -47,6 +47,6 @@ private:
     Ogl::OptFlow mOptFlow;
     Ocl::DataBuffer<Ocl::OptFlowData> mFlowData;
 
-    OptFlowPainter mFlowPainter;
+    Ogl::OptFlowPainter mFlowPainter;
     Ogl::ImagePainter<Ogl::RgbaShader, Ogl::Image<GL_BGR>> mBgrPainter;
 };

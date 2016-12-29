@@ -1,8 +1,10 @@
-#include "CornerPainter.h"
+#include "OglPointPainterPrv.h"
 
 #define OCL_PROGRAM_SOURCE(s) #s
 
-const char CornerPainter::sSource[] = OCL_PROGRAM_SOURCE(
+using namespace Ogl;
+
+const char PointPainterPrv::sSource[] = OCL_PROGRAM_SOURCE(
 inline void cross_coords(int i, int2 pos, int w, int h, global float2* coord)
 {
     coord[i] = (float2)((float)(pos.x-4)/(float)w, (float)pos.y/(float)h);
@@ -21,11 +23,11 @@ kernel void extract_coords(global int2 *p_pos_corner, int count, global float2* 
 }
 );
 
-CornerPainter::CornerPainter(cl::Context& ctxt, cl::CommandQueue& queue, size_t maxCorners)
-    :mMaxCorners(maxCorners),
+PointPainterPrv::PointPainterPrv(cl::Context& ctxt, cl::CommandQueue& queue, size_t maxPoints)
+    :mMaxPoints(maxPoints),
 	 mContext(ctxt),
      mQueue(queue),
-	 mCornerBuff(GL_ARRAY_BUFFER, (8*mMaxCorners*sizeof(GLfloat)), 0, GL_DYNAMIC_DRAW)
+	 mPointBuff(GL_ARRAY_BUFFER, (8*mMaxPoints*sizeof(GLfloat)), 0, GL_DYNAMIC_DRAW)
 {
     try
     {
@@ -43,27 +45,27 @@ CornerPainter::CornerPainter(cl::Context& ctxt, cl::CommandQueue& queue, size_t 
     }
 }
 
-CornerPainter::~CornerPainter()
+PointPainterPrv::~PointPainterPrv()
 {
 }
 
-void CornerPainter::draw(Ocl::DataBuffer<Ocl::Pos>& corners, size_t width, size_t height, size_t count)
+void PointPainterPrv::draw(Ocl::DataBuffer<Ocl::Pos>& points, size_t count, size_t width, size_t height)
 {
     if (count <= 0)
     {
         return;
     }
 
-	if (count > mMaxCorners)
+	if (count > mMaxPoints)
 	{
-		count = mMaxCorners;
+		count = mMaxPoints;
 	}
-    cl::BufferGL buffGL(mContext, CL_MEM_READ_WRITE, mCornerBuff.buffer());
+    cl::BufferGL buffGL(mContext, CL_MEM_READ_WRITE, mPointBuff.buffer());
 
     cl::Event event;
     std::vector<cl::Memory> gl_objs = { buffGL };
 
-    mKernel.setArg(0, corners.buffer());
+    mKernel.setArg(0, points.buffer());
     mKernel.setArg(1, (int)count);
     mKernel.setArg(2, buffGL);
     mKernel.setArg(3, (int)(width/2));
@@ -74,5 +76,5 @@ void CornerPainter::draw(Ocl::DataBuffer<Ocl::Pos>& corners, size_t width, size_
     event.wait();
     mQueue.enqueueReleaseGLObjects(&gl_objs);
 
-    mPainter.draw(GL_LINES, 0, (GLsizei)(count*4), mCornerBuff);
+    mPainter.draw(GL_LINES, 0, (GLsizei)(count*4), mPointBuff);
 }

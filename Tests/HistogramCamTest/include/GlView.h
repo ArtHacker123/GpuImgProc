@@ -6,7 +6,7 @@
 #include "OglBuffer.h"
 #include "OglColorShader.h"
 #include "HistogramRGB.h"
-#include "HistogramPainter.h"
+#include "OglHistogramPainter.h"
 #include "OglBuffer.h"
 #include "OglPainter.h"
 #include "OglShape.h"

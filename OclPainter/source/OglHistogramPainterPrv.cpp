@@ -1,4 +1,4 @@
-#include "HistogramPainterPrv.h"
+#include "OglHistogramPainterPrv.h"
 
 using namespace Ogl;
 
@@ -53,5 +53,5 @@ void HistogramPainterPrv::compute(const Ocl::DataBuffer<int> &hData, int maxValu
 void HistogramPainterPrv::draw(const Ocl::DataBuffer<int>& hData, int maxValue)
 {
     compute(hData, maxValue);
-    mPainter.draw(GL_LINE_STRIP, 0, hData.count(), mBuffer);
+    mPainter.draw(GL_LINE_STRIP, 0, (GLsizei)hData.count(), mBuffer);
 }

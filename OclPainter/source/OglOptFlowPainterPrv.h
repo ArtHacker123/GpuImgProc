@@ -9,11 +9,14 @@
 
 #include <CL/cl.hpp>
 
-class OptFlowPainter
+namespace Ogl
+{
+
+class OptFlowPainterPrv
 {
 public:
-    OptFlowPainter(cl::Context& ctxt, cl::CommandQueue& queue, size_t maxSize);
-    ~OptFlowPainter();
+    OptFlowPainterPrv(cl::Context& ctxt, cl::CommandQueue& queue, size_t maxSize);
+    ~OptFlowPainterPrv();
 
 public:
     void draw(Ocl::DataBuffer<Ocl::OptFlowData>& flowData, size_t count, size_t width, size_t height);
@@ -29,4 +32,6 @@ private:
     cl::Program mPgm;
     cl::Kernel mKernel;
     static const char sSource[];
+};
+
 };

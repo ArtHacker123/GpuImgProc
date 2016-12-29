@@ -9,24 +9,29 @@
 
 #include <CL/cl.hpp>
 
-class CornerPainter
+namespace Ogl
+{
+
+class PointPainterPrv
 {
 public:
-    CornerPainter(cl::Context& ctxt, cl::CommandQueue& queue, size_t maxCorners);
-    ~CornerPainter();
+    PointPainterPrv(cl::Context& ctxt, cl::CommandQueue& queue, size_t maxPoints);
+    ~PointPainterPrv();
 
 public:
-    void draw(Ocl::DataBuffer<Ocl::Pos>& corners, size_t width, size_t height, size_t count);
+    void draw(Ocl::DataBuffer<Ocl::Pos>& points, size_t count, size_t width, size_t height);
 
 private:
-	size_t mMaxCorners;
+	size_t mMaxPoints;
     cl::Context& mContext;
     cl::CommandQueue mQueue;
 
-	Ogl::Buffer mCornerBuff;
+	Ogl::Buffer mPointBuff;
     Ogl::Painter<Ogl::ColorShader> mPainter;
 
     cl::Program mPgm;
     cl::Kernel mKernel;
     static const char sSource[];
 };
+
+}

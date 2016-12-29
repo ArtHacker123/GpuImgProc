@@ -8,9 +8,9 @@ GlView::GlView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queue)
      mQueueCL(queue),
      mBgrImg(w, h, GL_RGB, GL_UNSIGNED_BYTE),
      mGrayImg(w, h, GL_R32F, GL_FLOAT),
-     mCornerPaint(mCtxtCL, mQueueCL, MAX_CORNER_COUNT),
+     mCorners(mCtxtCL, CL_MEM_READ_WRITE, MAX_CORNER_COUNT),
      mHarrisCorner(mCtxtCL, mQueueCL),
-     mCorners(mCtxtCL, CL_MEM_READ_WRITE, MAX_CORNER_COUNT)
+     mCornerPainter(mCtxtCL, mQueueCL, MAX_CORNER_COUNT)
 {
 }
 
@@ -28,7 +28,7 @@ void GlView::draw(uint8_t* pData)
     mHarrisCorner.process(imgGL, mCorners, 0.00125f, count);
 
     mBgrPainter.draw(mBgrImg);
-    mCornerPaint.draw(mCorners, mBgrImg.width(), mBgrImg.height(), count);
+    mCornerPainter.draw(mCorners, count, mBgrImg.width(), mBgrImg.height());
 }
 
 void GlView::resize(GLsizei w, GLsizei h)

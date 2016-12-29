@@ -5,7 +5,7 @@
 
 #include <CL/cl.hpp>
 #include "HistogramRGB.h"
-#include "HistogramPainter.h"
+#include "OglHistogramPainter.h"
 
 class GlView
 {

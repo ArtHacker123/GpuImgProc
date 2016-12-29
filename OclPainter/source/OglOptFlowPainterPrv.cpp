@@ -1,8 +1,10 @@
-#include "OptFlowPainter.h"
+#include "OglOptFlowPainterPrv.h"
 
 #define OCL_PROGRAM_SOURCE(s) #s
 
-const char OptFlowPainter::sSource[] = OCL_PROGRAM_SOURCE(
+using namespace Ogl;
+
+const char OptFlowPainterPrv::sSource[] = OCL_PROGRAM_SOURCE(
 
 typedef struct _OptFlowData
 {
@@ -37,7 +39,7 @@ kernel void find_coords(global OptFlowData* input, global float2* coord, int max
 
 );
 
-OptFlowPainter::OptFlowPainter(cl::Context& ctxt, cl::CommandQueue& queue, size_t maxSize)
+OptFlowPainterPrv::OptFlowPainterPrv(cl::Context& ctxt, cl::CommandQueue& queue, size_t maxSize)
     :mMaxSize(maxSize),
      mContext(ctxt),
      mQueue(queue),
@@ -59,11 +61,11 @@ OptFlowPainter::OptFlowPainter(cl::Context& ctxt, cl::CommandQueue& queue, size_
     }
 }
 
-OptFlowPainter::~OptFlowPainter()
+OptFlowPainterPrv::~OptFlowPainterPrv()
 {
 }
 
-void OptFlowPainter::draw(Ocl::DataBuffer<Ocl::OptFlowData>& flowData, size_t count, size_t width, size_t height)
+void OptFlowPainterPrv::draw(Ocl::DataBuffer<Ocl::OptFlowData>& flowData, size_t count, size_t width, size_t height)
 {
     if (count <= 0)
     {

@@ -19,14 +19,20 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\HistogramPainter.h" />
-    <ClInclude Include="include\OptFlowPainter.h" />
-    <ClInclude Include="source\HistogramPainterPrv.h" />
+    <ClInclude Include="include\OglHistogramPainter.h" />
+    <ClInclude Include="include\OglPointPainter.h" />
+    <ClInclude Include="include\OglOptFlowPainter.h" />
+    <ClInclude Include="source\OglHistogramPainterPrv.h" />
+    <ClInclude Include="source\OglOptFlowPainterPrv.h" />
+    <ClInclude Include="source\OglPointPainterPrv.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\HistogramPainter.cpp" />
-    <ClCompile Include="source\HistogramPainterPrv.cpp" />
-    <ClCompile Include="source\OptFlowPainter.cpp" />
+    <ClCompile Include="source\OglHistogramPainter.cpp" />
+    <ClCompile Include="source\OglHistogramPainterPrv.cpp" />
+    <ClCompile Include="source\OglOptFlowPainter.cpp" />
+    <ClCompile Include="source\OglPointPainter.cpp" />
+    <ClCompile Include="source\OglPointPainterPrv.cpp" />
+    <ClCompile Include="source\OglOptFlowPainterPrv.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{57EC957D-27BB-4582-88F6-1EAEAD0F401C}</ProjectGuid>

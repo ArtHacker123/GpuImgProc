@@ -9,7 +9,7 @@
 #include "OglShape.h"
 
 #include "HarrisCorner.h"
-#include "CornerPainter.h"
+#include "OglPointPainter.h"
 
 class GlView
 {
@@ -28,9 +28,10 @@ private:
     Ogl::Image<GL_BGR> mBgrImg;
     Ogl::Image<GL_RED> mGrayImg;
 
-    CornerPainter mCornerPaint;
-    Ocl::HarrisCorner mHarrisCorner;
-
     Ocl::DataBuffer<Ocl::Pos> mCorners;
+
+    Ocl::HarrisCorner mHarrisCorner;
+    Ogl::PointPainter mCornerPainter;
+
     Ogl::ImagePainter< Ogl::RgbaShader, Ogl::Image<GL_BGR> > mBgrPainter;
 };

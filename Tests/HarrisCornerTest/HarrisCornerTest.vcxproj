@@ -46,7 +46,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>include;../../OglHelper/include;../../OclHelper/include;../../OglShaders/include;../../glew-1.10.0/include/GL;$(INTELOCLSDKROOT)/include;$(OPENCV_DIR)/include;$(CUDA_PATH_V8_0)/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;../../OglHelper/include;../../OclHelper/include;../../OglShaders/include;../../OclPainter/include;../../glew-1.10.0/include/GL;$(INTELOCLSDKROOT)/include;$(OPENCV_DIR)/include;$(CUDA_PATH_V8_0)/include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_UNICODE;UNICODE;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;__CL_ENABLE_EXCEPTIONS;CL_USE_DEPRECATED_OPENCL_1_2_APIS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -73,6 +73,9 @@
     <ProjectReference Include="..\..\OclHelper\OclHelper.vcxproj">
       <Project>{7761eac9-c421-462b-8287-b92019afb46a}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\OclPainter\OclPainter.vcxproj">
+      <Project>{57ec957d-27bb-4582-88f6-1eaead0f401c}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\OglHelper\OglHelper.vcxproj">
       <Project>{fb46b4c1-abe8-48a2-9c4e-cc4f96b240ea}</Project>
     </ProjectReference>
@@ -81,7 +84,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\CornerPainter.h" />
     <ClInclude Include="include\GlView.h" />
     <ClInclude Include="include\stdafx.h" />
     <ClInclude Include="include\targetver.h" />
@@ -89,7 +91,6 @@
     <ClInclude Include="include\TestView.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\CornerPainter.cpp" />
     <ClCompile Include="source\GlView.cpp" />
     <ClCompile Include="source\stdafx.cpp" />
     <ClCompile Include="source\TestApp.cpp" />
