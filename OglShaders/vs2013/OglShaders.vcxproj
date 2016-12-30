@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{AC0D3B91-13EC-4E97-B94F-F0E4AE010185}</ProjectGuid>
+    <RootNamespace>Stages</RootNamespace>
+    <ProjectName>OglShaders</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>../include;../../OglHelper/include;../../glew-1.10.0/include/GL</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>../include;../../OglHelper/include;../../glew-1.10.0/include/GL</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\OglOptFlowNmsShader.h" />
+    <ClInclude Include="..\include\OglRgbaGrayShader.h" />
+    <ClInclude Include="..\include\OglColorShader.h" />
+    <ClInclude Include="..\include\OglEigenShader.h" />
+    <ClInclude Include="..\include\OglBinaryShader.h" />
+    <ClInclude Include="..\include\OglEdgeShader.h" />
+    <ClInclude Include="..\include\OglGaussShader.h" />
+    <ClInclude Include="..\include\OglIxIyItShader.h" />
+    <ClInclude Include="..\include\OglIxIyShader.h" />
+    <ClInclude Include="..\include\OglLumaShader.h" />
+    <ClInclude Include="..\include\OglOptFlowShader.h" />
+    <ClInclude Include="..\include\OglImagePainter.h" />
+    <ClInclude Include="..\include\OglPainter.h" />
+    <ClInclude Include="..\include\OglRgbaShader.h" />
+    <ClInclude Include="..\include\OglUvShader.h" />
+    <ClInclude Include="..\include\OglYuv420HsvShader.h" />
+    <ClInclude Include="..\include\OglYuv420Shader.h" />
+    <ClInclude Include="..\include\OglNmesShader.h" />
+    <ClInclude Include="..\include\OglMatrixMShader.h" />
+    <ClInclude Include="..\include\OglNmsShader.h" />
+    <ClInclude Include="..\include\OglImageFormat.h" />
+    <ClInclude Include="..\source\OglImageConverter.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\source\OglOptFlowNmsShader.cpp" />
+    <ClCompile Include="..\source\OglRgbaGrayShader.cpp" />
+    <ClCompile Include="..\source\OglColorShader.cpp" />
+    <ClCompile Include="..\source\OglEigenShader.cpp" />
+    <ClCompile Include="..\source\OglBinaryShader.cpp" />
+    <ClCompile Include="..\source\OglEdgeShader.cpp" />
+    <ClCompile Include="..\source\OglGaussShader.cpp" />
+    <ClCompile Include="..\source\OglIxIyItShader.cpp" />
+    <ClCompile Include="..\source\OglIxIyShader.cpp" />
+    <ClCompile Include="..\source\OglLumaShader.cpp" />
+    <ClCompile Include="..\source\OglOptFlowShader.cpp" />
+    <ClCompile Include="..\source\OglImagePainter.cpp" />
+    <ClCompile Include="..\source\OglRgbaShader.cpp" />
+    <ClCompile Include="..\source\OglUvShader.cpp" />
+    <ClCompile Include="..\source\OglYuv420HsvShader.cpp" />
+    <ClCompile Include="..\source\OglYuv420Shader.cpp" />
+    <ClCompile Include="..\source\OglNmesShader.cpp" />
+    <ClCompile Include="..\source\OglMatrixMShader.cpp" />
+    <ClCompile Include="..\source\OglNmsShader.cpp" />
+    <ClCompile Include="..\source\OglImageFormat.cpp" />
+    <ClCompile Include="..\source\OglImageConverter.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{c0766d9a-2c20-4271-9be5-3be76796b7ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{b8bc1a2c-ec91-465f-b6ef-760f1bce10e6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\GlView.h" />
+    <ClInclude Include="..\include\stdafx.h" />
+    <ClInclude Include="..\include\targetver.h" />
+    <ClInclude Include="..\include\TestApp.h" />
+    <ClInclude Include="..\include\TestView.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\source\GlView.cpp" />
+    <ClCompile Include="..\source\stdafx.cpp" />
+    <ClCompile Include="..\source\TestApp.cpp" />
+    <ClCompile Include="..\source\TestView.cpp" />
+  </ItemGroup>
+</Project>
