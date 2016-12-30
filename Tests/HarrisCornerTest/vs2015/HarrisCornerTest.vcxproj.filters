@@ -9,34 +9,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\targetver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TestApp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\TestView.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\GlView.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <ClInclude Include="..\include\GlView.h" />
+    <ClInclude Include="..\include\stdafx.h" />
+    <ClInclude Include="..\include\targetver.h" />
+    <ClInclude Include="..\include\TestApp.h" />
+    <ClInclude Include="..\include\TestView.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\TestApp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\TestView.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\GlView.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    <ClCompile Include="..\source\GlView.cpp" />
+    <ClCompile Include="..\source\stdafx.cpp" />
+    <ClCompile Include="..\source\TestApp.cpp" />
+    <ClCompile Include="..\source\TestView.cpp" />
   </ItemGroup>
 </Project>
