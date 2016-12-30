@@ -18,6 +18,7 @@ public:
     size_t process(cl::Image& inpImage, Ocl::DataBuffer<Ocl::Pos>& out, float value, size_t& outCount);
 
 private:
+	void init(int warp_size);
     void createIntBuffer(size_t buffSize);
 
 private:

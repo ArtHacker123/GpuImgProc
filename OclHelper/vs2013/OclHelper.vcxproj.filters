@@ -48,6 +48,9 @@
     <ClInclude Include="..\source\OclHarrisCornerPrv.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\source\OclScanPrv.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\source\OclUtils.cpp">
@@ -81,6 +84,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\source\OclScan.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\OclScanPrv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\OclScanPrvKernels.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

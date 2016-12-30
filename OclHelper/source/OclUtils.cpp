@@ -25,3 +25,15 @@ size_t Ocl::kernelExecTime(cl::CommandQueue& queue, cl::Event& event)
     }
     return 0;
 }
+
+size_t Ocl::getWorkGroupSizeMultiple(const cl::CommandQueue& queue, const cl::Kernel& kernel)
+{
+	cl_device_id devId = 0;
+	queue.getInfo<cl_device_id>(CL_QUEUE_DEVICE, &devId);
+
+	size_t wgmSize = 0;
+	cl::Device device(devId);
+	kernel.getWorkGroupInfo<size_t>(device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, &wgmSize);
+
+	return wgmSize;
+}
