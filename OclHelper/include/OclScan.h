@@ -17,7 +17,7 @@ public:
     size_t process(Ocl::DataBuffer<int>& buffer);
 
 private:
-	std::unique_ptr<Ocl::ScanPrv> mPrv;
+    std::unique_ptr<Ocl::ScanPrv> mPrv;
 };
 
 };

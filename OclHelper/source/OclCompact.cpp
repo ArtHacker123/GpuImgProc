@@ -47,10 +47,10 @@ inline void warp_scan(int wid, int i, local volatile int* sh_data)
     if (wid >= 2) sh_data[i] += sh_data[i-2];
     if (wid >= 4) sh_data[i] += sh_data[i-4];
     if (wid >= 8) sh_data[i] += sh_data[i-8];
-	if (WARP_SIZE == 32)
-	{
-		if (wid >= 16) sh_data[i] += sh_data[i - 16];
-	}
+    if (WARP_SIZE == 32)
+    {
+        if (wid >= 16) sh_data[i] += sh_data[i - 16];
+    }
 }
 
 inline void block_scan(const int i, local volatile int* sh_data)
@@ -139,23 +139,23 @@ Compact::Compact(cl::Context& ctxt, cl::CommandQueue& queue)
      mOutSize(mContext, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, 1),
      mScan(ctxt, queue)
 {
-	try
-	{
-		init(32);
-		size_t wgmSize = Ocl::getWorkGroupSizeMultiple(mQueue, mCompactScanKernel);
-		//Intel HD4xxx series GPU's warp_size is not 32
-		if (wgmSize != 32)
-		{
-			//re-initialize with wgmSize
-			init(wgmSize);
-		}
-	}
+    try
+    {
+        init(32);
+        size_t wgmSize = Ocl::getWorkGroupSizeMultiple(mQueue, mCompactScanKernel);
+        //Intel HD4xxx series GPU's warp_size is not 32
+        if (wgmSize != 32)
+        {
+            //re-initialize with wgmSize
+            init(wgmSize);
+        }
+    }
 
-	catch (cl::Error error)
-	{
-		fprintf(stderr, "Error: %s", error.what());
-		exit(0);
-	}
+    catch (cl::Error error)
+    {
+        fprintf(stderr, "Error: %s", error.what());
+        exit(0);
+    }
 }
 
 Compact::~Compact()
@@ -164,15 +164,15 @@ Compact::~Compact()
 
 void Compact::init(int warp_size)
 {
-	std::ostringstream options;
-	options << "-DSH_MEM_SIZE_REDUCE=" << 64 << " -DSH_MEM_SIZE=" << 256 << " -DWARP_SIZE=" << warp_size;
+    std::ostringstream options;
+    options << "-DSH_MEM_SIZE_REDUCE=" << 64 << " -DSH_MEM_SIZE=" << 256 << " -DWARP_SIZE=" << warp_size;
 
-	cl::Program::Sources source(1, std::make_pair(sSource, strlen(sSource)));
-	mProgram = cl::Program(mContext, source);
-	mProgram.build(options.str().c_str());
+    cl::Program::Sources source(1, std::make_pair(sSource, strlen(sSource)));
+    mProgram = cl::Program(mContext, source);
+    mProgram.build(options.str().c_str());
 
-	mReduceKernel = cl::Kernel(mProgram, "reduce_sum");
-	mCompactScanKernel = cl::Kernel(mProgram, "prefix_sum_compact");
+    mReduceKernel = cl::Kernel(mProgram, "reduce_sum");
+    mCompactScanKernel = cl::Kernel(mProgram, "prefix_sum_compact");
 }
 
 void Compact::createIntBuffer(size_t buffSize)

@@ -12,23 +12,23 @@ ScanPrv::ScanPrv(cl::Context& ctxt, cl::CommandQueue& queue)
      mQueue(queue),
      mIntBuff(mContext, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, (size_t)(mBlkSize*sizeof(int)))
 {
-	try
-	{
-		init(32);
-		size_t wgmSize = Ocl::getWorkGroupSizeMultiple(mQueue, mScanKernel);
-		//Intel HD4xxx series GPU's warp_size is not 32
-		if (wgmSize != 32)
-		{
-			//re-initialize with wgmSize
-			init(wgmSize);
-		}
-	}
+    try
+    {
+        init(32);
+        size_t wgmSize = Ocl::getWorkGroupSizeMultiple(mQueue, mScanKernel);
+        //Intel HD4xxx series GPU's warp_size is not 32
+        if (wgmSize != 32)
+        {
+            //re-initialize with wgmSize
+            init(wgmSize);
+        }
+    }
 
-	catch (cl::Error error)
-	{
-		fprintf(stderr, "Error: %s", error.what());
-		exit(0);
-	}
+    catch (cl::Error error)
+    {
+        fprintf(stderr, "Error: %s", error.what());
+        exit(0);
+    }
 }
 
 ScanPrv::~ScanPrv()
@@ -37,16 +37,16 @@ ScanPrv::~ScanPrv()
 
 void ScanPrv::init(int warp_size)
 {
-	std::ostringstream options;
-	options << "-DWARP_SIZE=" << warp_size << " -DSH_MEM_SIZE=" << (1 << mDepth);
+    std::ostringstream options;
+    options << "-DWARP_SIZE=" << warp_size << " -DSH_MEM_SIZE=" << (1 << mDepth);
 
-	cl::Program::Sources source(1, std::make_pair(sSource, strlen(sSource)));
-	mProgram = cl::Program(mContext, source);
-	mProgram.build(options.str().c_str());
+    cl::Program::Sources source(1, std::make_pair(sSource, strlen(sSource)));
+    mProgram = cl::Program(mContext, source);
+    mProgram.build(options.str().c_str());
 
-	mScanKernel = cl::Kernel(mProgram, "prefix_sum");
-	mAddResKernel = cl::Kernel(mProgram, "add_data");
-	mGatherScanKernel = cl::Kernel(mProgram, "gather_scan");
+    mScanKernel = cl::Kernel(mProgram, "prefix_sum");
+    mAddResKernel = cl::Kernel(mProgram, "add_data");
+    mGatherScanKernel = cl::Kernel(mProgram, "gather_scan");
 }
 
 size_t ScanPrv::process(Ocl::DataBuffer<int>& buffer)

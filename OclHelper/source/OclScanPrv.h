@@ -15,7 +15,7 @@ public:
     size_t process(Ocl::DataBuffer<int>& buffer);
 
 private:
-	void init(int warp_size);
+    void init(int warp_size);
 
 private:
     const int mDepth;

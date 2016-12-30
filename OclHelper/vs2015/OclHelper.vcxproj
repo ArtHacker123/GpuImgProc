@@ -21,6 +21,7 @@
     <ClInclude Include="..\include\OclScan.h" />
     <ClInclude Include="..\source\OclCannyEdgePrv.h" />
     <ClInclude Include="..\source\OclHarrisCornerPrv.h" />
+    <ClInclude Include="..\source\OclScanPrv.h" />
     <ClInclude Include="..\source\OclUtils.h" />
   </ItemGroup>
   <ItemGroup>
@@ -34,6 +35,8 @@
     <ClCompile Include="..\source\OclHistogramRGB.cpp" />
     <ClCompile Include="..\source\OclReduceSum.cpp" />
     <ClCompile Include="..\source\OclScan.cpp" />
+    <ClCompile Include="..\source\OclScanPrv.cpp" />
+    <ClCompile Include="..\source\OclScanPrvKernels.cpp" />
     <ClCompile Include="..\source\OclUtils.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
