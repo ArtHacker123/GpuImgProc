@@ -3,7 +3,8 @@
 #define MAX_CORNER_COUNT 10000
 
 OglView::OglView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queue)
-    :mCtxtCL(ctxt),
+    :mRvalue(0.00125f),
+     mCtxtCL(ctxt),
      mQueueCL(queue),
      mYuvImg(w, h),
      mCorners(mCtxtCL, CL_MEM_READ_WRITE, MAX_CORNER_COUNT),
@@ -24,7 +25,7 @@ void OglView::draw(uint8_t* pData)
 
     size_t count = 0;
     cl::ImageGL imgGL(mCtxtCL, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mYuvImg.yImage().texture());
-    mHarrisCorner.process(imgGL, mCorners, 0.00125f, count);
+    mHarrisCorner.process(imgGL, mCorners, mRvalue, count);
 
     mYuvPainter.draw(mYuvImg);
     mCornerPainter.draw(mCorners, count, mYuvImg.width(), mYuvImg.height());
@@ -33,4 +34,14 @@ void OglView::draw(uint8_t* pData)
 void OglView::resize(GLsizei w, GLsizei h)
 {
     glViewport(0, 0, w, h);
+}
+
+void OglView::thresholdUp()
+{
+    mRvalue *= 2.0;
+}
+
+void OglView::thresholdDown()
+{
+    mRvalue /= 2.0;
 }

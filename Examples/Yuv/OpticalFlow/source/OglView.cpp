@@ -47,3 +47,13 @@ void OglView::resize(GLsizei w, GLsizei h)
 {
     glViewport(0, 0, w, h);
 }
+
+void OglView::thresholdUp()
+{
+    mRvalue *= 2.0;
+}
+
+void OglView::thresholdDown()
+{
+    mRvalue /= 2.0;
+}

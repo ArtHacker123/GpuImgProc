@@ -15,8 +15,11 @@ public:
 public:
     void draw(uint8_t* pData);
     void resize(GLsizei w, GLsizei h);
+    void thresholdUp();
+    void thresholdDown();
 
 private:
+    float mRvalue;
     cl::Context& mCtxtCL;
     cl::CommandQueue& mQueueCL;
 
