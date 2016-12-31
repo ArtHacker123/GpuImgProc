@@ -184,7 +184,7 @@ BOOL TestApp::InitInstance()
 
     m_pMainWnd = new TestView(width, height, fpath);
     LPCTSTR cs = AfxRegisterWndClass(CS_CLASSDC | CS_DBLCLKS, ::LoadCursor(NULL, IDC_ARROW), 0, 0);
-    m_pMainWnd->CreateEx(0, cs, CString("Canny Edge Detection - "+fpath), WS_OVERLAPPEDWINDOW, xpos, ypos, width, height, 0, 0);
+    m_pMainWnd->CreateEx(0, cs, CString("Optical Flow - "+fpath), WS_OVERLAPPEDWINDOW, xpos, ypos, width, height, 0, 0);
     m_pMainWnd->ShowWindow(SW_SHOW);
     m_pMainWnd->UpdateWindow();
 
