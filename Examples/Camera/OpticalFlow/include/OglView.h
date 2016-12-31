@@ -42,8 +42,6 @@ private:
     Ogl::Image<GL_RED> mImg2;
     Ogl::Image<GL_BGR> mBgrImg;
 
-    std::vector< std::unique_ptr<Ogl::Image<GL_RG>> > mUVImg;
-
     Ogl::OptFlow mOptFlow;
     Ocl::DataBuffer<Ocl::OptFlowData> mFlowData;
 
