@@ -41,6 +41,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HistogramRGB", "..\Examples
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HistogramRGB", "..\Examples\Camera\HistogramRGB\vs2015\HistogramRGB.vcxproj", "{C87DB996-26AC-44FF-AB74-B17682393B28}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Template", "..\Examples\Camera\Template\vs2015\Template.vcxproj", "{0E250865-5937-46DF-8887-D98A5F3360BA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -107,6 +109,10 @@ Global
 		{C87DB996-26AC-44FF-AB74-B17682393B28}.Debug|x64.Build.0 = Debug|x64
 		{C87DB996-26AC-44FF-AB74-B17682393B28}.Release|x64.ActiveCfg = Release|x64
 		{C87DB996-26AC-44FF-AB74-B17682393B28}.Release|x64.Build.0 = Release|x64
+		{0E250865-5937-46DF-8887-D98A5F3360BA}.Debug|x64.ActiveCfg = Debug|x64
+		{0E250865-5937-46DF-8887-D98A5F3360BA}.Debug|x64.Build.0 = Debug|x64
+		{0E250865-5937-46DF-8887-D98A5F3360BA}.Release|x64.ActiveCfg = Release|x64
+		{0E250865-5937-46DF-8887-D98A5F3360BA}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -123,5 +129,6 @@ Global
 		{6E353118-F3EF-4F62-B383-A87EF02A426C} = {0FA4CD54-330F-4723-BD18-7C688388EED0}
 		{B76322A5-408F-4DD3-B3A9-4473394A8DA1} = {0708BA84-D648-4ACF-A9C2-E1E9D2E983B6}
 		{C87DB996-26AC-44FF-AB74-B17682393B28} = {0FA4CD54-330F-4723-BD18-7C688388EED0}
+		{0E250865-5937-46DF-8887-D98A5F3360BA} = {0FA4CD54-330F-4723-BD18-7C688388EED0}
 	EndGlobalSection
 EndGlobal
