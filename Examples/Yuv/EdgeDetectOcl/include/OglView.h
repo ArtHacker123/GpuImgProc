@@ -14,6 +14,10 @@ public:
 public:
     void draw(uint8_t* pData);
     void resize(GLsizei w, GLsizei h);
+    void minThresholdUp();
+    void minThresholdDown();
+    void maxThresholdUp();
+    void maxThresholdDown();
 
 private:
     cl::Context& mCtxtCL;
@@ -24,8 +28,8 @@ private:
     Ogl::Yuv420Image mYuvImg;
     Ogl::Image<GL_RED> mEdgeImg;
 
-    float minThresh;
-    float maxThresh;
+    float mMinThresh;
+    float mMaxThresh;
 
     Ogl::ImagePainter< Ogl::Yuv420Shader, Ogl::Yuv420Image > mYuvPainter;
     Ogl::ImagePainter< Ogl::LumaShader, Ogl::Image<GL_RED> > mLumaPainter;

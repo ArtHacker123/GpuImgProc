@@ -167,7 +167,6 @@ void TestView::OnDestroy()
     mCamera.release();
 }
 
-
 void TestView::OnTimer(UINT_PTR nIDEvent)
 {
     // TODO: Add your message handler code here and/or call default
@@ -175,8 +174,22 @@ void TestView::OnTimer(UINT_PTR nIDEvent)
     CWnd::OnTimer(nIDEvent);
 }
 
-
 void TestView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
+    switch (nChar)
+    {
+        case VK_UP:
+            mViewGL->maxThresholdUp();
+            break;
+        case VK_DOWN:
+            mViewGL->maxThresholdDown();
+            break;
+        case VK_LEFT:
+            mViewGL->minThresholdDown();
+            break;
+        case VK_RIGHT:
+            mViewGL->minThresholdUp();
+            break;
+    }
     CWnd::OnKeyDown(nChar, nRepCnt, nFlags);
 }
