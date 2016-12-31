@@ -33,7 +33,7 @@ private:
 
     Ogl::Image<GL_BGR> mBgrImg;
     Ogl::Image<GL_RED> mGrayImg;
-    Ogl::Image<GL_RED> mBinaryImg;
+    Ogl::Image<GL_RED> mEdgeImg;
 
     Ogl::ImagePainter< Ogl::RgbaShader, Ogl::Image<GL_BGR> > mRgbaPainter;
     Ogl::ImagePainter< Ogl::LumaShader, Ogl::Image<GL_RED> > mGrayPainter;
