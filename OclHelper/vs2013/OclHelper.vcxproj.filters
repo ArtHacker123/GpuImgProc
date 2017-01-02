@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\source\OclUtils.h">
+    <ClInclude Include="..\include\OclUtils.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\OclCannyEdge.h">

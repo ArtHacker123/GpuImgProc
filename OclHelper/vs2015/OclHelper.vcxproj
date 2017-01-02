@@ -19,10 +19,10 @@
     <ClInclude Include="..\include\OclHistogramRGB.h" />
     <ClInclude Include="..\include\OclReduceSum.h" />
     <ClInclude Include="..\include\OclScan.h" />
+    <ClInclude Include="..\include\OclUtils.h" />
     <ClInclude Include="..\source\OclCannyEdgePrv.h" />
     <ClInclude Include="..\source\OclHarrisCornerPrv.h" />
     <ClInclude Include="..\source\OclScanPrv.h" />
-    <ClInclude Include="..\source\OclUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\source\OclCannyEdge.cpp" />

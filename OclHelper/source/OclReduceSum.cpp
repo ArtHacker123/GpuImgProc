@@ -1,4 +1,5 @@
 #include "OclReduceSum.h"
+#include "OclUtils.h"
 
 #include <sstream>
 
@@ -96,7 +97,7 @@ int ReduceSum::process(Ocl::DataBuffer<int>& buffer)
     size_t globalSize = ((buffSize1/mBlkSize)+(((buffSize1%mBlkSize) == 0)?0:1))*mBlkSize;
     mQueue.enqueueNDRangeKernel(mKernel, cl::NullRange, cl::NDRange(globalSize), cl::NDRange(mBlkSize), NULL, &event);
     event.wait();
-    size_t time = event.getProfilingInfo<CL_PROFILING_COMMAND_END>()-event.getProfilingInfo<CL_PROFILING_COMMAND_START>();
+    size_t time = kernelExecTime(mQueue, event);
 
     size_t groupCount = (buffSize/mBlkSize)+(((buffSize%mBlkSize)==0)?0:1);
     while (groupCount > 1)
@@ -108,7 +109,7 @@ int ReduceSum::process(Ocl::DataBuffer<int>& buffer)
         globalSize = ((groupCount1/mBlkSize)+(((groupCount1%mBlkSize)==0)?0:1))*mBlkSize;
         mQueue.enqueueNDRangeKernel(mKernel, cl::NullRange, cl::NDRange(globalSize), cl::NDRange(mBlkSize), NULL, &event);
         event.wait();
-        time += (event.getProfilingInfo<CL_PROFILING_COMMAND_END>()-event.getProfilingInfo<CL_PROFILING_COMMAND_START>());
+        time += kernelExecTime(mQueue, event);
         groupCount = globalSize/mBlkSize;
     }
 

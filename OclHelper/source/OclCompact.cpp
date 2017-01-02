@@ -205,7 +205,7 @@ size_t Compact::process(cl::Image& inpImage, Ocl::DataBuffer<Ocl::Pos>& out, flo
     cl::Event event;
     mQueue.enqueueNDRangeKernel(mReduceKernel, cl::NullRange, cl::NDRange(width/4, height), cl::NDRange(8, 8), NULL, &event);
     event.wait();
-    size_t time = (event.getProfilingInfo<CL_PROFILING_COMMAND_END>() - event.getProfilingInfo<CL_PROFILING_COMMAND_START>());
+    size_t time = kernelExecTime(mQueue, event);
 
     time += mScan.process(*mBuffReduce);
 
@@ -218,7 +218,7 @@ size_t Compact::process(cl::Image& inpImage, Ocl::DataBuffer<Ocl::Pos>& out, flo
 
     mQueue.enqueueNDRangeKernel(mCompactScanKernel, cl::NullRange, cl::NDRange(width/2, height), cl::NDRange(16, 8), NULL, &event);
     event.wait();
-    time += (event.getProfilingInfo<CL_PROFILING_COMMAND_END>() - event.getProfilingInfo<CL_PROFILING_COMMAND_START>());
+    time += kernelExecTime(mQueue, event);
 
     int* pData = mOutSize.map(mQueue, CL_TRUE, CL_MAP_READ, 0, 1);
     outCount = *pData;

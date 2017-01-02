@@ -62,7 +62,7 @@ size_t ScanPrv::process(Ocl::DataBuffer<int>& buffer)
     gSize *= mBlkSize;
     mQueue.enqueueNDRangeKernel(mScanKernel, cl::NullRange, cl::NDRange(gSize/2), cl::NDRange(mBlkSize/2), NULL, &event);
     event.wait();
-    size_t time = event.getProfilingInfo<CL_PROFILING_COMMAND_END>()-event.getProfilingInfo<CL_PROFILING_COMMAND_START>();
+    size_t time = kernelExecTime(mQueue, event);
 
     for (size_t i = mBlkSize; i < buffSize; i += (mBlkSize*mBlkSize))
     {
@@ -72,7 +72,7 @@ size_t ScanPrv::process(Ocl::DataBuffer<int>& buffer)
         mGatherScanKernel.setArg(3, mIntBuff);
         mQueue.enqueueNDRangeKernel(mGatherScanKernel, cl::NullRange, cl::NDRange(mBlkSize/2), cl::NDRange(mBlkSize/2), NULL, &event);
         event.wait();
-        time += (event.getProfilingInfo<CL_PROFILING_COMMAND_END>()-event.getProfilingInfo<CL_PROFILING_COMMAND_START>());
+        time += kernelExecTime(mQueue, event);
 
         mAddResKernel.setArg(0, buffer);
         mAddResKernel.setArg(1, (int)i);
@@ -80,7 +80,7 @@ size_t ScanPrv::process(Ocl::DataBuffer<int>& buffer)
         mAddResKernel.setArg(3, mIntBuff);
         mQueue.enqueueNDRangeKernel(mAddResKernel, cl::NullRange, cl::NDRange(mBlkSize*mBlkSize/4), cl::NDRange(mBlkSize/4), NULL, &event);
         event.wait();
-        time += (event.getProfilingInfo<CL_PROFILING_COMMAND_END>()-event.getProfilingInfo<CL_PROFILING_COMMAND_START>());
+        time += kernelExecTime(mQueue, event);
     }
     //printf("\nKernel Time: %llf us", ((double)time)/1000.0);
     return time;
