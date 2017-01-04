@@ -89,8 +89,8 @@ inline void block_scan(const int i, local volatile int* sh_data)
     }
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    sh_data[i] += sh_data[(i/WARP_SIZE)];
-    sh_data[index] += sh_data[(index/WARP_SIZE)];
+    sh_data[i] += sh_data[SH_MEM_SIZE+(i/WARP_SIZE)];
+    sh_data[index] += sh_data[SH_MEM_SIZE+(index/WARP_SIZE)];
 }
 
 kernel void prefix_sum_compact(read_only image2d_t image, float value, global int* p_blk_sum, global OptFlowData* p_out, int maxOutSize, global int* p_out_size)

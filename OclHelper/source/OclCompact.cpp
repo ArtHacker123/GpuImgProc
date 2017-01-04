@@ -80,8 +80,8 @@ inline void block_scan(const int i, local volatile int* sh_data)
     }
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    sh_data[i] += sh_data[(i/WARP_SIZE)];
-    sh_data[index] += sh_data[(index/WARP_SIZE)];
+    sh_data[i] += sh_data[SH_MEM_SIZE+(i/WARP_SIZE)];
+    sh_data[index] += sh_data[SH_MEM_SIZE+(index/WARP_SIZE)];
 }
 
 kernel void prefix_sum_compact(read_only image2d_t image, float value, global int* p_blk_sum, global int2* p_out, int maxOutSize, global int* p_out_size)
@@ -90,9 +90,9 @@ kernel void prefix_sum_compact(read_only image2d_t image, float value, global in
     local int sh_data[SH_MEM_SIZE+WARP_SIZE];
     const int x = 2*get_global_id(0);
     const int y = get_global_id(1);
-    const int index = (get_local_id(1)*get_local_size(0)*2)+get_local_id(0);
+    const int index = (get_local_id(1)*get_local_size(0)*2)+(get_local_id(0)*2);
     sh_data[index] = (read_imagef(image, (int2)(x, y)).x >= value)?1:0;
-    sh_data[index+get_local_size(0)] = (read_imagef(image, (int2)(x+1, y)).x >= value)?1:0;
+    sh_data[index+1] = (read_imagef(image, (int2)(x+1, y)).x >= value)?1:0;
     barrier(CLK_LOCAL_MEM_FENCE);
     block_scan((get_local_id(1)*get_local_size(0))+get_local_id(0), sh_data);
 
@@ -121,10 +121,10 @@ kernel void prefix_sum_compact(read_only image2d_t image, float value, global in
 
     if (read_imagef(image, (int2)(x+1, y)).x >= value)
     {
-        sh_data[index+get_local_size(0)] += sum_blk;
-        if (sh_data[index+ get_local_size(0)] < maxOutSize)
+        sh_data[index+1] += sum_blk;
+        if (sh_data[index+1] < maxOutSize)
         {
-            p_out[sh_data[index+ get_local_size(0)]-1] = (int2)(x+1, y);
+            p_out[sh_data[index+1]-1] = (int2)(x+1, y);
         }
     }
 }
