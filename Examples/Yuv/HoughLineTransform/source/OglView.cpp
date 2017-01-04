@@ -9,31 +9,11 @@ OglView::OglView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queu
      mHoughLines(mCtxtCL, mQueueCL),
      mYuvImg(w, h),
      mEdgeImg(w, h, GL_R32F, GL_FLOAT),
-     mHoughData(mCtxtCL, CL_MEM_READ_WRITE, 200),
-     mHoughLinePainter(mCtxtCL, mQueueCL, 200)
+     mHoughData(mCtxtCL, CL_MEM_READ_WRITE, 2000),
+     mHoughLinePainter(mCtxtCL, mQueueCL, 2000)
 {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-
-    /*Ocl::HoughData* pHoughData = mHoughData.map(mQueueCL, CL_TRUE, CL_MAP_READ|CL_MAP_WRITE, 0, 100);
-
-    pHoughData[0].angle = 0;
-    pHoughData[0].rho = 100;
-    pHoughData[0].strength = 200;
-
-    pHoughData[1].angle = 90;
-    pHoughData[1].rho = 70;
-    pHoughData[1].strength = 200;
-
-    pHoughData[2].angle = 180;
-    pHoughData[2].rho = 100;
-    pHoughData[2].strength = 200;
-
-    pHoughData[3].angle = 270;
-    pHoughData[3].rho = 70;
-    pHoughData[3].strength = 200;
-
-    mHoughData.unmap(mQueueCL, pHoughData);*/
 }
 
 OglView::~OglView()
@@ -50,7 +30,7 @@ void OglView::draw(uint8_t* pData)
     size_t time = mCanny.process(inpImgGL, outImgGL, mMinThresh, mMaxThresh);
 
     size_t houghCount = 0;
-    time += mHoughLines.process(outImgGL, 50, mHoughData, houghCount);
+    time += mHoughLines.process(outImgGL, 500, mHoughData, houghCount);
 
     mYuvPainter.draw(mYuvImg);  
     mHoughLinePainter.draw(mHoughData, houghCount, mEdgeImg.width(), mEdgeImg.height());
