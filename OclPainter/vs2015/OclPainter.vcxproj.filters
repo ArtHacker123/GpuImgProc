@@ -27,6 +27,12 @@
     <ClInclude Include="..\source\OglHistogramPainterPrv.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\OglHoughLinePainter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\OglHoughLinePainterPrv.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\source\OglPointPainter.cpp">
@@ -45,6 +51,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\source\OglHistogramPainterPrv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\OglHoughLinePainter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\OglHoughLinePainterPrv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

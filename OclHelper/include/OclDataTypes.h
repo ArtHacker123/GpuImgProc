@@ -9,6 +9,13 @@ struct Pos
     int y;
 };
 
+struct HoughData
+{
+    int rho;
+    int angle;
+    int strength;
+};
+
 struct OptFlowData
 {
     int x;

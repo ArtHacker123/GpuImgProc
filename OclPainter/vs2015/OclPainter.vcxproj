@@ -20,15 +20,19 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\OglHistogramPainter.h" />
+    <ClInclude Include="..\include\OglHoughLinePainter.h" />
     <ClInclude Include="..\include\OglPointPainter.h" />
     <ClInclude Include="..\include\OglOptFlowPainter.h" />
     <ClInclude Include="..\source\OglHistogramPainterPrv.h" />
+    <ClInclude Include="..\source\OglHoughLinePainterPrv.h" />
     <ClInclude Include="..\source\OglOptFlowPainterPrv.h" />
     <ClInclude Include="..\source\OglPointPainterPrv.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\source\OglHistogramPainter.cpp" />
     <ClCompile Include="..\source\OglHistogramPainterPrv.cpp" />
+    <ClCompile Include="..\source\OglHoughLinePainter.cpp" />
+    <ClCompile Include="..\source\OglHoughLinePainterPrv.cpp" />
     <ClCompile Include="..\source\OglOptFlowPainter.cpp" />
     <ClCompile Include="..\source\OglPointPainter.cpp" />
     <ClCompile Include="..\source\OglPointPainterPrv.cpp" />

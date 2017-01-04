@@ -44,12 +44,10 @@ void test_hough_lines(cl::Context& context, cl::CommandQueue& queue)
 	size_t width = 640;
 	size_t height = 480;
     //size_t max_rho = 1+(size_t)(0.5*sqrt((double)((width*width)+(height*height))));
-    Ocl::Compact compact(context, queue);
     Ocl::HoughLines houghLines(context, queue);
 	cl::Image2D img(context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), width, height);
-	Ocl::DataBuffer<Ocl::Pos> edge_data(context, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, (width*height)/4);
-    Ocl::HoughData hough_data(context, queue, width, height);
-
+	Ocl::DataBuffer<Ocl::HoughData> hdata(context, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, 1000);
+    
 	size_t row_pitch = 0;
 	size_t slice_pitch = 0;
 	cl::size_t<3> img_orig;
@@ -69,7 +67,7 @@ void test_hough_lines(cl::Context& context, cl::CommandQueue& queue)
 			pimg_data[x] = 0.0;
 		}
 	}
-    /*size_t x = 100;
+    size_t x = 100;
     size_t y = 100;
     for (y = 100; y < 380; y++)
     {
@@ -80,44 +78,25 @@ void test_hough_lines(cl::Context& context, cl::CommandQueue& queue)
     for (x = 100; x < 540; x++)
     {
         pdata[(row_pitch*y) + x] = 1.0f;
-    }*/
+    }
 
-    for (size_t i = 0; i < (width*height) / 4; i++)
+    /*for (size_t i = 0; i < (width*height) / 4; i++)
     {
         size_t x = rand()%width;
         size_t y = rand()%height;
         pdata[(row_pitch*y)+x] = 1.0f;
-    }
+    }*/
 
 	queue.enqueueUnmapMemObject(img, pdata);
 	queue.finish();
 
     size_t outCount = 0;
-    size_t time = compact.process(img, edge_data, 1.0, outCount);
-
-    size_t time1 = houghLines.process(edge_data, outCount, width, height, hough_data);
-    size_t tot_time = time + time1;
-    printf("\nTime: %d ns", tot_time);
-
+    size_t time = houghLines.process(img, 100, hdata, outCount);
+    printf("\nTime: %d ns", time);
+    Ocl::HoughData* pHoughData = hdata.map(queue, CL_TRUE, CL_MAP_READ, 0, outCount);
+    for (size_t i = 0; i < outCount; i++)
     {
-        size_t max_rho = 0;
-        hough_data.getImage().getImageInfo<size_t>(CL_IMAGE_WIDTH, &max_rho);
-        img_region[0] = max_rho;
-        img_region[1] = 360;
-        img_region[2] = 1;
-        uint32_t* pdata = (uint32_t *)queue.enqueueMapImage(hough_data.getImage(), CL_TRUE, CL_MAP_READ, img_orig, img_region, &row_pitch, &slice_pitch);
-        row_pitch /= sizeof(uint32_t);
-        for (size_t y = 0; y < 360; y++)
-        {
-            uint32_t* pimg_data = (uint32_t*)&pdata[row_pitch*y];
-            for (size_t x = 0; x < max_rho; x++)
-            {
-                if (pimg_data[x] >= 200)
-                {
-                    printf("\n(%d, %d) - %d", x, y, pimg_data[x]);
-                }
-            }
-        }
-        queue.enqueueUnmapMemObject(hough_data.getImage(), pdata);
+        printf("\n%d: rho: %d, angle: %d, size: %d", i, pHoughData[i].rho, pHoughData[i].angle, pHoughData[i].strength);
     }
+    hdata.unmap(queue, pHoughData);
 }

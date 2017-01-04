@@ -23,15 +23,15 @@ private:
     cl::Context& mCtxtCL;
     cl::CommandQueue& mQueueCL;
 
-    Ocl::CannyEdge mCanny;
-    Ocl::HoughLines mHoughLines;
-
-    Ogl::Yuv420Image mYuvImg;
+    Ogl::Image<GL_BGR> mBgrImg;
+    Ogl::Image<GL_RED> mGrayImg;
     Ogl::Image<GL_RED> mEdgeImg;
 
+    Ocl::CannyEdge mCanny;
+    Ocl::HoughLines mHoughLines;
     Ocl::DataBuffer<Ocl::HoughData> mHoughData;
 
     Ogl::HoughLinePainter mHoughLinePainter;
-    Ogl::ImagePainter< Ogl::Yuv420Shader, Ogl::Yuv420Image > mYuvPainter;
-    Ogl::ImagePainter< Ogl::LumaShader, Ogl::Image<GL_RED> > mLumaPainter;
+    Ogl::ImagePainter< Ogl::RgbaShader, Ogl::Image<GL_BGR> > mRgbaPainter;
+    Ogl::ImagePainter< Ogl::LumaShader, Ogl::Image<GL_RED> > mGrayPainter;
 };

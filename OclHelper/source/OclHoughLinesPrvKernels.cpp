@@ -6,13 +6,55 @@ using namespace Ocl;
 
 const char HoughLinesPrv::sSource[] = OCL_PROGRAM_SOURCE(
 
-kernel void convert_coords(global const int2* p_inp, global int2*p_out, const int count, const int width, const int height)
+kernel void non_max_suppress(read_only image2d_t inpImg, write_only image2d_t outImg, int threshold)
 {
-    if (get_global_id(0) >= count) return;
-    int2 data = p_inp[get_global_id(0)];
-    data.x -= width;
-    data.y = height-data.y;
-    p_out[get_global_id(0)] = data;
+    local int shImgData[10][10];
+
+    const int x = (get_group_id(0)*get_local_size(0)) - 1;
+    const int y = (get_group_id(1)*get_local_size(1)) - 1;
+
+    for (int j = 0; j < 2; j++)
+    {
+        int n = get_local_id(1) + (j*get_local_size(1));
+        if (n < 10)
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                int m = get_local_id(0) + (i*get_local_size(0));
+                if (m < 10)
+                {
+                    int2 coord = (int2)(x + m, y + n);
+                    if (coord.x < get_image_width(inpImg) && coord.y < get_image_height(inpImg))
+                    {
+                        shImgData[n][m] = read_imageui(inpImg, coord).x;
+                    }
+                    else
+                    {
+                        shImgData[n][m] = 0;
+                    }
+                    coord.x += get_local_size(0);
+                }
+            }
+        }
+    }
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    const int p = get_local_id(0) + 1;
+    const int q = get_local_id(1) + 1;
+    unsigned int data = shImgData[q][p];
+    if (shImgData[q][p - 1] >= data) data = 0;
+    if (shImgData[q][p + 1] >= data) data = 0;
+    if (shImgData[q - 1][p - 1] >= data) data = 0;
+    if (shImgData[q - 1][p] >= data) data = 0;
+    if (shImgData[q - 1][p + 1] >= data) data = 0;
+    if (shImgData[q + 1][p - 1] >= data) data = 0;
+    if (shImgData[q + 1][p] >= data) data = 0;
+    if (shImgData[q + 1][p + 1] >= data) data = 0;
+    if (data < threshold)
+    {
+        data = 0;
+    }
+    write_imageui(outImg, (int2)(get_global_id(0), get_global_id(1)), data);
 }
 
 kernel void hough_line_transform(global const int2* p_coords, const int count, const int max_rho, write_only image2d_t outImg, local int* sh_rho)

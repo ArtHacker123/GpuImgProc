@@ -9,32 +9,17 @@ namespace Ocl
 
 class HoughLinesPrv;
 
-class HoughData
-{
-public:
-    HoughData(cl::Context& ctxt, cl::CommandQueue& queue, size_t width, size_t height);
-    ~HoughData();
-
-    cl::Image2D& getImage() { return mImage; };
-
-private:
-    cl::Context mCtxt;
-    cl::CommandQueue mQueue;
-
-    cl::Image2D mImage;
-};
-
 class HoughLines
 {
 public:
     HoughLines(cl::Context& ctxt, cl::CommandQueue& queue);
     ~HoughLines();
 
-    size_t process(const Ocl::DataBuffer<Ocl::Pos>& edgeData, size_t edgeCount, size_t width, size_t height, Ocl::HoughData& hData);
+    size_t process(const cl::Image2D& inpImage, size_t minSize, Ocl::DataBuffer<Ocl::HoughData>& hData, size_t& houghCount);
+    size_t process(const cl::ImageGL& inpImage, size_t minSize, Ocl::DataBuffer<Ocl::HoughData>& hData, size_t& houghCount);
 
 private:
     std::unique_ptr<Ocl::HoughLinesPrv> mPrv;
 };
 
 };
-

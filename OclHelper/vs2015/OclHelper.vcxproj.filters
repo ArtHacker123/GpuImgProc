@@ -57,6 +57,12 @@
     <ClInclude Include="..\source\OclHoughLinesPrv.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\OclCompactEdges.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\OclCompactHoughData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\source\OclUtils.cpp">
@@ -105,6 +111,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\source\OclHoughLinesPrvKernels.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\OclCompactEdges.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\OclCompactHoughData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
