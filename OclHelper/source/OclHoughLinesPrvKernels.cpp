@@ -24,7 +24,7 @@ kernel void non_max_suppress(read_only image2d_t inpImg, write_only image2d_t ou
                 if (m < 10)
                 {
                     int2 coord = (int2)(x + m, y + n);
-                    if (coord.x < get_image_width(inpImg) && coord.y < get_image_height(inpImg))
+                    if (coord.x >= 0 && coord.y >= 0 && coord.x < get_image_width(inpImg) && coord.y < get_image_height(inpImg))
                     {
                         shImgData[n][m] = read_imageui(inpImg, coord).x;
                     }
@@ -87,7 +87,6 @@ kernel void hough_line_transform(global const int2* p_coords, const int count, c
         {
             atomic_inc(&sh_rho[r]);
         }
-        //if (data.x == -220 && get_group_id(0) == 180) printf("\n%d %d %d, %f", data.x, data.y, sh_rho[r], sh_cos_theta);
     }
     barrier(CLK_LOCAL_MEM_FENCE);
 
