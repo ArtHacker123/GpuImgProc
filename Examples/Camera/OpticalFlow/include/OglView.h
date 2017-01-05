@@ -27,6 +27,9 @@ public:
     void thresholdUp();
     void thresholdDown();
 
+    void minFlowSizeUp();
+    void minFlowSizeDown();
+
 protected:
     void swap();
 
@@ -35,6 +38,7 @@ private:
     cl::CommandQueue& mQueueCL;
 
     GLfloat mRvalue;
+    GLfloat mMinFlowSize;
     Ogl::Image<GL_RED>* m_pPrevImg;
     Ogl::Image<GL_RED>* m_pCurrImg;
 

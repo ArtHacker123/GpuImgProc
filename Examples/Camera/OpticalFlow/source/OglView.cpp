@@ -8,6 +8,7 @@ OglView::OglView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queu
     :mCtxtCL(ctxt),
      mQueueCL(queue),
      mRvalue(0.000000250f),
+     mMinFlowSize(6.0f),
      m_pPrevImg(0),
      m_pCurrImg(0),
      mImg1(w, h, GL_R32F, GL_FLOAT, 0, true),
@@ -39,7 +40,7 @@ void OglView::draw(uint8_t* pData)
     Ogl::ImageFormat::convert(*m_pCurrImg, mBgrImg);
     
     size_t outCount = 0;
-    mOptFlow.process(mFlowData, outCount, *m_pCurrImg, *m_pPrevImg, mRvalue, 6.0f);
+    mOptFlow.process(mFlowData, outCount, *m_pCurrImg, *m_pPrevImg, mRvalue, mMinFlowSize);
 
     mBgrPainter.draw(mBgrImg);
     mFlowPainter.draw(mFlowData, outCount, mBgrImg.width(), mBgrImg.height());
@@ -60,4 +61,17 @@ void OglView::thresholdUp()
 void OglView::thresholdDown()
 {
     mRvalue /= 2.0;
+}
+
+void OglView::minFlowSizeUp()
+{
+    mMinFlowSize += 0.5f;
+}
+
+void OglView::minFlowSizeDown()
+{
+    if (mMinFlowSize > 1.5f)
+    {
+        mMinFlowSize -= 0.5f;
+    }
 }

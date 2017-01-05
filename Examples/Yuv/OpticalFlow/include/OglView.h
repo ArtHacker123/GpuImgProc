@@ -19,6 +19,9 @@ public:
     void thresholdUp();
     void thresholdDown();
 
+    void minFlowSizeUp();
+    void minFlowSizeDown();
+
 private:
     void swap();
 
@@ -27,6 +30,7 @@ private:
     cl::CommandQueue& mQueueCL;
 
     GLfloat mRvalue;
+    GLfloat mMinFlowSize;
     Ogl::Yuv420Image* m_pPrevImg;
     Ogl::Yuv420Image* m_pCurrImg;
 

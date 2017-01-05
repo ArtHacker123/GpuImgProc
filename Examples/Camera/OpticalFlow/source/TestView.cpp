@@ -187,6 +187,12 @@ void TestView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         case VK_DOWN:
             mViewGL->thresholdDown();
             break;
+        case VK_LEFT:
+            mViewGL->minFlowSizeDown();
+            break;
+        case VK_RIGHT:
+            mViewGL->minFlowSizeUp();
+            break;
     }
     CWnd::OnKeyDown(nChar, nRepCnt, nFlags);
 }
