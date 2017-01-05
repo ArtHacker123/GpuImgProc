@@ -72,12 +72,10 @@
   <ItemGroup>
     <ClInclude Include="..\include\OglOptFlow.h" />
     <ClInclude Include="..\source\OglOptFlowPrv.h" />
-    <ClInclude Include="..\source\OptFlowCompact.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\source\OglOptFlowPrv.cpp" />
     <ClCompile Include="..\source\OglOptFlow.cpp" />
-    <ClCompile Include="..\source\OptFlowCompact.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\OclHelper\vs2015\OclHelper.vcxproj">

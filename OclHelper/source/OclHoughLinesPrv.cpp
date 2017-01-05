@@ -15,8 +15,7 @@ HoughLinesPrv::HoughLinesPrv(cl::Context& ctxt, cl::CommandQueue& queue)
     :mRho(0),
      mContext(ctxt),
      mQueue(queue),
-     mEdgeCompact(mContext, mQueue),
-     mHoughDataCompact(mContext, mQueue)
+     mCompact(mContext, mQueue)
 {
     try
     {
@@ -101,10 +100,10 @@ size_t HoughLinesPrv::process(const cl::Image2D& inpImage, size_t minSize, Ocl::
 {
     size_t edgeCount = 0;
     createTempBuffers(inpImage);
-    size_t time = mEdgeCompact.process(inpImage, *mEdgeData, 1.0, edgeCount);
+    size_t time = mCompact.process_cartesian(inpImage, *mEdgeData, 1.0, edgeCount);
     time += computeHLT(edgeCount);
     time += nonMaxSuppress(minSize);
-    time += mHoughDataCompact.process(*mHoughNmsImg, hData, (int)minSize, houghCount);
+    time += mCompact.process(*mHoughNmsImg, hData, (int)minSize, houghCount);
     /*{
         size_t row_pitch = 0;
         size_t slice_pitch = 0;
@@ -139,10 +138,10 @@ size_t HoughLinesPrv::process(const cl::ImageGL& inpImage, size_t minSize, Ocl::
     createTempBuffers(inpImage);
     std::vector<cl::Memory> gl_objs = { inpImage };
     mQueue.enqueueAcquireGLObjects(&gl_objs);
-    size_t time = mEdgeCompact.process(inpImage, *mEdgeData, 1.0, edgeCount);
+    size_t time = mCompact.process_cartesian(inpImage, *mEdgeData, 1.0, edgeCount);
     mQueue.enqueueReleaseGLObjects(&gl_objs);
     time += computeHLT(edgeCount);
     time += nonMaxSuppress(minSize);
-    time += mHoughDataCompact.process(*mHoughNmsImg, hData, (int)minSize, houghCount);
+    time += mCompact.process(*mHoughNmsImg, hData, (int)minSize, houghCount);
     return time;
 }

@@ -2,7 +2,7 @@
 
 #include "OglImage.h"
 #include "OglOptFlow.h"
-#include "OptFlowCompact.h"
+#include "OclCompact.h"
 
 #include <memory>
 #include <vector>
@@ -52,7 +52,7 @@ private:
     std::unique_ptr<Ogl::OptFlowShader> mOptFlowShader;
     std::unique_ptr<Ogl::OptFlowNmsShader> mNmsShader;
 
-    Ocl::OptFlowCompact mCompact;
+    Ocl::Compact mCompact;
 
     static const GLenum mBuffs[];
     static const std::vector<GLushort> index;

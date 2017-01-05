@@ -2,8 +2,7 @@
 
 #include "OclDataBuffer.h"
 #include "OclHoughLines.h"
-#include "OclCompactEdges.h"
-#include "OclCompactHoughData.h"
+#include "OclCompact.h"
 #include <memory>
 
 namespace Ocl
@@ -33,9 +32,7 @@ private:
     cl::Kernel mNmsKernel;
     cl::Kernel mHoughKernel;
 
-    //This is very messy
-    Ocl::CompactEdges mEdgeCompact;
-    Ocl::CompactHoughData mHoughDataCompact;
+    Ocl::Compact mCompact;
 
     std::unique_ptr<cl::Image2D> mHoughImg;
     std::unique_ptr<cl::Image2D> mHoughNmsImg;
