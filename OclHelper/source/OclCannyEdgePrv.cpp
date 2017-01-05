@@ -11,7 +11,7 @@ CannyEdgePrv::CannyEdgePrv(cl::Context& ctxt, cl::CommandQueue& q)
      mLocSizeY(16),
      mContext(ctxt),
      mQueue(q),
-     mCoeffBuff(mContext, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, 25)
+     mCoeffBuff(mContext, CL_MEM_READ_ONLY, 25)
 {
     try
     {
@@ -52,7 +52,7 @@ void CannyEdgePrv::loadGaussCoeffs()
         (float)(2.0 / 159.0), (float)(4.0 / 159.0), (float)(5.0 / 159.0), (float)(4.0 / 159.0), (float)(2.0 / 159.0) };
 
     float* pCoeff = mCoeffBuff.map(mQueue, CL_TRUE, CL_MAP_WRITE, 0, 25);
-    memcpy(pCoeff, gaussCoeffs, 25 * sizeof(float));
+    memcpy(pCoeff, gaussCoeffs, 25*sizeof(float));
     mCoeffBuff.unmap(mQueue, pCoeff);
 }
 
@@ -106,7 +106,7 @@ size_t CannyEdgePrv::gauss(const cl::Image& inpImg, cl::Image& outImg)
 size_t CannyEdgePrv::suppress(const cl::Image& inpImg, cl::Image& outImg)
 {
     cl::Event event;
-    size_t shMemSize = 2*(mLocSizeX+4)*(mLocSizeY+4)*sizeof(float);
+    size_t shMemSize = (mLocSizeX+2)*(mLocSizeY+2)*sizeof(float);
     mNmesKernel.setArg(0, inpImg);
     mNmesKernel.setArg(1, outImg);
     mNmesKernel.setArg(2, shMemSize, 0);
