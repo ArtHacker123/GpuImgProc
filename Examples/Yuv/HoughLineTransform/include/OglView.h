@@ -16,7 +16,16 @@ public:
     void draw(uint8_t* pData);
     void resize(GLsizei w, GLsizei h);
 
+    void minThresholdUp();
+    void minThresholdDown();
+    void maxThresholdUp();
+    void maxThresholdDown();
+
+    void minLineSizeUp();
+    void minLineSizeDown();
+
 private:
+    size_t mSize;
     float mMinThresh;
     float mMaxThresh;
 

@@ -38,6 +38,7 @@ BEGIN_MESSAGE_MAP(TestView, CWnd)
     ON_WM_SIZE()
     ON_WM_DESTROY()
     ON_WM_TIMER()
+    ON_WM_KEYDOWN()
 END_MESSAGE_MAP()
 
 // TestView message handlers
@@ -178,4 +179,30 @@ void TestView::OnTimer(UINT_PTR nIDEvent)
     // TODO: Add your message handler code here and/or call default
     SendMessage(WM_PAINT);
     CWnd::OnTimer(nIDEvent);
+}
+
+void TestView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+    switch (nChar)
+    {
+        case VK_UP:
+            mViewGL->maxThresholdUp();
+            break;
+        case VK_DOWN:
+            mViewGL->maxThresholdDown();
+            break;
+        case VK_LEFT:
+            mViewGL->minThresholdDown();
+            break;
+        case VK_RIGHT:
+            mViewGL->minThresholdUp();
+            break;
+        case VK_SPACE:
+            mViewGL->minLineSizeUp();
+            break;
+        case VK_ESCAPE:
+            mViewGL->minLineSizeDown();
+            break;
+    }
+    CWnd::OnKeyDown(nChar, nRepCnt, nFlags);
 }

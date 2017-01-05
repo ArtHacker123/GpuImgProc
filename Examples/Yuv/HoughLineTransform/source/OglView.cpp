@@ -1,8 +1,11 @@
 #include "OglView.h"
 
+#define THRESHOLD_CHANGE 0.001f
+
 OglView::OglView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queue)
-    :mMinThresh((float)(20.0/256.0)),
-     mMaxThresh((float)(70.0/256.0)),
+    :mSize((size_t)(w/4)),
+     mMinThresh((float)(20.0/256.0)),
+     mMaxThresh((float)(60.0/256.0)),
      mCtxtCL(ctxt),
      mQueueCL(queue),
      mCanny(mCtxtCL, mQueueCL),
@@ -30,9 +33,9 @@ void OglView::draw(uint8_t* pData)
     size_t time = mCanny.process(inpImgGL, outImgGL, mMinThresh, mMaxThresh);
 
     size_t houghCount = 0;
-    time += mHoughLines.process(outImgGL, 500, mHoughData, houghCount);
+    time += mHoughLines.process(outImgGL, mSize, mHoughData, houghCount);
 
-    mYuvPainter.draw(mYuvImg);  
+    mYuvPainter.draw(mYuvImg);
     mHoughLinePainter.draw(mHoughData, houghCount, mEdgeImg.width(), mEdgeImg.height());
     //Ogl::IGeometry::Rect vp = { mYuvImg.width()>>1, 0, mYuvImg.width()>>1, mYuvImg.height()>>1 };
     //mLumaPainter.draw(vp, mEdgeImg);
@@ -41,4 +44,53 @@ void OglView::draw(uint8_t* pData)
 void OglView::resize(GLsizei w, GLsizei h)
 {
     glViewport(0, 0, w, h);
+}
+
+void OglView::minThresholdUp()
+{
+    float thresh = mMinThresh + THRESHOLD_CHANGE;
+    if (thresh < mMaxThresh)
+    {
+        mMinThresh = thresh;
+    }
+}
+
+void OglView::minThresholdDown()
+{
+    float thresh = mMinThresh - THRESHOLD_CHANGE;
+    if (thresh > 0.0)
+    {
+        mMinThresh = thresh;
+    }
+}
+
+void OglView::maxThresholdUp()
+{
+    float thresh = mMaxThresh + THRESHOLD_CHANGE;
+    if (thresh < 1.0)
+    {
+        mMaxThresh = thresh;
+    }
+}
+
+void OglView::maxThresholdDown()
+{
+    float thresh = mMaxThresh - THRESHOLD_CHANGE;
+    if (thresh > mMinThresh)
+    {
+        mMaxThresh = thresh;
+    }
+}
+
+void OglView::minLineSizeUp()
+{
+    mSize += 10;
+}
+
+void OglView::minLineSizeDown()
+{
+    if (mSize > 20)
+    {
+        mSize -= 10;
+    }
 }

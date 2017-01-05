@@ -178,5 +178,26 @@ void TestView::OnTimer(UINT_PTR nIDEvent)
 
 void TestView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
+    switch (nChar)
+    {
+        case VK_UP:
+            mViewGL->maxThresholdUp();
+            break;
+        case VK_DOWN:
+            mViewGL->maxThresholdDown();
+            break;
+        case VK_LEFT:
+            mViewGL->minThresholdDown();
+            break;
+        case VK_RIGHT:
+            mViewGL->minThresholdUp();
+            break;
+        case VK_SPACE:
+            mViewGL->minLineSizeUp();
+            break;
+        case VK_ESCAPE:
+            mViewGL->minLineSizeDown();
+            break;
+    }
     CWnd::OnKeyDown(nChar, nRepCnt, nFlags);
 }
