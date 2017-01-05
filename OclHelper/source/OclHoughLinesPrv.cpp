@@ -4,11 +4,11 @@
 
 using namespace Ocl;
 
-int comp_rho(size_t x, size_t y)
+size_t comp_rho(size_t x, size_t y)
 {
     size_t rho = (1 + (size_t)ceil(0.5*sqrt((x*x)+(y*y))));
     rho = (rho/32)+(((rho%32)==0)?0:1);
-    return (32 *rho);
+    return (32*rho);
 }
 
 HoughLinesPrv::HoughLinesPrv(cl::Context& ctxt, cl::CommandQueue& queue)
