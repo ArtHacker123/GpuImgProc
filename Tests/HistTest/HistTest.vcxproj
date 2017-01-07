@@ -11,14 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="OclHistogram.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="OclHistogram.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\OclHelper\OclHelper.vcxproj">
+    <ProjectReference Include="..\..\OclHelper\vs2015\OclHelper.vcxproj">
       <Project>{7761eac9-c421-462b-8287-b92019afb46a}</Project>
     </ProjectReference>
   </ItemGroup>

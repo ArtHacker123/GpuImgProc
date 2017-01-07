@@ -5,7 +5,7 @@
 
 #include "OglBuffer.h"
 #include "OglColorShader.h"
-#include "OclHistogramRGB.h"
+#include "OclHistogram.h"
 #include "OglHistogramPainter.h"
 
 #include <CL/cl.hpp>
@@ -28,7 +28,7 @@ private:
     Ogl::ImagePainter< Ogl::RgbaShader, Ogl::Image<GL_BGR> > mPainter;
 
     Ocl::DataBuffer<int> mRgbBins;
-    Ocl::HistogramRGB mHistogram;
+    Ocl::Histogram mHistogram;
     Ogl::HistogramPainter mHistPainter;
 
     Ocl::DataBuffer<int> mRedBuff;

@@ -4,7 +4,7 @@
 #include "OglImagePainter.h"
 
 #include <CL/cl.hpp>
-#include "OclHistogramRGB.h"
+#include "OclHistogram.h"
 #include "OglHistogramPainter.h"
 
 class OglView
@@ -21,7 +21,7 @@ private:
     cl::Context& mCtxtCL;
     cl::CommandQueue& mQueueCL;
 
-    Ocl::HistogramRGB mHistogram;
+    Ocl::Histogram mHistogram;
     Ocl::DataBuffer<int> mRgbBins;
     Ogl::HistogramPainter mHistPainter;
 

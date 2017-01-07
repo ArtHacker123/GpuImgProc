@@ -30,9 +30,6 @@
     <ClInclude Include="..\include\OclHarrisCorner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\OclHistogramRGB.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\OclReduceSum.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -58,6 +55,12 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\source\OclCompactPrv.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\OclHistogram.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\OclHistogramPrv.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -86,9 +89,6 @@
     <ClCompile Include="..\source\OclHarrisCornerPrvKernels.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\source\OclHistogramRGB.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\source\OclReduceSum.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -114,6 +114,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\source\OclCompactPrvKernels.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\OclHistogram.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\OclHistogramPrv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\OclHistogramPrvKernels.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -8,13 +8,12 @@
 namespace Ocl
 {
 
-class HistogramRGB
+class HistogramPrv
 {
 public:
-    HistogramRGB(cl::Context& ctxt, cl::CommandQueue& queue);
-    ~HistogramRGB();
+    HistogramPrv(cl::Context& ctxt, cl::CommandQueue& queue);
+    ~HistogramPrv();
 
-public:
     size_t compute(const cl::ImageGL& image, Ocl::DataBuffer<int>& rgbBins);
     size_t compute(const cl::Image2D& image, Ocl::DataBuffer<int>& rgbBins);
 

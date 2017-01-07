@@ -16,7 +16,7 @@
     <ClInclude Include="..\include\OclDataBuffer.h" />
     <ClInclude Include="..\include\OclCompact.h" />
     <ClInclude Include="..\include\OclHarrisCorner.h" />
-    <ClInclude Include="..\include\OclHistogramRGB.h" />
+    <ClInclude Include="..\include\OclHistogram.h" />
     <ClInclude Include="..\include\OclHoughLines.h" />
     <ClInclude Include="..\include\OclReduceSum.h" />
     <ClInclude Include="..\include\OclScan.h" />
@@ -24,6 +24,7 @@
     <ClInclude Include="..\source\OclCannyEdgePrv.h" />
     <ClInclude Include="..\source\OclCompactPrv.h" />
     <ClInclude Include="..\source\OclHarrisCornerPrv.h" />
+    <ClInclude Include="..\source\OclHistogramPrv.h" />
     <ClInclude Include="..\source\OclHoughLinesPrv.h" />
     <ClInclude Include="..\source\OclScanPrv.h" />
   </ItemGroup>
@@ -37,7 +38,9 @@
     <ClCompile Include="..\source\OclHarrisCorner.cpp" />
     <ClCompile Include="..\source\OclHarrisCornerPrv.cpp" />
     <ClCompile Include="..\source\OclHarrisCornerPrvKernels.cpp" />
-    <ClCompile Include="..\source\OclHistogramRGB.cpp" />
+    <ClCompile Include="..\source\OclHistogram.cpp" />
+    <ClCompile Include="..\source\OclHistogramPrv.cpp" />
+    <ClCompile Include="..\source\OclHistogramPrvKernels.cpp" />
     <ClCompile Include="..\source\OclHoughLines.cpp" />
     <ClCompile Include="..\source\OclHoughLinesPrv.cpp" />
     <ClCompile Include="..\source\OclHoughLinesPrvKernels.cpp" />
