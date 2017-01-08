@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\OclUtils.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\OclCannyEdge.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -33,9 +30,6 @@
     <ClInclude Include="..\include\OclHarrisCorner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\OclHistogramRGB.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\OclReduceSum.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -49,6 +43,24 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\source\OclScanPrv.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\OclUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\OclHoughLines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\OclHoughLinesPrv.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\OclCompactPrv.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\OclHistogram.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\OclHistogramPrv.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -77,9 +89,6 @@
     <ClCompile Include="..\source\OclHarrisCornerPrvKernels.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\source\OclHistogramRGB.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\source\OclReduceSum.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -90,6 +99,30 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\source\OclScanPrvKernels.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\OclHoughLines.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\OclHoughLinesPrv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\OclHoughLinesPrvKernels.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\OclCompactPrv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\OclCompactPrvKernels.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\OclHistogram.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\OclHistogramPrv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\OclHistogramPrvKernels.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
