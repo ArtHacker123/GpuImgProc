@@ -11,11 +11,11 @@ namespace Ocl
 class ReduceSum
 {
 public:
-    ReduceSum(cl::Context& ctxt, cl::CommandQueue& queue);
+    ReduceSum(const cl::Context& ctxt);
     ~ReduceSum();
 
 public:
-    int process(Ocl::DataBuffer<int>& buffer);
+    int process(const cl::CommandQueue& queue, Ocl::DataBuffer<int>& buffer);
 
 private:
     void createIntBuffer(size_t buffSize);
@@ -23,8 +23,7 @@ private:
 private:
     const int mDepth;
     const int mBlkSize;
-    cl::Context& mContext;
-    cl::CommandQueue& mQueue;
+    const cl::Context& mContext;
 
     cl::Kernel mKernel;
     cl::Program mProgram;

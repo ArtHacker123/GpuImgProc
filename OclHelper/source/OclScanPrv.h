@@ -15,13 +15,13 @@ public:
     size_t process(const cl::CommandQueue& queue, Ocl::DataBuffer<int>& buffer);
 
 private:
-    void init(int warp_size);
+    void init(size_t warpSize);
     void workGroupMultipleAdjust(const cl::CommandQueue& queue);
 
 private:
-    int mWgrpSize;
-    const int mDepth;
-    const int mBlkSize;
+    size_t mWgrpSize;
+    const size_t mDepth;
+    const size_t mBlkSize;
     const cl::Context& mContext;
 
     cl::Buffer mIntBuff;

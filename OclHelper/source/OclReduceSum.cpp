@@ -47,11 +47,10 @@ kernel void reduce_sum(global const int* p_data, int count, global int* p_block_
 }
 );
 
-ReduceSum::ReduceSum(cl::Context& ctxt, cl::CommandQueue& queue)
+ReduceSum::ReduceSum(const cl::Context& ctxt)
     :mDepth(8),
      mBlkSize(1<<8),
-     mContext(ctxt),
-     mQueue(queue)
+     mContext(ctxt)
 {
     std::ostringstream options;
     options << " -DSH_MEM_SIZE=" << (1<<8);
@@ -82,7 +81,7 @@ void ReduceSum::createIntBuffer(size_t buffSize)
     }
 }
 
-int ReduceSum::process(Ocl::DataBuffer<int>& buffer)
+int ReduceSum::process(const cl::CommandQueue& queue, Ocl::DataBuffer<int>& buffer)
 {
     cl::Event event;
     size_t buffSize = buffer.count();
@@ -95,9 +94,9 @@ int ReduceSum::process(Ocl::DataBuffer<int>& buffer)
 
     size_t buffSize1 = buffSize/4;
     size_t globalSize = ((buffSize1/mBlkSize)+(((buffSize1%mBlkSize) == 0)?0:1))*mBlkSize;
-    mQueue.enqueueNDRangeKernel(mKernel, cl::NullRange, cl::NDRange(globalSize), cl::NDRange(mBlkSize), NULL, &event);
+    queue.enqueueNDRangeKernel(mKernel, cl::NullRange, cl::NDRange(globalSize), cl::NDRange(mBlkSize), NULL, &event);
     event.wait();
-    size_t time = kernelExecTime(mQueue, event);
+    size_t time = kernelExecTime(queue, event);
 
     size_t groupCount = (buffSize/mBlkSize)+(((buffSize%mBlkSize)==0)?0:1);
     while (groupCount > 1)
@@ -107,16 +106,16 @@ int ReduceSum::process(Ocl::DataBuffer<int>& buffer)
         mKernel.setArg(2, mBuff->buffer());
         size_t groupCount1 = (groupCount > 4)?(groupCount/4):1;
         globalSize = ((groupCount1/mBlkSize)+(((groupCount1%mBlkSize)==0)?0:1))*mBlkSize;
-        mQueue.enqueueNDRangeKernel(mKernel, cl::NullRange, cl::NDRange(globalSize), cl::NDRange(mBlkSize), NULL, &event);
+        queue.enqueueNDRangeKernel(mKernel, cl::NullRange, cl::NDRange(globalSize), cl::NDRange(mBlkSize), NULL, &event);
         event.wait();
-        time += kernelExecTime(mQueue, event);
+        time += kernelExecTime(queue, event);
         groupCount = globalSize/mBlkSize;
     }
 
     int retValue;
-    int* pData = mBuff->map(mQueue, CL_TRUE, CL_MAP_READ, 0, 1);
+    int* pData = mBuff->map(queue, CL_TRUE, CL_MAP_READ, 0, 1);
     retValue = *pData;
-    mBuff->unmap(mQueue, pData);
+    mBuff->unmap(queue, pData);
 
     return retValue;
 }

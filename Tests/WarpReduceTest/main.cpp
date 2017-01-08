@@ -35,11 +35,11 @@ int main(int argc, char** argv)
 		}
         buff.unmap(queue, pData);
 
-		Ocl::ReduceSum rsum(context, queue);
+		Ocl::ReduceSum rsum(context);
 
 		for (int i = 0; i < 10; i++)
 		{
-			int resSum = rsum.process(buff);
+			int resSum = rsum.process(queue, buff);
 			printf("\n%d Reduce Sum: %d %s", i, resSum, (sum == resSum)?"Success":"Failed");
 			if (resSum != sum)
 			{

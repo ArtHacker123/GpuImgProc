@@ -28,10 +28,10 @@ ScanPrv::~ScanPrv()
 {
 }
 
-void ScanPrv::init(int warp_size)
+void ScanPrv::init(size_t warpSize)
 {
     std::ostringstream options;
-    options << "-DWARP_SIZE=" << warp_size << " -DSH_MEM_SIZE=" << (1 << mDepth);
+    options << "-DWARP_SIZE=" << warpSize << " -DSH_MEM_SIZE=" << (1 << mDepth);
 
     cl::Program::Sources source(1, std::make_pair(sSource, strlen(sSource)));
     mProgram = cl::Program(mContext, source);

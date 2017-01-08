@@ -21,14 +21,14 @@ public:
     size_t process(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<Ocl::HoughData>& houghData, size_t threshold, size_t& count);
 
 private:
-    void init(int warp_size);
+    void init(size_t warpSize);
     void createIntBuffer(size_t buffSize);
     void workGroupMultipleAdjust(const cl::CommandQueue& queue);
 
 private:
-    int mWgrpSize;
-    const int mScanBlkSize;
-    const int mReduceBlkSize;
+    size_t mWgrpSize;
+    const size_t mScanBlkSize;
+    const size_t mReduceBlkSize;
 
     const cl::Context& mContext;
 

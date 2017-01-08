@@ -15,7 +15,7 @@ CompactPrv::CompactPrv(const cl::Context& ctxt)
 {
     try
     {
-        init(32);
+        init(mWgrpSize);
     }
 
     catch (cl::Error error)
@@ -29,10 +29,10 @@ CompactPrv::~CompactPrv()
 {
 }
 
-void CompactPrv::init(int warp_size)
+void CompactPrv::init(size_t warpSize)
 {
     std::ostringstream options;
-    options << "-DSH_MEM_SIZE_REDUCE=" << 64 << " -DSH_MEM_SIZE=" << 256 << " -DWARP_SIZE=" << warp_size;
+    options << "-DSH_MEM_SIZE_REDUCE=" << 64 << " -DSH_MEM_SIZE=" << 256 << " -DWARP_SIZE=" << warpSize;
 
     cl::Program::Sources source(1, std::make_pair(sSource, strlen(sSource)));
     mProgram = cl::Program(mContext, source);
@@ -68,10 +68,11 @@ void CompactPrv::workGroupMultipleAdjust(const cl::CommandQueue& queue)
 {
     size_t wgmSize = Ocl::getWorkGroupSizeMultiple(queue, mCompactFloatX);
     //Intel HD4xxx series GPU's warp_size is not 32
-    if (wgmSize != 32)
+    if (wgmSize != mWgrpSize)
     {
         //re-initialize with wgmSize
         init(wgmSize);
+        mWgrpSize = wgmSize;
     }
 }
 
