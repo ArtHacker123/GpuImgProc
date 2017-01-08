@@ -76,11 +76,11 @@ void test_image_compact(cl::Context& context, cl::CommandQueue& queue)
     Ocl::DataBuffer<Ocl::Pos> outBuff(context, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, 1000);
 
     size_t outCount = 0;
-    Ocl::Compact compact(context, queue);
+    Ocl::Compact compact(context);
 
     for (size_t i = 0; i < 5; i++)
     {
-        size_t time = compact.process(image, outBuff, 1.0f, outCount);
+        size_t time = compact.process(queue, image, outBuff, 1.0f, outCount);
         if (outCount > 0)
         {
             Ocl::Pos* pData = outBuff.map(queue, CL_TRUE, CL_MAP_READ, 0, 100);

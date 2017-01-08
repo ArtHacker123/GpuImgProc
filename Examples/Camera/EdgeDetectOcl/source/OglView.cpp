@@ -8,7 +8,7 @@ OglView::OglView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queu
      mMaxThresh((float)(70.0/256.0)),
      mCtxtCL(ctxt),
      mQueueCL(queue),
-     mCanny(mCtxtCL, mQueueCL),
+     mCanny(mCtxtCL),
      mBgrImg(w, h, GL_RGB, GL_UNSIGNED_BYTE),
      mGrayImg(w, h, GL_R32F, GL_FLOAT),
      mEdgeImg(w, h, GL_R32F, GL_FLOAT)
@@ -26,11 +26,11 @@ void OglView::draw(uint8_t* pData)
 
     cl::ImageGL inpImgGL(mCtxtCL, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mGrayImg.texture());
     cl::ImageGL outImgGL(mCtxtCL, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D, 0, mEdgeImg.texture());
-    mCanny.process(inpImgGL, outImgGL, mMinThresh, mMaxThresh);
+    mCanny.process(mQueueCL, inpImgGL, outImgGL, mMinThresh, mMaxThresh);
 
     mGrayPainter.draw(mEdgeImg);
-    Ogl::IGeometry::Rect vp = { mBgrImg.width()/2, 0, mBgrImg.width()/2, mBgrImg.height()/2 };
-    mRgbaPainter.draw(vp, mBgrImg);
+    //Ogl::IGeometry::Rect vp = { mBgrImg.width()/2, 0, mBgrImg.width()/2, mBgrImg.height()/2 };
+    //mRgbaPainter.draw(vp, mBgrImg);
 }
 
 void OglView::resize(GLsizei w, GLsizei h)

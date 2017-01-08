@@ -4,8 +4,8 @@
 namespace Ogl
 {
 
-HistogramPainter::HistogramPainter(cl::Context& ctxt, cl::CommandQueue& queue)
-    :mPrv(new Ogl::HistogramPainterPrv(ctxt, queue))
+HistogramPainter::HistogramPainter(const cl::Context& ctxt)
+    :mPrv(new Ogl::HistogramPainterPrv(ctxt))
 {
 }
 
@@ -18,9 +18,9 @@ void HistogramPainter::setColor(float red, float green, float blue)
     mPrv->setColor(red, green, blue);
 }
 
-void HistogramPainter::draw(const Ocl::DataBuffer<int>& histData, int maxValue)
+void HistogramPainter::draw(const cl::CommandQueue& queue, const Ocl::DataBuffer<int>& histData, int maxValue)
 {
-    mPrv->draw(histData, maxValue);
+    mPrv->draw(queue, histData, maxValue);
 }
 
 }

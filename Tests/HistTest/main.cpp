@@ -70,10 +70,10 @@ void test_histogram_rgb(cl::Context& context, cl::CommandQueue& queue)
 	queue.enqueueUnmapMemObject(img, pdata);
 	queue.finish();
 
-	Ocl::Histogram histogram(context, queue);
+	Ocl::Histogram histogram(context);
 	for (size_t i = 0; i < 10; i++)
 	{
-		size_t time = histogram.compute(img, hist_data);
+		size_t time = histogram.compute(queue, img, hist_data);
         printf("\nTime: %f", (float)(((double)time)/1000000.0));
 	}
 

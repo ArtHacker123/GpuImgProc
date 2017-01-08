@@ -62,10 +62,9 @@ kernel void find_coords(global HoughLineData* input, const int max_size, global 
 
 );
 
-HoughLinePainterPrv::HoughLinePainterPrv(cl::Context& ctxt, cl::CommandQueue& queue, size_t maxSize)
+HoughLinePainterPrv::HoughLinePainterPrv(const cl::Context& ctxt, size_t maxSize)
     :mMaxSize(maxSize),
      mContext(ctxt),
-     mQueue(queue),
      mHoughLineBuff(GL_ARRAY_BUFFER, (4*mMaxSize*sizeof(GLfloat)), 0, GL_DYNAMIC_DRAW)
 {
     try
@@ -88,7 +87,7 @@ HoughLinePainterPrv::~HoughLinePainterPrv()
 {
 }
 
-void HoughLinePainterPrv::draw(Ocl::DataBuffer<Ocl::HoughData>& hData, size_t count, size_t width, size_t height)
+void HoughLinePainterPrv::draw(const cl::CommandQueue& queue, Ocl::DataBuffer<Ocl::HoughData>& hData, size_t count, size_t width, size_t height)
 {
     if (count <= 0)
     {
@@ -110,10 +109,10 @@ void HoughLinePainterPrv::draw(Ocl::DataBuffer<Ocl::HoughData>& hData, size_t co
     mKernel.setArg(3, (float)width);
     mKernel.setArg(4, (float)height);
     size_t gSize = count+(16-(count%16));
-    mQueue.enqueueAcquireGLObjects(&gl_objs);
-    mQueue.enqueueNDRangeKernel(mKernel, cl::NullRange, cl::NDRange(gSize), cl::NullRange, NULL, &event);
+    queue.enqueueAcquireGLObjects(&gl_objs);
+    queue.enqueueNDRangeKernel(mKernel, cl::NullRange, cl::NDRange(gSize), cl::NullRange, NULL, &event);
     event.wait();
-    mQueue.enqueueReleaseGLObjects(&gl_objs);
+    queue.enqueueReleaseGLObjects(&gl_objs);
 
     mPainter.draw(GL_LINES, 0, (GLsizei)(count*2), mHoughLineBuff);
 }

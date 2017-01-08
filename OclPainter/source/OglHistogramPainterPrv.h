@@ -15,18 +15,17 @@ namespace Ogl
 class HistogramPainterPrv
 {
 public:
-    HistogramPainterPrv(cl::Context& ctxt, cl::CommandQueue& queue);
+    HistogramPainterPrv(const cl::Context& ctxt);
     ~HistogramPainterPrv();
 
     void setColor(GLfloat r, GLfloat g, GLfloat b);
-    void draw(const Ocl::DataBuffer<int>& hData, int maxValue);
+    void draw(const cl::CommandQueue& queue, const Ocl::DataBuffer<int>& hData, int maxValue);
 
 private:
-    void compute(const Ocl::DataBuffer<int>& rgbBins, int maxValue);
+    void compute(const cl::CommandQueue& queue, const Ocl::DataBuffer<int>& rgbBins, int maxValue);
 
 private:
-    cl::Context& mContext;
-    cl::CommandQueue& mQueue;
+    const cl::Context& mContext;
 
     Ogl::Buffer mBuffer;
     cl::BufferGL mBufferGL;

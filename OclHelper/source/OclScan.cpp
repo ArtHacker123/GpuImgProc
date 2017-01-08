@@ -3,8 +3,8 @@
 
 using namespace Ocl;
 
-Scan::Scan(cl::Context& ctxt, cl::CommandQueue& queue)
-    :mPrv(new Ocl::ScanPrv(ctxt, queue))
+Scan::Scan(const cl::Context& ctxt)
+    :mPrv(new Ocl::ScanPrv(ctxt))
 {
 }
 
@@ -12,7 +12,7 @@ Scan::~Scan()
 {
 }
 
-size_t Scan::process(Ocl::DataBuffer<int>& buffer)
+size_t Scan::process(const cl::CommandQueue& queue, Ocl::DataBuffer<int>& buffer)
 {
-    return mPrv->process(buffer);
+    return mPrv->process(queue, buffer);
 }

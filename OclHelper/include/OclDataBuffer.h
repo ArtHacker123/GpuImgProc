@@ -15,12 +15,12 @@ public:
     ~DataBuffer() {};
 
 public:
-    Type* map(cl::CommandQueue& queue, cl_bool blocking, cl_map_flags flags, size_t offset, size_t size)
+    Type* map(const cl::CommandQueue& queue, cl_bool blocking, cl_map_flags flags, size_t offset, size_t size)
     {
         return (Type *)queue.enqueueMapBuffer(mBuffer, blocking, flags, offset * sizeof(Type), size * sizeof(Type));
     }
 
-    void unmap(cl::CommandQueue& queue, Type*& pData)
+    void unmap(const cl::CommandQueue& queue, Type*& pData)
     {
         queue.enqueueUnmapMemObject(mBuffer, pData);
         pData = 0;

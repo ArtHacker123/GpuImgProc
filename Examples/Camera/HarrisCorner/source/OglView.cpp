@@ -10,8 +10,8 @@ OglView::OglView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queu
      mBgrImg(w, h, GL_RGB, GL_UNSIGNED_BYTE),
      mGrayImg(w, h, GL_R32F, GL_FLOAT),
      mCorners(mCtxtCL, CL_MEM_READ_WRITE, MAX_CORNER_COUNT),
-     mHarrisCorner(mCtxtCL, mQueueCL),
-     mCornerPainter(mCtxtCL, mQueueCL, MAX_CORNER_COUNT)
+     mHarrisCorner(mCtxtCL),
+     mCornerPainter(mCtxtCL, MAX_CORNER_COUNT)
 {
 }
 
@@ -26,10 +26,10 @@ void OglView::draw(uint8_t* pData)
 
     size_t count = 0;
     cl::ImageGL imgGL(mCtxtCL, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mGrayImg.texture());
-    mHarrisCorner.process(imgGL, mCorners, mRvalue, count);
+    mHarrisCorner.process(mQueueCL, imgGL, mCorners, mRvalue, count);
 
     mBgrPainter.draw(mBgrImg);
-    mCornerPainter.draw(mCorners, count, mBgrImg.width(), mBgrImg.height());
+    mCornerPainter.draw(mQueueCL, mCorners, count, mBgrImg.width(), mBgrImg.height());
 }
 
 void OglView::resize(GLsizei w, GLsizei h)

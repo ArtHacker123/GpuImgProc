@@ -5,24 +5,17 @@
 
 using namespace Ocl;
 
-CompactPrv::CompactPrv(cl::Context& ctxt, cl::CommandQueue& queue)
-    :mContext(ctxt),
-     mQueue(queue),
+CompactPrv::CompactPrv(const cl::Context& ctxt)
+    :mWgrpSize(32),
      mScanBlkSize(256),
      mReduceBlkSize(64),
+     mContext(ctxt),
      mOutSize(mContext, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, 1),
-     mScan(ctxt, queue)
+     mScan(ctxt)
 {
     try
     {
         init(32);
-        size_t wgmSize = Ocl::getWorkGroupSizeMultiple(mQueue, mCompactFloatX);
-        //Intel HD4xxx series GPU's warp_size is not 32
-        if (wgmSize != 32)
-        {
-            //re-initialize with wgmSize
-            init(wgmSize);
-        }
     }
 
     catch (cl::Error error)
@@ -71,7 +64,18 @@ void CompactPrv::createIntBuffer(size_t buffSize)
     }
 }
 
-size_t CompactPrv::process(const cl::Image& inpImage, Ocl::DataBuffer<Ocl::Pos>& out, float value, size_t& outCount)
+void CompactPrv::workGroupMultipleAdjust(const cl::CommandQueue& queue)
+{
+    size_t wgmSize = Ocl::getWorkGroupSizeMultiple(queue, mCompactFloatX);
+    //Intel HD4xxx series GPU's warp_size is not 32
+    if (wgmSize != 32)
+    {
+        //re-initialize with wgmSize
+        init(wgmSize);
+    }
+}
+
+size_t CompactPrv::process(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<Ocl::Pos>& out, float value, size_t& outCount)
 {
     size_t width, height;
     size_t maxOutSize = out.count();
@@ -79,16 +83,17 @@ size_t CompactPrv::process(const cl::Image& inpImage, Ocl::DataBuffer<Ocl::Pos>&
     inpImage.getImageInfo<size_t>(CL_IMAGE_HEIGHT, &height);
 
     createIntBuffer(width*height);
+    workGroupMultipleAdjust(queue);
 
     mReduceFloatX.setArg(0, inpImage);
     mReduceFloatX.setArg(1, value);
     mReduceFloatX.setArg(2, *mBuffReduce);
     cl::Event event;
-    mQueue.enqueueNDRangeKernel(mReduceFloatX, cl::NullRange, cl::NDRange(width / 4, height), cl::NDRange(8, 8), NULL, &event);
+    queue.enqueueNDRangeKernel(mReduceFloatX, cl::NullRange, cl::NDRange(width/4, height), cl::NDRange(8, 8), NULL, &event);
     event.wait();
-    size_t time = kernelExecTime(mQueue, event);
+    size_t time = kernelExecTime(queue, event);
 
-    time += mScan.process(*mBuffReduce);
+    time += mScan.process(queue, *mBuffReduce);
 
     mCompactFloatX.setArg(0, inpImage);
     mCompactFloatX.setArg(1, value);
@@ -96,17 +101,17 @@ size_t CompactPrv::process(const cl::Image& inpImage, Ocl::DataBuffer<Ocl::Pos>&
     mCompactFloatX.setArg(3, out.buffer());
     mCompactFloatX.setArg(4, (int)maxOutSize);
     mCompactFloatX.setArg(5, mOutSize);
-    mQueue.enqueueNDRangeKernel(mCompactFloatX, cl::NullRange, cl::NDRange(width / 2, height), cl::NDRange(16, 8), NULL, &event);
+    queue.enqueueNDRangeKernel(mCompactFloatX, cl::NullRange, cl::NDRange(width / 2, height), cl::NDRange(16, 8), NULL, &event);
     event.wait();
-    time += kernelExecTime(mQueue, event);
+    time += kernelExecTime(queue, event);
 
-    int* pData = mOutSize.map(mQueue, CL_TRUE, CL_MAP_READ, 0, 1);
+    int* pData = mOutSize.map(queue, CL_TRUE, CL_MAP_READ, 0, 1);
     outCount = *pData;
-    mOutSize.unmap(mQueue, pData);
+    mOutSize.unmap(queue, pData);
     return time;
 }
 
-size_t CompactPrv::process_cartesian(const cl::Image& inpImage, Ocl::DataBuffer<Ocl::Pos>& coords, float threshold, size_t& count)
+size_t CompactPrv::process_cartesian(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<Ocl::Pos>& coords, float threshold, size_t& count)
 {
     size_t width, height;
     size_t maxOutSize = coords.count();
@@ -114,16 +119,17 @@ size_t CompactPrv::process_cartesian(const cl::Image& inpImage, Ocl::DataBuffer<
     inpImage.getImageInfo<size_t>(CL_IMAGE_HEIGHT, &height);
 
     createIntBuffer(width*height);
+    workGroupMultipleAdjust(queue);
 
     mReduceFloatX.setArg(0, inpImage);
     mReduceFloatX.setArg(1, threshold);
     mReduceFloatX.setArg(2, *mBuffReduce);
     cl::Event event;
-    mQueue.enqueueNDRangeKernel(mReduceFloatX, cl::NullRange, cl::NDRange(width / 4, height), cl::NDRange(8, 8), NULL, &event);
+    queue.enqueueNDRangeKernel(mReduceFloatX, cl::NullRange, cl::NDRange(width/4, height), cl::NDRange(8, 8), NULL, &event);
     event.wait();
-    size_t time = kernelExecTime(mQueue, event);
+    size_t time = kernelExecTime(queue, event);
 
-    time += mScan.process(*mBuffReduce);
+    time += mScan.process(queue, *mBuffReduce);
 
     mCompactCartFloatX.setArg(0, inpImage);
     mCompactCartFloatX.setArg(1, threshold);
@@ -131,17 +137,17 @@ size_t CompactPrv::process_cartesian(const cl::Image& inpImage, Ocl::DataBuffer<
     mCompactCartFloatX.setArg(3, coords.buffer());
     mCompactCartFloatX.setArg(4, (int)maxOutSize);
     mCompactCartFloatX.setArg(5, mOutSize);
-    mQueue.enqueueNDRangeKernel(mCompactCartFloatX, cl::NullRange, cl::NDRange(width / 2, height), cl::NDRange(16, 8), NULL, &event);
+    queue.enqueueNDRangeKernel(mCompactCartFloatX, cl::NullRange, cl::NDRange(width/2, height), cl::NDRange(16, 8), NULL, &event);
     event.wait();
-    time += kernelExecTime(mQueue, event);
+    time += kernelExecTime(queue, event);
 
-    int* pData = mOutSize.map(mQueue, CL_TRUE, CL_MAP_READ, 0, 1);
+    int* pData = mOutSize.map(queue, CL_TRUE, CL_MAP_READ, 0, 1);
     count = *pData;
-    mOutSize.unmap(mQueue, pData);
+    mOutSize.unmap(queue, pData);
     return time;
 }
 
-size_t CompactPrv::process(const cl::Image& inpImage, Ocl::DataBuffer<Ocl::OptFlowData>& flowData, float threshold, size_t& count)
+size_t CompactPrv::process(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<Ocl::OptFlowData>& flowData, float threshold, size_t& count)
 {
     size_t width, height;
     size_t maxOutSize = flowData.count();
@@ -149,16 +155,17 @@ size_t CompactPrv::process(const cl::Image& inpImage, Ocl::DataBuffer<Ocl::OptFl
     inpImage.getImageInfo<size_t>(CL_IMAGE_HEIGHT, &height);
 
     createIntBuffer(width*height);
+    workGroupMultipleAdjust(queue);
 
     mReduceFloatZ.setArg(0, inpImage);
     mReduceFloatZ.setArg(1, threshold);
     mReduceFloatZ.setArg(2, *mBuffReduce);
     cl::Event event;
-    mQueue.enqueueNDRangeKernel(mReduceFloatZ, cl::NullRange, cl::NDRange(width / 4, height), cl::NDRange(8, 8), NULL, &event);
+    queue.enqueueNDRangeKernel(mReduceFloatZ, cl::NullRange, cl::NDRange(width / 4, height), cl::NDRange(8, 8), NULL, &event);
     event.wait();
-    size_t time = kernelExecTime(mQueue, event);
+    size_t time = kernelExecTime(queue, event);
 
-    time += mScan.process(*mBuffReduce);
+    time += mScan.process(queue, *mBuffReduce);
 
     mCompactOptFlow.setArg(0, inpImage);
     mCompactOptFlow.setArg(1, threshold);
@@ -167,17 +174,17 @@ size_t CompactPrv::process(const cl::Image& inpImage, Ocl::DataBuffer<Ocl::OptFl
     mCompactOptFlow.setArg(4, (int)maxOutSize);
     mCompactOptFlow.setArg(5, mOutSize);
 
-    mQueue.enqueueNDRangeKernel(mCompactOptFlow, cl::NullRange, cl::NDRange(width / 2, height), cl::NDRange(16, 8), NULL, &event);
+    queue.enqueueNDRangeKernel(mCompactOptFlow, cl::NullRange, cl::NDRange(width / 2, height), cl::NDRange(16, 8), NULL, &event);
     event.wait();
-    time += kernelExecTime(mQueue, event);
+    time += kernelExecTime(queue, event);
 
-    int* pData = mOutSize.map(mQueue, CL_TRUE, CL_MAP_READ, 0, 1);
+    int* pData = mOutSize.map(queue, CL_TRUE, CL_MAP_READ, 0, 1);
     count = *pData;
-    mOutSize.unmap(mQueue, pData);
+    mOutSize.unmap(queue, pData);
     return time;
 }
 
-size_t CompactPrv::process(const cl::Image& inpImage, Ocl::DataBuffer<Ocl::HoughData>& houghData, size_t threshold, size_t& count)
+size_t CompactPrv::process(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<Ocl::HoughData>& houghData, size_t threshold, size_t& count)
 {
     size_t width, height;
     size_t maxOutSize = houghData.count();
@@ -185,16 +192,17 @@ size_t CompactPrv::process(const cl::Image& inpImage, Ocl::DataBuffer<Ocl::Hough
     inpImage.getImageInfo<size_t>(CL_IMAGE_HEIGHT, &height);
 
     createIntBuffer(width*height);
+    workGroupMultipleAdjust(queue);
 
     mReduceIntX.setArg(0, inpImage);
     mReduceIntX.setArg(1, (int)threshold);
     mReduceIntX.setArg(2, *mBuffReduce);
     cl::Event event;
-    mQueue.enqueueNDRangeKernel(mReduceIntX, cl::NullRange, cl::NDRange(width / 4, height), cl::NDRange(8, 8), NULL, &event);
+    queue.enqueueNDRangeKernel(mReduceIntX, cl::NullRange, cl::NDRange(width/4, height), cl::NDRange(8, 8), NULL, &event);
     event.wait();
-    size_t time = kernelExecTime(mQueue, event);
+    size_t time = kernelExecTime(queue, event);
 
-    time += mScan.process(*mBuffReduce);
+    time += mScan.process(queue, *mBuffReduce);
 
     mCompactHoughData.setArg(0, inpImage);
     mCompactHoughData.setArg(1, (int)threshold);
@@ -203,12 +211,12 @@ size_t CompactPrv::process(const cl::Image& inpImage, Ocl::DataBuffer<Ocl::Hough
     mCompactHoughData.setArg(4, (int)maxOutSize);
     mCompactHoughData.setArg(5, mOutSize);
 
-    mQueue.enqueueNDRangeKernel(mCompactHoughData, cl::NullRange, cl::NDRange(width / 2, height), cl::NDRange(16, 8), NULL, &event);
+    queue.enqueueNDRangeKernel(mCompactHoughData, cl::NullRange, cl::NDRange(width/2, height), cl::NDRange(16, 8), NULL, &event);
     event.wait();
-    time += kernelExecTime(mQueue, event);
+    time += kernelExecTime(queue, event);
 
-    int* pData = mOutSize.map(mQueue, CL_TRUE, CL_MAP_READ, 0, 1);
+    int* pData = mOutSize.map(queue, CL_TRUE, CL_MAP_READ, 0, 1);
     count = *pData;
-    mOutSize.unmap(mQueue, pData);
+    mOutSize.unmap(queue, pData);
     return time;
 }

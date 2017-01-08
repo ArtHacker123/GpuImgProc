@@ -2,8 +2,8 @@
 
 using namespace Ogl;
 
-OptFlow::OptFlow(cl::Context& ctxt, cl::CommandQueue& queue, GLsizei levels)
-    :mPrv(new Ogl::OptFlowPrv(ctxt, queue, levels))
+OptFlow::OptFlow(const cl::Context& ctxt, GLsizei levels)
+    :mPrv(new Ogl::OptFlowPrv(ctxt, levels))
 {
 }
 
@@ -11,8 +11,8 @@ OptFlow::~OptFlow()
 {
 }
 
-bool OptFlow::process(Ocl::DataBuffer<Ocl::OptFlowData>& flowData, size_t& outCount, const Ogl::Image<GL_RED>& currImg, const Ogl::Image<GL_RED>& prevImg, GLfloat rvalue, GLfloat minFlowDist)
+bool OptFlow::process(const cl::CommandQueue& queue, Ocl::DataBuffer<Ocl::OptFlowData>& fd, size_t& outCount, const Ogl::Image<GL_RED>& currImg, const Ogl::Image<GL_RED>& prevImg, GLfloat rvalue, GLfloat minFlowDist)
 {
-    return mPrv->process(flowData, outCount, currImg, prevImg, rvalue, minFlowDist);
+    return mPrv->process(queue, fd, outCount, currImg, prevImg, rvalue, minFlowDist);
 }
 

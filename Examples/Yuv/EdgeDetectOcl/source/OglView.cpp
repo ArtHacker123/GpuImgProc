@@ -5,7 +5,7 @@
 OglView::OglView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queue)
     :mCtxtCL(ctxt),
      mQueueCL(queue),
-     mCanny(ctxt, queue),
+     mCanny(ctxt),
      mYuvImg(w, h),
      mEdgeImg(w, h, GL_R32F, GL_FLOAT),
      mMinThresh((float)(20.0/256.0)),
@@ -26,7 +26,7 @@ void OglView::draw(uint8_t* pData)
     cl::ImageGL outImgGL(mCtxtCL, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D, 0, mEdgeImg.texture());
     cl::ImageGL inpImgGL(mCtxtCL, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mYuvImg.yImage().texture());
 
-    mCanny.process(inpImgGL, outImgGL, mMinThresh, mMaxThresh);
+    mCanny.process(mQueueCL, inpImgGL, outImgGL, mMinThresh, mMaxThresh);
 
     mLumaPainter.draw(mEdgeImg);
     Ogl::IGeometry::Rect vp = { mYuvImg.width()>>1, 0, mYuvImg.width()>>1, mYuvImg.height()>>1 };

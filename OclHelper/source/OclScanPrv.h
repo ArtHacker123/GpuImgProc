@@ -8,20 +8,21 @@ namespace Ocl
 class ScanPrv
 {
 public:
-    ScanPrv(cl::Context& ctxt, cl::CommandQueue& queue);
+    ScanPrv(const cl::Context& ctxt);
     ~ScanPrv();
 
 public:
-    size_t process(Ocl::DataBuffer<int>& buffer);
+    size_t process(const cl::CommandQueue& queue, Ocl::DataBuffer<int>& buffer);
 
 private:
     void init(int warp_size);
+    void workGroupMultipleAdjust(const cl::CommandQueue& queue);
 
 private:
+    int mWgrpSize;
     const int mDepth;
     const int mBlkSize;
-    cl::Context& mContext;
-    cl::CommandQueue& mQueue;
+    const cl::Context& mContext;
 
     cl::Buffer mIntBuff;
 

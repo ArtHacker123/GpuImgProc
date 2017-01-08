@@ -13,16 +13,15 @@ namespace Ogl
 class HoughLinePainterPrv
 {
 public:
-    HoughLinePainterPrv(cl::Context& ctxt, cl::CommandQueue& queue, size_t maxSize);
+    HoughLinePainterPrv(const cl::Context& ctxt, size_t maxSize);
     ~HoughLinePainterPrv();
 
 public:
-    void draw(Ocl::DataBuffer<Ocl::HoughData>& flowData, size_t count, size_t width, size_t height);
+    void draw(const cl::CommandQueue& queue, Ocl::DataBuffer<Ocl::HoughData>& flowData, size_t count, size_t width, size_t height);
 
 private:
     size_t mMaxSize;
-    cl::Context& mContext;
-    cl::CommandQueue mQueue;
+    const cl::Context& mContext;
 
     Ogl::Buffer mHoughLineBuff;
     Ogl::Painter<Ogl::ColorShader> mPainter;

@@ -4,20 +4,28 @@
 
 using namespace Ocl;
 
-HarrisCornerPrv::HarrisCornerPrv(cl::Context& ctxt, cl::CommandQueue& q)
+static const float gaussCoeffs[] =
+{
+    (float)(2.0/159.0), (float)(4.0/159.0), (float)(5.0/159.0), (float)(4.0/159.0), (float)(2.0/159.0),
+    (float)(4.0/159.0), (float)(9.0/159.0), (float)(12.0/159.0), (float)(9.0/159.0), (float)(4.0/159.0),
+    (float)(5.0/159.0), (float)(12.0/159.0), (float)(15.0/159.0), (float)(12.0/159.0), (float)(5.0/159.0),
+    (float)(4.0/159.0), (float)(9.0/159.0), (float)(12.0/159.0), (float)(9.0/159.0), (float)(4.0/159.0),
+    (float)(2.0/159.0), (float)(4.0/159.0), (float)(5.0/159.0), (float)(4.0/159.0), (float)(2.0/159.0)
+};
+
+HarrisCornerPrv::HarrisCornerPrv(const cl::Context& ctxt)
     :mWidth(0),
      mHeight(0),
+     mIsLoaded(false),
      mLocSizeX(16),
      mLocSizeY(16),
      mContext(ctxt),
-     mQueue(q),
      mCoeffBuff(mContext, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, 25),
-     mCompact(ctxt, q)
+     mCompact(ctxt)
 {
     try
     {
         init();
-        loadGaussCoeffs();
     }
 
     catch (cl::Error error)
@@ -46,18 +54,15 @@ void HarrisCornerPrv::init()
     mCornerKernel = cl::Kernel(mPgm, "suppress_non_max");
 }
 
-void HarrisCornerPrv::loadGaussCoeffs()
+void HarrisCornerPrv::loadGaussCoeffs(const cl::CommandQueue& queue)
 {
-    static float gaussCoeffs[] = {
-        (float)(2.0 / 159.0), (float)(4.0 / 159.0), (float)(5.0 / 159.0), (float)(4.0 / 159.0), (float)(2.0 / 159.0),
-        (float)(4.0 / 159.0), (float)(9.0 / 159.0), (float)(12.0 / 159.0), (float)(9.0 / 159.0), (float)(4.0 / 159.0),
-        (float)(5.0 / 159.0), (float)(12.0 / 159.0), (float)(15.0 / 159.0), (float)(12.0 / 159.0), (float)(5.0 / 159.0),
-        (float)(4.0 / 159.0), (float)(9.0 / 159.0), (float)(12.0 / 159.0), (float)(9.0 / 159.0), (float)(4.0 / 159.0),
-        (float)(2.0 / 159.0), (float)(4.0 / 159.0), (float)(5.0 / 159.0), (float)(4.0 / 159.0), (float)(2.0 / 159.0) };
-
-    float* pCoeff = mCoeffBuff.map(mQueue, CL_TRUE, CL_MAP_WRITE, 0, 25);
-    memcpy(pCoeff, gaussCoeffs, 25*sizeof(float));
-    mCoeffBuff.unmap(mQueue, pCoeff);
+    if (mIsLoaded == false)
+    {
+        mIsLoaded = true;
+        float* pCoeff = mCoeffBuff.map(queue, CL_TRUE, CL_MAP_WRITE, 0, 25);
+        memcpy(pCoeff, gaussCoeffs, 25 * sizeof(float));
+        mCoeffBuff.unmap(queue, pCoeff);
+    }
 }
 
 void HarrisCornerPrv::checkLocalGroupSizes()
@@ -93,57 +98,59 @@ void HarrisCornerPrv::createIntImages(const cl::Image& inpImg)
     checkLocalGroupSizes();
 }
 
-size_t HarrisCornerPrv::gradient(const cl::Image& inpImg, cl::Image& outImg)
+size_t HarrisCornerPrv::gradient(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg)
 {
     cl::Event event;
     mGradKernel.setArg(0, inpImg);
     mGradKernel.setArg(1, outImg);
-    mQueue.enqueueNDRangeKernel(mGradKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
+    queue.enqueueNDRangeKernel(mGradKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
     event.wait();
-    return kernelExecTime(mQueue, event);
+    return kernelExecTime(queue, event);
 }
 
-size_t HarrisCornerPrv::eigen(const cl::Image& inpImg, cl::Image& outImg)
+size_t HarrisCornerPrv::eigen(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg)
 {
     cl::Event event;
     mEigenKernel.setArg(0, inpImg);
     mEigenKernel.setArg(1, outImg);
     mEigenKernel.setArg(2, mCoeffBuff.buffer());
-    mQueue.enqueueNDRangeKernel(mEigenKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
+    queue.enqueueNDRangeKernel(mEigenKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
     event.wait();
-    return kernelExecTime(mQueue, event);
+    return kernelExecTime(queue, event);
 }
 
-size_t HarrisCornerPrv::suppress(const cl::Image& inpImg, cl::Image& outImg, float value)
+size_t HarrisCornerPrv::suppress(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, float value)
 {
     cl::Event event;
     mCornerKernel.setArg(0, inpImg);
     mCornerKernel.setArg(1, outImg);
     mCornerKernel.setArg(2, value);
-    mQueue.enqueueNDRangeKernel(mCornerKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
+    queue.enqueueNDRangeKernel(mCornerKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
     event.wait();
-    return kernelExecTime(mQueue, event);
+    return kernelExecTime(queue, event);
 }
 
-size_t HarrisCornerPrv::process(const cl::Image2D& inpImg, Ocl::DataBuffer<Ocl::Pos>& corners, float value, size_t& count)
+size_t HarrisCornerPrv::process(const cl::CommandQueue& queue, const cl::Image2D& inpImg, Ocl::DataBuffer<Ocl::Pos>& corners, float value, size_t& count)
 {
+    loadGaussCoeffs(queue);
     createIntImages(inpImg);
-    size_t time = gradient(inpImg, *mIxIyImg);
-    time += eigen(*mIxIyImg, *mEigenImg);
-    time += suppress(*mEigenImg, *mCornerImg, value);
-    time += mCompact.process(*mCornerImg, corners, 1.0f, count);
+    size_t time = gradient(queue, inpImg, *mIxIyImg);
+    time += eigen(queue, *mIxIyImg, *mEigenImg);
+    time += suppress(queue, *mEigenImg, *mCornerImg, value);
+    time += mCompact.process(queue, *mCornerImg, corners, 1.0f, count);
     return time;
 }
 
-size_t HarrisCornerPrv::process(const cl::ImageGL& inpImg, Ocl::DataBuffer<Ocl::Pos>& corners, float value, size_t& count)
+size_t HarrisCornerPrv::process(const cl::CommandQueue& queue, const cl::ImageGL& inpImg, Ocl::DataBuffer<Ocl::Pos>& corners, float value, size_t& count)
 {
+    loadGaussCoeffs(queue);
     createIntImages(inpImg);
     std::vector<cl::Memory> gl_objs = { inpImg };
-    mQueue.enqueueAcquireGLObjects(&gl_objs);
-    size_t time = gradient(inpImg, *mIxIyImg);
-    mQueue.enqueueReleaseGLObjects(&gl_objs);
-    time += eigen(*mIxIyImg, *mEigenImg);
-    time += suppress(*mEigenImg, *mCornerImg, value);
-    time += mCompact.process(*mCornerImg, corners, 1.0f, count);
+    queue.enqueueAcquireGLObjects(&gl_objs);
+    size_t time = gradient(queue, inpImg, *mIxIyImg);
+    queue.enqueueReleaseGLObjects(&gl_objs);
+    time += eigen(queue, *mIxIyImg, *mEigenImg);
+    time += suppress(queue, *mEigenImg, *mCornerImg, value);
+    time += mCompact.process(queue, *mCornerImg, corners, 1.0f, count);
     return time;
 }

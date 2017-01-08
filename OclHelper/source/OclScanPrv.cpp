@@ -5,23 +5,16 @@
 
 using namespace Ocl;
 
-ScanPrv::ScanPrv(cl::Context& ctxt, cl::CommandQueue& queue)
-    :mDepth(8),
+ScanPrv::ScanPrv(const cl::Context& ctxt)
+    :mWgrpSize(32),
+     mDepth(8),
      mBlkSize(1<<8),
      mContext(ctxt),
-     mQueue(queue),
      mIntBuff(mContext, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, (size_t)(mBlkSize*sizeof(int)))
 {
     try
     {
-        init(32);
-        size_t wgmSize = Ocl::getWorkGroupSizeMultiple(mQueue, mScanKernel);
-        //Intel HD4xxx series GPU's warp_size is not 32
-        if (wgmSize != 32)
-        {
-            //re-initialize with wgmSize
-            init(wgmSize);
-        }
+        init(mWgrpSize);
     }
 
     catch (cl::Error error)
@@ -49,10 +42,24 @@ void ScanPrv::init(int warp_size)
     mGatherScanKernel = cl::Kernel(mProgram, "gather_scan");
 }
 
-size_t ScanPrv::process(Ocl::DataBuffer<int>& buffer)
+void ScanPrv::workGroupMultipleAdjust(const cl::CommandQueue& queue)
+{
+    size_t wgmSize = Ocl::getWorkGroupSizeMultiple(queue, mScanKernel);
+    //Intel HD4xxx series GPU's warp_size is not 32
+    if (wgmSize != mWgrpSize)
+    {
+        //re-initialize with wgmSize
+        init(wgmSize);
+        mWgrpSize = wgmSize;
+    }
+}
+
+size_t ScanPrv::process(const cl::CommandQueue& queue, Ocl::DataBuffer<int>& buffer)
 {
     cl::Event event;
     size_t buffSize = buffer.count();
+
+    workGroupMultipleAdjust(queue);
 
     mScanKernel.setArg(0, buffer.buffer());
     mScanKernel.setArg(1, (int)buffSize);
@@ -60,9 +67,9 @@ size_t ScanPrv::process(Ocl::DataBuffer<int>& buffer)
     size_t gSize = (buffSize/mBlkSize);
     gSize += ((buffSize%mBlkSize) == 0) ? 0 : 1;
     gSize *= mBlkSize;
-    mQueue.enqueueNDRangeKernel(mScanKernel, cl::NullRange, cl::NDRange(gSize/2), cl::NDRange(mBlkSize/2), NULL, &event);
+    queue.enqueueNDRangeKernel(mScanKernel, cl::NullRange, cl::NDRange(gSize/2), cl::NDRange(mBlkSize/2), NULL, &event);
     event.wait();
-    size_t time = kernelExecTime(mQueue, event);
+    size_t time = kernelExecTime(queue, event);
 
     for (size_t i = mBlkSize; i < buffSize; i += (mBlkSize*mBlkSize))
     {
@@ -70,17 +77,17 @@ size_t ScanPrv::process(Ocl::DataBuffer<int>& buffer)
         mGatherScanKernel.setArg(1, (int)i);
         mGatherScanKernel.setArg(2, (int)buffSize);
         mGatherScanKernel.setArg(3, mIntBuff);
-        mQueue.enqueueNDRangeKernel(mGatherScanKernel, cl::NullRange, cl::NDRange(mBlkSize/2), cl::NDRange(mBlkSize/2), NULL, &event);
+        queue.enqueueNDRangeKernel(mGatherScanKernel, cl::NullRange, cl::NDRange(mBlkSize/2), cl::NDRange(mBlkSize/2), NULL, &event);
         event.wait();
-        time += kernelExecTime(mQueue, event);
+        time += kernelExecTime(queue, event);
 
         mAddResKernel.setArg(0, buffer);
         mAddResKernel.setArg(1, (int)i);
         mAddResKernel.setArg(2, (int)buffSize);
         mAddResKernel.setArg(3, mIntBuff);
-        mQueue.enqueueNDRangeKernel(mAddResKernel, cl::NullRange, cl::NDRange(mBlkSize*mBlkSize/4), cl::NDRange(mBlkSize/4), NULL, &event);
+        queue.enqueueNDRangeKernel(mAddResKernel, cl::NullRange, cl::NDRange(mBlkSize*mBlkSize/4), cl::NDRange(mBlkSize/4), NULL, &event);
         event.wait();
-        time += kernelExecTime(mQueue, event);
+        time += kernelExecTime(queue, event);
     }
     //printf("\nKernel Time: %llf us", ((double)time)/1000.0);
     return time;

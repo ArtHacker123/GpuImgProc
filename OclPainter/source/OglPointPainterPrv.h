@@ -13,16 +13,15 @@ namespace Ogl
 class PointPainterPrv
 {
 public:
-    PointPainterPrv(cl::Context& ctxt, cl::CommandQueue& queue, size_t maxPoints);
+    PointPainterPrv(const cl::Context& ctxt, size_t maxPoints);
     ~PointPainterPrv();
 
 public:
-    void draw(Ocl::DataBuffer<Ocl::Pos>& points, size_t count, size_t width, size_t height);
+    void draw(const cl::CommandQueue& queue, Ocl::DataBuffer<Ocl::Pos>& points, size_t count, size_t width, size_t height);
 
 private:
 	size_t mMaxPoints;
-    cl::Context& mContext;
-    cl::CommandQueue mQueue;
+    const cl::Context& mContext;
 
 	Ogl::Buffer mPointBuff;
     Ogl::Painter<Ogl::ColorShader> mPainter;

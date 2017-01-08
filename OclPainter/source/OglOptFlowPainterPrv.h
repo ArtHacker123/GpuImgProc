@@ -13,16 +13,15 @@ namespace Ogl
 class OptFlowPainterPrv
 {
 public:
-    OptFlowPainterPrv(cl::Context& ctxt, cl::CommandQueue& queue, size_t maxSize);
+    OptFlowPainterPrv(const cl::Context& ctxt, size_t maxSize);
     ~OptFlowPainterPrv();
 
 public:
-    void draw(Ocl::DataBuffer<Ocl::OptFlowData>& flowData, size_t count, size_t width, size_t height);
+    void draw(const cl::CommandQueue& queue, Ocl::DataBuffer<Ocl::OptFlowData>& fd, size_t count, size_t width, size_t height);
 
 private:
     size_t mMaxSize;
-    cl::Context& mContext;
-    cl::CommandQueue mQueue;
+    const cl::Context& mContext;
 
     Ogl::Buffer mOptFlowBuff;
     Ogl::Painter<Ogl::ColorShader> mPainter;

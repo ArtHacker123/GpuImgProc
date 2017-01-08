@@ -33,8 +33,8 @@ int main(int argc, char** argv)
 		}
 		buff.unmap(queue, pData);
 
-		Ocl::Scan scan(context, queue);
-		size_t time = scan.process(buff);
+		Ocl::Scan scan(context);
+		size_t time = scan.process(queue, buff);
 		printf("\nTime: %d ns", time);
 		
 		pData = buff.map(queue, CL_TRUE, CL_MAP_READ, 0, dataSize);;

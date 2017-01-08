@@ -27,14 +27,13 @@ const GLenum OptFlowPrv::mBuffs[] =
     GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5
 };
 
-OptFlowPrv::OptFlowPrv(cl::Context& ctxt, cl::CommandQueue& queue, GLsizei levels)
-    :mCtxtCL(ctxt),
-     mQueueCL(queue),
-     mLevels(levels),
+OptFlowPrv::OptFlowPrv(const cl::Context& ctxt, GLsizei levels)
+    :mLevels(levels),
+     mCtxtCL(ctxt),
      mUvImg(0),
      mIxImg(levels),
      mIyImg(levels),
-     mCompact(ctxt, queue)
+     mCompact(ctxt)
 {
     mIxIyShader.reset(new Ogl::IxIyShader);
     mOptFlowShader.reset(new Ogl::OptFlowShader);
@@ -145,7 +144,7 @@ void OptFlowPrv::process(const Ogl::IImage& currImg, const Ogl::IImage& prevImg,
     glViewport(params[0], params[1], params[2], params[3]);
 }
 
-bool OptFlowPrv::process(Ocl::DataBuffer<Ocl::OptFlowData>& flowData, size_t& outCount, const Ogl::Image<GL_RED>& currImg, const Ogl::Image<GL_RED>& prevImg, GLfloat rvalue, GLfloat minFlowDist)
+bool OptFlowPrv::process(const cl::CommandQueue& queue, Ocl::DataBuffer<Ocl::OptFlowData>& flowData, size_t& outCount, const Ogl::Image<GL_RED>& currImg, const Ogl::Image<GL_RED>& prevImg, GLfloat rvalue, GLfloat minFlowDist)
 {
     if (!currImg.isPyramid() || !prevImg.isPyramid())
     {
@@ -154,8 +153,8 @@ bool OptFlowPrv::process(Ocl::DataBuffer<Ocl::OptFlowData>& flowData, size_t& ou
     process((const Ogl::IImage&)currImg, (const Ogl::IImage&)prevImg, rvalue, minFlowDist);
     cl::ImageGL imgGL(mCtxtCL, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mNmsImg->texture());
     std::vector<cl::Memory> gl_objs = { imgGL };
-    mQueueCL.enqueueAcquireGLObjects(&gl_objs);
-    mCompact.process(imgGL, flowData, minFlowDist, outCount);
-    mQueueCL.enqueueReleaseGLObjects(&gl_objs);
+    queue.enqueueAcquireGLObjects(&gl_objs);
+    mCompact.process(queue, imgGL, flowData, minFlowDist, outCount);
+    queue.enqueueReleaseGLObjects(&gl_objs);
     return true;
 }

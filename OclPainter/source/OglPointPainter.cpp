@@ -3,8 +3,8 @@
 
 using namespace Ogl;
 
-PointPainter::PointPainter(cl::Context& ctxt, cl::CommandQueue& queue, size_t maxPoints)
-    :mPrv(new Ogl::PointPainterPrv(ctxt, queue, maxPoints))
+PointPainter::PointPainter(const cl::Context& ctxt, size_t maxPoints)
+    :mPrv(new Ogl::PointPainterPrv(ctxt, maxPoints))
 {
 }
 
@@ -12,7 +12,7 @@ PointPainter::~PointPainter()
 {
 }
 
-void PointPainter::draw(Ocl::DataBuffer<Ocl::Pos>& points, size_t count, size_t width, size_t height)
+void PointPainter::draw(const cl::CommandQueue& queue, Ocl::DataBuffer<Ocl::Pos>& points, size_t count, size_t width, size_t height)
 {
-    mPrv->draw(points, count, width, height);
+    mPrv->draw(queue, points, count, width, height);
 }

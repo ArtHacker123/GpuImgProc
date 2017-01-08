@@ -39,10 +39,9 @@ kernel void find_coords(global OptFlowData* input, global float2* coord, int max
 
 );
 
-OptFlowPainterPrv::OptFlowPainterPrv(cl::Context& ctxt, cl::CommandQueue& queue, size_t maxSize)
+OptFlowPainterPrv::OptFlowPainterPrv(const cl::Context& ctxt, size_t maxSize)
     :mMaxSize(maxSize),
      mContext(ctxt),
-     mQueue(queue),
      mOptFlowBuff(GL_ARRAY_BUFFER, (12*mMaxSize*sizeof(GLfloat)), 0, GL_DYNAMIC_DRAW)
 {
     try
@@ -65,7 +64,7 @@ OptFlowPainterPrv::~OptFlowPainterPrv()
 {
 }
 
-void OptFlowPainterPrv::draw(Ocl::DataBuffer<Ocl::OptFlowData>& flowData, size_t count, size_t width, size_t height)
+void OptFlowPainterPrv::draw(const cl::CommandQueue& queue, Ocl::DataBuffer<Ocl::OptFlowData>& flowData, size_t count, size_t width, size_t height)
 {
     if (count <= 0)
     {
@@ -87,10 +86,10 @@ void OptFlowPainterPrv::draw(Ocl::DataBuffer<Ocl::OptFlowData>& flowData, size_t
     mKernel.setArg(3, (int)(width/2));
     mKernel.setArg(4, (int)(height/2));
     size_t gSize = count+(16-(count%16));
-    mQueue.enqueueAcquireGLObjects(&gl_objs);
-    mQueue.enqueueNDRangeKernel(mKernel, cl::NullRange, cl::NDRange(gSize), cl::NullRange, NULL, &event);
+    queue.enqueueAcquireGLObjects(&gl_objs);
+    queue.enqueueNDRangeKernel(mKernel, cl::NullRange, cl::NDRange(gSize), cl::NullRange, NULL, &event);
     event.wait();
-    mQueue.enqueueReleaseGLObjects(&gl_objs);
+    queue.enqueueReleaseGLObjects(&gl_objs);
 
     mPainter.draw(GL_LINES, 0, (GLsizei)(count*6), mOptFlowBuff);
 }

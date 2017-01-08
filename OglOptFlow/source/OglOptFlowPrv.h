@@ -22,11 +22,11 @@ struct GeometryCoord;
 class OptFlowPrv
 {
 public:
-    OptFlowPrv(cl::Context& ctxt, cl::CommandQueue& queue, GLsizei levels);
+    OptFlowPrv(const cl::Context& ctxt, GLsizei levels);
     ~OptFlowPrv();
 
 public:
-    bool process(Ocl::DataBuffer<Ocl::OptFlowData>& flowData, size_t& outCount, const Ogl::Image<GL_RED>& currImg, const Ogl::Image<GL_RED>& prevImg, GLfloat rvalue, GLfloat minFlowDist);
+    bool process(const cl::CommandQueue& queue, Ocl::DataBuffer<Ocl::OptFlowData>& fd, size_t& outCount, const Ogl::Image<GL_RED>& currImg, const Ogl::Image<GL_RED>& prevImg, GLfloat rvalue, GLfloat minFlowDist);
 
 protected:
     void suppressNonMax(GLfloat minFlowDist);
@@ -36,10 +36,9 @@ protected:
     void process(const Ogl::IImage& currImg, const Ogl::IImage& prevImg, GLfloat rvalue, GLfloat minFlowDist);
 
 private:
-    cl::Context mCtxtCL;
-    cl::CommandQueue mQueueCL;
-
     GLsizei mLevels;
+    const cl::Context mCtxtCL;
+
     std::unique_ptr<Ogl::Shape> mRect;
 
     std::unique_ptr < Ogl::Image<GL_RGBA> > mNmsImg;

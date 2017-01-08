@@ -4,19 +4,27 @@
 
 using namespace Ocl;
 
-CannyEdgePrv::CannyEdgePrv(cl::Context& ctxt, cl::CommandQueue& q)
+static float gaussCoeffs[] =
+{
+    (float)(2.0/159.0), (float)(4.0/159.0), (float)(5.0/159.0), (float)(4.0/159.0), (float)(2.0/159.0),
+    (float)(4.0/159.0), (float)(9.0/159.0), (float)(12.0/159.0), (float)(9.0/159.0), (float)(4.0/159.0),
+    (float)(5.0/159.0), (float)(12.0/159.0), (float)(15.0/159.0), (float)(12.0/159.0), (float)(5.0/159.0),
+    (float)(4.0/159.0), (float)(9.0/159.0), (float)(12.0/159.0), (float)(9.0/159.0), (float)(4.0/159.0),
+    (float)(2.0/159.0), (float)(4.0/159.0), (float)(5.0/159.0), (float)(4.0/159.0), (float)(2.0/159.0)
+};
+
+CannyEdgePrv::CannyEdgePrv(const cl::Context& ctxt)
     :mWidth(0),
      mHeight(0),
+     mIsLoaded(false),
      mLocSizeX(16),
      mLocSizeY(16),
      mContext(ctxt),
-     mQueue(q),
      mCoeffBuff(mContext, CL_MEM_READ_ONLY, 25)
 {
     try
     {
         init();
-        loadGaussCoeffs();
     }
 
     catch (cl::Error error)
@@ -42,18 +50,15 @@ void CannyEdgePrv::init()
     mBinThreshKernel = cl::Kernel(mPgm, "binary_threshold");
 }
 
-void CannyEdgePrv::loadGaussCoeffs()
+void CannyEdgePrv::loadGaussCoeffs(const cl::CommandQueue& queue)
 {
-    static float gaussCoeffs[] = {
-        (float)(2.0 / 159.0), (float)(4.0 / 159.0), (float)(5.0 / 159.0), (float)(4.0 / 159.0), (float)(2.0 / 159.0),
-        (float)(4.0 / 159.0), (float)(9.0 / 159.0), (float)(12.0 / 159.0), (float)(9.0 / 159.0), (float)(4.0 / 159.0),
-        (float)(5.0 / 159.0), (float)(12.0 / 159.0), (float)(15.0 / 159.0), (float)(12.0 / 159.0), (float)(5.0 / 159.0),
-        (float)(4.0 / 159.0), (float)(9.0 / 159.0), (float)(12.0 / 159.0), (float)(9.0 / 159.0), (float)(4.0 / 159.0),
-        (float)(2.0 / 159.0), (float)(4.0 / 159.0), (float)(5.0 / 159.0), (float)(4.0 / 159.0), (float)(2.0 / 159.0) };
-
-    float* pCoeff = mCoeffBuff.map(mQueue, CL_TRUE, CL_MAP_WRITE, 0, 25);
-    memcpy(pCoeff, gaussCoeffs, 25*sizeof(float));
-    mCoeffBuff.unmap(mQueue, pCoeff);
+    if (mIsLoaded == false)
+    {
+        mIsLoaded = true;
+        float* pCoeff = mCoeffBuff.map(queue, CL_TRUE, CL_MAP_WRITE, 0, 25);
+        memcpy(pCoeff, gaussCoeffs, 25 * sizeof(float));
+        mCoeffBuff.unmap(queue, pCoeff);
+    }
 }
 
 void CannyEdgePrv::createIntImages(const cl::Image& inpImg)
@@ -78,19 +83,19 @@ void CannyEdgePrv::createIntImages(const cl::Image& inpImg)
     checkLocalGroupSizes();
 }
 
-size_t CannyEdgePrv::gradient(const cl::Image& inpImg, cl::Image& outImg)
+size_t CannyEdgePrv::gradient(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg)
 {
     cl::Event event;
     size_t shMemSize = (mLocSizeX+2)*(mLocSizeY+2)*sizeof(float);
     mGradKernel.setArg(0, inpImg);
     mGradKernel.setArg(1, outImg);
     mGradKernel.setArg(2, shMemSize, 0);
-    mQueue.enqueueNDRangeKernel(mGradKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
+    queue.enqueueNDRangeKernel(mGradKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
     event.wait();
-    return kernelExecTime(mQueue, event);
+    return kernelExecTime(queue, event);
 }
 
-size_t CannyEdgePrv::gauss(const cl::Image& inpImg, cl::Image& outImg)
+size_t CannyEdgePrv::gauss(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg)
 {
     cl::Event event;
     size_t shMemSize = (mLocSizeX+4)*(mLocSizeY+4)*sizeof(float);
@@ -98,21 +103,21 @@ size_t CannyEdgePrv::gauss(const cl::Image& inpImg, cl::Image& outImg)
     mGaussKernel.setArg(1, outImg);
     mGaussKernel.setArg(2, mCoeffBuff);
     mGaussKernel.setArg(3, shMemSize, 0);
-    mQueue.enqueueNDRangeKernel(mGaussKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
+    queue.enqueueNDRangeKernel(mGaussKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
     event.wait();
-    return kernelExecTime(mQueue, event);
+    return kernelExecTime(queue, event);
 }
 
-size_t CannyEdgePrv::suppress(const cl::Image& inpImg, cl::Image& outImg)
+size_t CannyEdgePrv::suppress(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg)
 {
     cl::Event event;
     size_t shMemSize = (mLocSizeX+2)*(mLocSizeY+2)*sizeof(float);
     mNmesKernel.setArg(0, inpImg);
     mNmesKernel.setArg(1, outImg);
     mNmesKernel.setArg(2, shMemSize, 0);
-    mQueue.enqueueNDRangeKernel(mNmesKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
+    queue.enqueueNDRangeKernel(mNmesKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
     event.wait();
-    return kernelExecTime(mQueue, event);
+    return kernelExecTime(queue, event);
 }
 
 void CannyEdgePrv::checkLocalGroupSizes()
@@ -121,7 +126,7 @@ void CannyEdgePrv::checkLocalGroupSizes()
     mLocSizeY = Ocl::localGroupSize(mHeight);
 }
 
-size_t CannyEdgePrv::binaryThreshold(const cl::Image& inpImg, cl::Image& outImg, float minThresh, float maxThresh)
+size_t CannyEdgePrv::binaryThreshold(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, float minThresh, float maxThresh)
 {
     cl::Event event;
     size_t shMemSize = (mLocSizeX+2)*(mLocSizeY+2)*sizeof(float);
@@ -130,30 +135,32 @@ size_t CannyEdgePrv::binaryThreshold(const cl::Image& inpImg, cl::Image& outImg,
     mBinThreshKernel.setArg(2, minThresh);
     mBinThreshKernel.setArg(3, maxThresh);
     mBinThreshKernel.setArg(4, shMemSize, 0);
-    mQueue.enqueueNDRangeKernel(mBinThreshKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
+    queue.enqueueNDRangeKernel(mBinThreshKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
     event.wait();
-    return kernelExecTime(mQueue, event);
+    return kernelExecTime(queue, event);
 }
 
-size_t CannyEdgePrv::process(const cl::Image2D& inpImg, cl::Image2D& outImg, float minThresh, float maxThresh)
+size_t CannyEdgePrv::process(const cl::CommandQueue& queue, const cl::Image2D& inpImg, cl::Image2D& outImg, float minThresh, float maxThresh)
 {
     createIntImages(inpImg);
-    size_t time = gauss(inpImg, *mGaussImg);
-    time += gradient(*mGaussImg, *mGradImg);
-    time += suppress(*mGradImg, *mNmesImg);
-    time += binaryThreshold(*mNmesImg, outImg, minThresh, maxThresh);
+    loadGaussCoeffs(queue);
+    size_t time = gauss(queue, inpImg, *mGaussImg);
+    time += gradient(queue, *mGaussImg, *mGradImg);
+    time += suppress(queue, *mGradImg, *mNmesImg);
+    time += binaryThreshold(queue, *mNmesImg, outImg, minThresh, maxThresh);
     return time;
 }
 
-size_t CannyEdgePrv::process(const cl::ImageGL& inpImg, cl::ImageGL& outImg, float minThresh, float maxThresh)
+size_t CannyEdgePrv::process(const cl::CommandQueue& queue, const cl::ImageGL& inpImg, cl::ImageGL& outImg, float minThresh, float maxThresh)
 {
     createIntImages(inpImg);
+    loadGaussCoeffs(queue);
     std::vector<cl::Memory> gl_objs = { inpImg, outImg };
-    mQueue.enqueueAcquireGLObjects(&gl_objs);
-    size_t time = gauss(inpImg, *mGaussImg);
-    time += gradient(*mGaussImg, *mGradImg);
-    time += suppress(*mGradImg, *mNmesImg);
-    time += binaryThreshold(*mNmesImg, outImg, minThresh, maxThresh);
-    mQueue.enqueueReleaseGLObjects(&gl_objs);
+    queue.enqueueAcquireGLObjects(&gl_objs);
+    size_t time = gauss(queue, inpImg, *mGaussImg);
+    time += gradient(queue, *mGaussImg, *mGradImg);
+    time += suppress(queue, *mGradImg, *mNmesImg);
+    time += binaryThreshold(queue, *mNmesImg, outImg, minThresh, maxThresh);
+    queue.enqueueReleaseGLObjects(&gl_objs);
     return time;
 }

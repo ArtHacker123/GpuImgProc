@@ -23,10 +23,9 @@ kernel void extract_coords(global int2 *p_pos_corner, int count, global float2* 
 }
 );
 
-PointPainterPrv::PointPainterPrv(cl::Context& ctxt, cl::CommandQueue& queue, size_t maxPoints)
+PointPainterPrv::PointPainterPrv(const cl::Context& ctxt, size_t maxPoints)
     :mMaxPoints(maxPoints),
 	 mContext(ctxt),
-     mQueue(queue),
 	 mPointBuff(GL_ARRAY_BUFFER, (8*mMaxPoints*sizeof(GLfloat)), 0, GL_DYNAMIC_DRAW)
 {
     try
@@ -49,7 +48,7 @@ PointPainterPrv::~PointPainterPrv()
 {
 }
 
-void PointPainterPrv::draw(Ocl::DataBuffer<Ocl::Pos>& points, size_t count, size_t width, size_t height)
+void PointPainterPrv::draw(const cl::CommandQueue& queue, Ocl::DataBuffer<Ocl::Pos>& points, size_t count, size_t width, size_t height)
 {
     if (count <= 0)
     {
@@ -71,10 +70,10 @@ void PointPainterPrv::draw(Ocl::DataBuffer<Ocl::Pos>& points, size_t count, size
     mKernel.setArg(3, (int)(width/2));
     mKernel.setArg(4, (int)(height/2));
     size_t gSize = count+(16-(count%16));
-    mQueue.enqueueAcquireGLObjects(&gl_objs);
-    mQueue.enqueueNDRangeKernel(mKernel, cl::NullRange, cl::NDRange(gSize), cl::NullRange, NULL, &event);
+    queue.enqueueAcquireGLObjects(&gl_objs);
+    queue.enqueueNDRangeKernel(mKernel, cl::NullRange, cl::NDRange(gSize), cl::NullRange, NULL, &event);
     event.wait();
-    mQueue.enqueueReleaseGLObjects(&gl_objs);
+    queue.enqueueReleaseGLObjects(&gl_objs);
 
     mPainter.draw(GL_LINES, 0, (GLsizei)(count*4), mPointBuff);
 }

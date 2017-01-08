@@ -12,10 +12,10 @@ OglView::OglView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queu
      mBgrImg(w, h, GL_RGB, GL_UNSIGNED_BYTE),
      mGrayImg(w, h, GL_R32F, GL_FLOAT),
      mEdgeImg(w, h, GL_R32F, GL_FLOAT),
-     mCanny(mCtxtCL, mQueueCL),
-     mHoughLines(mCtxtCL, mQueueCL),
+     mCanny(mCtxtCL),
+     mHoughLines(mCtxtCL),
      mHoughData(mCtxtCL, CL_MEM_READ_WRITE, 1000),
-     mHoughLinePainter(mCtxtCL, mQueueCL, 1000)
+     mHoughLinePainter(mCtxtCL, 1000)
 {
 }
 
@@ -31,13 +31,14 @@ void OglView::draw(uint8_t* pData)
     cl::ImageGL inpImgGL(mCtxtCL, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mGrayImg.texture());
     cl::ImageGL outImgGL(mCtxtCL, CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0, mEdgeImg.texture());
 
-    size_t time = mCanny.process(inpImgGL, outImgGL, mMinThresh, mMaxThresh);    
+    size_t time = mCanny.process(mQueueCL, inpImgGL, outImgGL, mMinThresh, mMaxThresh);    
     
     size_t lines = 0;
-    time += mHoughLines.process(outImgGL, mSize, mHoughData, lines);
+    time += mHoughLines.process(mQueueCL, outImgGL, mSize, mHoughData, lines);
 
     mRgbaPainter.draw(mBgrImg);
-    mHoughLinePainter.draw(mHoughData, lines, mEdgeImg.width(), mEdgeImg.height());
+    //mGrayPainter.draw(mEdgeImg);
+    mHoughLinePainter.draw(mQueueCL, mHoughData, lines, mEdgeImg.width(), mEdgeImg.height());
 
     //Ogl::IGeometry::Rect vp = { mBgrImg.width()/2, 0, mBgrImg.width()/2, mBgrImg.height()/2 };
     //mGrayPainter.draw(vp, mEdgeImg);

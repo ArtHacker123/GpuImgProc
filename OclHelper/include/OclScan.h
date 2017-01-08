@@ -11,10 +11,10 @@ class ScanPrv;
 class Scan
 {
 public:
-    Scan(cl::Context& ctxt, cl::CommandQueue& queue);
+    Scan(const cl::Context& ctxt);
     ~Scan();
 
-    size_t process(Ocl::DataBuffer<int>& buffer);
+    size_t process(const cl::CommandQueue& queue, Ocl::DataBuffer<int>& buffer);
 
 private:
     std::unique_ptr<Ocl::ScanPrv> mPrv;

@@ -8,12 +8,12 @@ OglView::OglView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queu
      mMaxThresh((float)(60.0/256.0)),
      mCtxtCL(ctxt),
      mQueueCL(queue),
-     mCanny(mCtxtCL, mQueueCL),
-     mHoughLines(mCtxtCL, mQueueCL),
+     mCanny(mCtxtCL),
+     mHoughLines(mCtxtCL),
      mYuvImg(w, h),
      mEdgeImg(w, h, GL_R32F, GL_FLOAT),
      mHoughData(mCtxtCL, CL_MEM_READ_WRITE, 2000),
-     mHoughLinePainter(mCtxtCL, mQueueCL, 2000)
+     mHoughLinePainter(mCtxtCL, 2000)
 {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -30,13 +30,13 @@ void OglView::draw(uint8_t* pData)
     cl::ImageGL outImgGL(mCtxtCL, CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0, mEdgeImg.texture());
     cl::ImageGL inpImgGL(mCtxtCL, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mYuvImg.yImage().texture());
 
-    size_t time = mCanny.process(inpImgGL, outImgGL, mMinThresh, mMaxThresh);
+    size_t time = mCanny.process(mQueueCL, inpImgGL, outImgGL, mMinThresh, mMaxThresh);
 
     size_t houghCount = 0;
-    time += mHoughLines.process(outImgGL, mSize, mHoughData, houghCount);
+    time += mHoughLines.process(mQueueCL, outImgGL, mSize, mHoughData, houghCount);
 
     mYuvPainter.draw(mYuvImg);
-    mHoughLinePainter.draw(mHoughData, houghCount, mEdgeImg.width(), mEdgeImg.height());
+    mHoughLinePainter.draw(mQueueCL, mHoughData, houghCount, mEdgeImg.width(), mEdgeImg.height());
     //Ogl::IGeometry::Rect vp = { mYuvImg.width()>>1, 0, mYuvImg.width()>>1, mYuvImg.height()>>1 };
     //mLumaPainter.draw(vp, mEdgeImg);
 }

@@ -44,7 +44,7 @@ void test_hough_lines(cl::Context& context, cl::CommandQueue& queue)
 	size_t width = 640;
 	size_t height = 480;
     //size_t max_rho = 1+(size_t)(0.5*sqrt((double)((width*width)+(height*height))));
-    Ocl::HoughLines houghLines(context, queue);
+    Ocl::HoughLines houghLines(context);
 	cl::Image2D img(context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), width, height);
 	Ocl::DataBuffer<Ocl::HoughData> hdata(context, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, 1000);
     
@@ -91,7 +91,7 @@ void test_hough_lines(cl::Context& context, cl::CommandQueue& queue)
 	queue.finish();
 
     size_t outCount = 0;
-    size_t time = houghLines.process(img, 100, hdata, outCount);
+    size_t time = houghLines.process(queue, img, 100, hdata, outCount);
     printf("\nTime: %d ns", time);
     Ocl::HoughData* pHoughData = hdata.map(queue, CL_TRUE, CL_MAP_READ, 0, outCount);
     for (size_t i = 0; i < outCount; i++)

@@ -11,22 +11,21 @@ namespace Ocl
 class HoughLinesPrv
 {
 public:
-    HoughLinesPrv(cl::Context& ctxt, cl::CommandQueue& queue);
+    HoughLinesPrv(const cl::Context& ctxt);
     ~HoughLinesPrv();
 
-    size_t process(const cl::Image2D& inpImage, size_t minSize, Ocl::DataBuffer<Ocl::HoughData>& hData, size_t& houghCount);
-    size_t process(const cl::ImageGL& inpImage, size_t minSize, Ocl::DataBuffer<Ocl::HoughData>& hData, size_t& houghCount);
+    size_t process(const cl::CommandQueue& queue, const cl::Image2D& inpImage, size_t minSize, Ocl::DataBuffer<Ocl::HoughData>& hData, size_t& houghCount);
+    size_t process(const cl::CommandQueue& queue, const cl::ImageGL& inpImage, size_t minSize, Ocl::DataBuffer<Ocl::HoughData>& hData, size_t& houghCount);
 
 private:
     void init();
-    size_t computeHLT(size_t count);
-    size_t nonMaxSuppress(size_t threshold);
     void createTempBuffers(const cl::Image& inpImage);
+    size_t computeHLT(const cl::CommandQueue& queue, size_t count);
+    size_t nonMaxSuppress(const cl::CommandQueue& queue, size_t threshold);
 
 private:
     size_t mRho;
-    cl::Context& mContext;
-    cl::CommandQueue& mQueue;
+    const cl::Context& mContext;
 
     cl::Program mPgm;
     cl::Kernel mNmsKernel;

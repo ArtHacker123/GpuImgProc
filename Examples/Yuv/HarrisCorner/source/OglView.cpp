@@ -8,8 +8,8 @@ OglView::OglView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queu
      mQueueCL(queue),
      mYuvImg(w, h),
      mCorners(mCtxtCL, CL_MEM_READ_WRITE, MAX_CORNER_COUNT),
-     mHarrisCorner(mCtxtCL, mQueueCL),
-     mCornerPainter(mCtxtCL, mQueueCL, MAX_CORNER_COUNT)
+     mHarrisCorner(mCtxtCL),
+     mCornerPainter(mCtxtCL, MAX_CORNER_COUNT)
 {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -25,10 +25,10 @@ void OglView::draw(uint8_t* pData)
 
     size_t count = 0;
     cl::ImageGL imgGL(mCtxtCL, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mYuvImg.yImage().texture());
-    mHarrisCorner.process(imgGL, mCorners, mRvalue, count);
+    mHarrisCorner.process(mQueueCL, imgGL, mCorners, mRvalue, count);
 
     mYuvPainter.draw(mYuvImg);
-    mCornerPainter.draw(mCorners, count, mYuvImg.width(), mYuvImg.height());
+    mCornerPainter.draw(mQueueCL, mCorners, count, mYuvImg.width(), mYuvImg.height());
 }
 
 void OglView::resize(GLsizei w, GLsizei h)

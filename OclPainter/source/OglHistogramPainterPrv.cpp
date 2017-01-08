@@ -13,9 +13,8 @@ kernel void histogram_coords(global read_only unsigned int* p_hist_data, unsigne
 };
 );
 
-HistogramPainterPrv::HistogramPainterPrv(cl::Context& ctxt, cl::CommandQueue& q)
+HistogramPainterPrv::HistogramPainterPrv(const cl::Context& ctxt)
     :mContext(ctxt),
-     mQueue(q),
      mBuffer(GL_ARRAY_BUFFER, 512*sizeof(GLfloat), 0, GL_DYNAMIC_DRAW),
      mBufferGL(mContext, CL_MEM_READ_WRITE, mBuffer.buffer())
 {
@@ -35,7 +34,7 @@ void HistogramPainterPrv::setColor(GLfloat r, GLfloat g, GLfloat b)
     mPainter.SetColor(r, g, b, 1.0);
 }
 
-void HistogramPainterPrv::compute(const Ocl::DataBuffer<int> &hData, int maxValue)
+void HistogramPainterPrv::compute(const cl::CommandQueue& queue, const Ocl::DataBuffer<int> &hData, int maxValue)
 {
     cl::Event event;
     std::vector<cl::Memory> gl_objs = { mBufferGL };
@@ -44,14 +43,14 @@ void HistogramPainterPrv::compute(const Ocl::DataBuffer<int> &hData, int maxValu
     mKernel.setArg(1, maxValue);
     mKernel.setArg(2, mBufferGL);
 
-    mQueue.enqueueAcquireGLObjects(&gl_objs);
-    mQueue.enqueueNDRangeKernel(mKernel, cl::NullRange, cl::NDRange(256), cl::NDRange(256), NULL, &event);
+    queue.enqueueAcquireGLObjects(&gl_objs);
+    queue.enqueueNDRangeKernel(mKernel, cl::NullRange, cl::NDRange(256), cl::NDRange(256), NULL, &event);
     event.wait();
-    mQueue.enqueueReleaseGLObjects(&gl_objs);
+    queue.enqueueReleaseGLObjects(&gl_objs);
 }
 
-void HistogramPainterPrv::draw(const Ocl::DataBuffer<int>& hData, int maxValue)
+void HistogramPainterPrv::draw(const cl::CommandQueue& queue, const Ocl::DataBuffer<int>& hData, int maxValue)
 {
-    compute(hData, maxValue);
+    compute(queue, hData, maxValue);
     mPainter.draw(GL_LINE_STRIP, 0, (GLsizei)hData.count(), mBuffer);
 }

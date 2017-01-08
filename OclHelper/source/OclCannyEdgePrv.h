@@ -9,30 +9,30 @@ namespace Ocl
 class CannyEdgePrv
 {
 public:
-    CannyEdgePrv(cl::Context& ctxt, cl::CommandQueue& queue);
+    CannyEdgePrv(const cl::Context& ctxt);
     ~CannyEdgePrv();
 
 public:
-    size_t process(const cl::Image2D& img, cl::Image2D& outImage, float minThresh, float maxThresh);
-    size_t process(const cl::ImageGL& inImage, cl::ImageGL& outImage, float minThresh, float maxThresh);
+    size_t process(const cl::CommandQueue& queue, const cl::Image2D& img, cl::Image2D& outImage, float minThresh, float maxThresh);
+    size_t process(const cl::CommandQueue& queue, const cl::ImageGL& inImage, cl::ImageGL& outImage, float minThresh, float maxThresh);
 
 private:
     void init();
-    void loadGaussCoeffs();
     void checkLocalGroupSizes();
     void createIntImages(const cl::Image& inpImg);
-    size_t gauss(const cl::Image& inpImg, cl::Image& outImg);
-    size_t gradient(const cl::Image& inpImg, cl::Image& outImg);
-    size_t suppress(const cl::Image& inpImg, cl::Image& outImg);
-    size_t binaryThreshold(const cl::Image& inpImg, cl::Image& outImg, float minThresh, float maxThresh);
+    void loadGaussCoeffs(const cl::CommandQueue& queue);
+    size_t gauss(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg);
+    size_t gradient(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg);
+    size_t suppress(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg);
+    size_t binaryThreshold(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, float minThresh, float maxThresh);
 
 private:
     size_t mWidth;
     size_t mHeight;
+    bool mIsLoaded;
     size_t mLocSizeX;
     size_t mLocSizeY;
-    cl::Context& mContext;
-    cl::CommandQueue& mQueue;
+    const cl::Context& mContext;
 
     cl::Program mPgm;
 

@@ -11,25 +11,26 @@ namespace Ocl
 class CompactPrv
 {
 public:
-    CompactPrv(cl::Context& ctxt, cl::CommandQueue& queue);
+    CompactPrv(const cl::Context& ctxt);
     ~CompactPrv();
 
 public:
-    size_t process(const cl::Image& inpImage, Ocl::DataBuffer<Ocl::Pos>& coords, float threshold, size_t& count);
-    size_t process_cartesian(const cl::Image& inpImage, Ocl::DataBuffer<Ocl::Pos>& coords, float threshold, size_t& count);
-    size_t process(const cl::Image& inpImage, Ocl::DataBuffer<Ocl::OptFlowData>& flowData, float threshold, size_t& count);
-    size_t process(const cl::Image& inpImage, Ocl::DataBuffer<Ocl::HoughData>& houghData, size_t threshold, size_t& count);
+    size_t process(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<Ocl::Pos>& coords, float threshold, size_t& count);
+    size_t process_cartesian(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<Ocl::Pos>& coords, float threshold, size_t& count);
+    size_t process(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<Ocl::OptFlowData>& flowData, float threshold, size_t& count);
+    size_t process(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<Ocl::HoughData>& houghData, size_t threshold, size_t& count);
 
 private:
     void init(int warp_size);
     void createIntBuffer(size_t buffSize);
+    void workGroupMultipleAdjust(const cl::CommandQueue& queue);
 
 private:
-    cl::Context& mContext;
-    cl::CommandQueue& mQueue;
-
+    int mWgrpSize;
     const int mScanBlkSize;
     const int mReduceBlkSize;
+
+    const cl::Context& mContext;
 
     cl::Program mProgram;
 

@@ -14,9 +14,9 @@ OglView::OglView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queu
      mImg1(w, h, GL_R32F, GL_FLOAT, 0, true),
      mImg2(w, h, GL_R32F, GL_FLOAT, 0, true),
      mBgrImg(w, h, GL_RGBA32F, GL_UNSIGNED_BYTE),
-     mOptFlow(mCtxtCL, mQueueCL, PYRAMID_LEVELS),
+     mOptFlow(mCtxtCL, PYRAMID_LEVELS),
      mFlowData(mCtxtCL, CL_MEM_READ_WRITE, (w*h)/4),
-     mFlowPainter(mCtxtCL, mQueueCL, (w*h)/4)
+     mFlowPainter(mCtxtCL, (w*h)/4)
 {
     m_pPrevImg = &mImg1;
     m_pCurrImg = &mImg2;
@@ -40,10 +40,10 @@ void OglView::draw(uint8_t* pData)
     Ogl::ImageFormat::convert(*m_pCurrImg, mBgrImg);
     
     size_t outCount = 0;
-    mOptFlow.process(mFlowData, outCount, *m_pCurrImg, *m_pPrevImg, mRvalue, mMinFlowSize);
+    mOptFlow.process(mQueueCL, mFlowData, outCount, *m_pCurrImg, *m_pPrevImg, mRvalue, mMinFlowSize);
 
     mBgrPainter.draw(mBgrImg);
-    mFlowPainter.draw(mFlowData, outCount, mBgrImg.width(), mBgrImg.height());
+    mFlowPainter.draw(mQueueCL, mFlowData, outCount, mBgrImg.width(), mBgrImg.height());
 
     swap();
 }

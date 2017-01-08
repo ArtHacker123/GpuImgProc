@@ -3,8 +3,8 @@
 
 using namespace Ocl;
 
-CannyEdge::CannyEdge(cl::Context& ctxt, cl::CommandQueue& queue)
-    :mPrv(new CannyEdgePrv(ctxt, queue))
+CannyEdge::CannyEdge(const cl::Context& ctxt)
+    :mPrv(new CannyEdgePrv(ctxt))
 {
 }
 
@@ -12,12 +12,12 @@ CannyEdge::~CannyEdge()
 {
 }
 
-size_t CannyEdge::process(const cl::Image2D& inImage, cl::Image2D& outImage, float minThresh, float maxThresh)
+size_t CannyEdge::process(const cl::CommandQueue& queue, const cl::Image2D& inImage, cl::Image2D& outImage, float minThresh, float maxThresh)
 {
-    return mPrv->process(inImage, outImage, minThresh, maxThresh);
+    return mPrv->process(queue, inImage, outImage, minThresh, maxThresh);
 }
 
-size_t CannyEdge::process(const cl::ImageGL& inImage, cl::ImageGL& outImage, float minThresh, float maxThresh)
+size_t CannyEdge::process(const cl::CommandQueue& queue, const cl::ImageGL& inImage, cl::ImageGL& outImage, float minThresh, float maxThresh)
 {
-    return mPrv->process(inImage, outImage, minThresh, maxThresh);
+    return mPrv->process(queue, inImage, outImage, minThresh, maxThresh);
 }

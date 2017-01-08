@@ -3,8 +3,8 @@
 
 using namespace Ogl;
 
-HoughLinePainter::HoughLinePainter(cl::Context& ctxt, cl::CommandQueue& queue, size_t maxSize)
-    :mPrv(new Ogl::HoughLinePainterPrv(ctxt, queue, maxSize))
+HoughLinePainter::HoughLinePainter(const cl::Context& ctxt, size_t maxSize)
+    :mPrv(new Ogl::HoughLinePainterPrv(ctxt, maxSize))
 {
 }
 
@@ -12,7 +12,7 @@ HoughLinePainter::~HoughLinePainter()
 {
 }
 
-void HoughLinePainter::draw(Ocl::DataBuffer<Ocl::HoughData>& fd, size_t count, size_t width, size_t height)
+void HoughLinePainter::draw(const cl::CommandQueue& queue, Ocl::DataBuffer<Ocl::HoughData>& hData, size_t count, size_t width, size_t height)
 {
-    mPrv->draw(fd, count, width, height);
+    mPrv->draw(queue, hData, count, width, height);
 }
