@@ -51,6 +51,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpticalFlow", "..\Examples\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Template", "..\Examples\Yuv\Template\vs2013\Template.vcxproj", "{C15D2D44-7924-4B37-BB26-7B5658B70A79}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HoughLineTransform", "..\Examples\Camera\HoughLineTransform\vs2013\HoughLineTransform.vcxproj", "{5E3C27EF-C4EB-4462-BC51-24196E26E410}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HoughLineTransform", "..\Examples\Yuv\HoughLineTransform\vs2013\HoughLineTransform.vcxproj", "{02EE2996-923A-482F-BC65-D99977A3A838}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -137,6 +141,14 @@ Global
 		{C15D2D44-7924-4B37-BB26-7B5658B70A79}.Debug|x64.Build.0 = Debug|x64
 		{C15D2D44-7924-4B37-BB26-7B5658B70A79}.Release|x64.ActiveCfg = Release|x64
 		{C15D2D44-7924-4B37-BB26-7B5658B70A79}.Release|x64.Build.0 = Release|x64
+		{5E3C27EF-C4EB-4462-BC51-24196E26E410}.Debug|x64.ActiveCfg = Debug|x64
+		{5E3C27EF-C4EB-4462-BC51-24196E26E410}.Debug|x64.Build.0 = Debug|x64
+		{5E3C27EF-C4EB-4462-BC51-24196E26E410}.Release|x64.ActiveCfg = Release|x64
+		{5E3C27EF-C4EB-4462-BC51-24196E26E410}.Release|x64.Build.0 = Release|x64
+		{02EE2996-923A-482F-BC65-D99977A3A838}.Debug|x64.ActiveCfg = Debug|x64
+		{02EE2996-923A-482F-BC65-D99977A3A838}.Debug|x64.Build.0 = Debug|x64
+		{02EE2996-923A-482F-BC65-D99977A3A838}.Release|x64.ActiveCfg = Release|x64
+		{02EE2996-923A-482F-BC65-D99977A3A838}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -158,5 +170,7 @@ Global
 		{1A341E27-4214-4FED-9E6A-EDC0BB969734} = {0708BA84-D648-4ACF-A9C2-E1E9D2E983B6}
 		{3213A205-05A4-431B-AEC8-E7DB60519A44} = {0708BA84-D648-4ACF-A9C2-E1E9D2E983B6}
 		{C15D2D44-7924-4B37-BB26-7B5658B70A79} = {0708BA84-D648-4ACF-A9C2-E1E9D2E983B6}
+		{5E3C27EF-C4EB-4462-BC51-24196E26E410} = {0FA4CD54-330F-4723-BD18-7C688388EED0}
+		{02EE2996-923A-482F-BC65-D99977A3A838} = {0708BA84-D648-4ACF-A9C2-E1E9D2E983B6}
 	EndGlobalSection
 EndGlobal
