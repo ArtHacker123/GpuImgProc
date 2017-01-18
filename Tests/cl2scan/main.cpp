@@ -52,20 +52,20 @@ kernel void scan(global int* pdata, global int* tempData, size_t count)
 
 int main(int argc, char** argv)
 {
-	try
-	{
-		std::vector<cl::Platform> platforms;
-		cl::Platform::get(&platforms);
-		if (platforms.size() == 0)
-		{
-			std::cout << "Platform size 0\n";
-			return -1;
-		}
+    try
+    {
+        std::vector<cl::Platform> platforms;
+        cl::Platform::get(&platforms);
+        if (platforms.size() == 0)
+        {
+            std::cout << "Platform size 0\n";
+            return -1;
+        }
 
-		cl_context_properties properties[] = { CL_CONTEXT_PLATFORM, (cl_context_properties)(platforms[0])(), 0 };
-		cl::Context context(CL_DEVICE_TYPE_GPU, properties); 
-		 
-		std::vector<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
+        cl_context_properties properties[] = { CL_CONTEXT_PLATFORM, (cl_context_properties)(platforms[0])(), 0 };
+        cl::Context context(CL_DEVICE_TYPE_GPU, properties); 
+         
+        std::vector<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
 
         cl::CommandQueue queue(context, devices[0], CL_QUEUE_PROFILING_ENABLE);
 
@@ -73,10 +73,10 @@ int main(int argc, char** argv)
         cl_queue_properties qprop[] = { CL_QUEUE_PROPERTIES, (cl_command_queue_properties)(CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE|CL_QUEUE_ON_DEVICE|CL_QUEUE_ON_DEVICE_DEFAULT|CL_QUEUE_PROFILING_ENABLE), 0 };
         cl_command_queue dev_q = clCreateCommandQueueWithProperties(context(), devices[0](), qprop, &err);
 
-		std::string name, version;
-		devices[0].getInfo<std::string>(CL_DEVICE_NAME, &name);
+        std::string name, version;
+        devices[0].getInfo<std::string>(CL_DEVICE_NAME, &name);
         devices[0].getInfo<std::string>(CL_DEVICE_OPENCL_C_VERSION, &version);
-		std::cout << name << ", " << version << std::endl;
+        std::cout << name << ", " << version << std::endl;
         if (0 != version.find("OpenCL C 2.0"))
         {
             printf("\nOpenCL 2.0 required. Exiting...");
@@ -120,12 +120,12 @@ int main(int argc, char** argv)
             }
         }
         queue.enqueueUnmapMemObject(buffer, pData);
-	}
+    }
 
-	catch (cl::Error error)
-	{
-		std::cerr << "Error: " << error.what() << "(" << error.err() << ")" << std::endl;
-	}
+    catch (cl::Error error)
+    {
+        std::cerr << "Error: " << error.what() << "(" << error.err() << ")" << std::endl;
+    }
 
-	return 0;
+    return 0;
 }
