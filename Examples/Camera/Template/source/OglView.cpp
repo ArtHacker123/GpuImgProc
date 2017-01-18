@@ -18,7 +18,7 @@ kernel void test_kernel(read_only image2d_t inpImg, write_only image2d_t outImg)
 OglView::OglView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queue)
     :mCtxtCL(ctxt),
      mQueueCL(queue),
-     mBgrImg(w, h, GL_RGB, GL_UNSIGNED_BYTE),
+     mBgrImg(w, h, GL_RGBA32F, GL_UNSIGNED_BYTE),
      mGrayImg(w, h, GL_R32F, GL_FLOAT)
 {
     cl::Program::Sources source(1, std::make_pair(sSource, strlen(sSource)));
