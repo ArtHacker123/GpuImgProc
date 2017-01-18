@@ -20,7 +20,6 @@ private:
     void init();
     void checkLocalGroupSizes();
     void createIntImages(const cl::Image& inpImg);
-    void loadGaussCoeffs(const cl::CommandQueue& queue);
     size_t gauss(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg);
     size_t gradient(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg);
     size_t suppress(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg);
@@ -29,7 +28,6 @@ private:
 private:
     size_t mWidth;
     size_t mHeight;
-    bool mIsLoaded;
     size_t mLocSizeX;
     size_t mLocSizeY;
     const cl::Context& mContext;
@@ -40,8 +38,6 @@ private:
     cl::Kernel mGaussKernel;
     cl::Kernel mNmesKernel;
     cl::Kernel mBinThreshKernel;
-
-    Ocl::DataBuffer<float> mCoeffBuff;
 
     std::unique_ptr<cl::Image2D> mGradImg;
     std::unique_ptr<cl::Image2D> mGaussImg;
