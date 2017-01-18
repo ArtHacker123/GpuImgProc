@@ -54,3 +54,13 @@ void HistogramPainterPrv::draw(const cl::CommandQueue& queue, const Ocl::DataBuf
     compute(queue, hData, maxValue);
     mPainter.draw(GL_LINE_STRIP, 0, (GLsizei)hData.count(), mBuffer);
 }
+
+void HistogramPainterPrv::draw(const Ogl::IGeometry::Rect& vp, const cl::CommandQueue& queue, const Ocl::DataBuffer<int>& hData, int maxValue)
+{
+    compute(queue, hData, maxValue);
+    GLint params[4];
+    glGetIntegerv(GL_VIEWPORT, params);
+    glViewport(vp.x, vp.y, vp.width, vp.height);
+    mPainter.draw(GL_LINE_STRIP, 0, (GLsizei)hData.count(), mBuffer);
+    glViewport(params[0], params[1], params[3], params[4]);
+}

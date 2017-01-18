@@ -18,9 +18,10 @@ public:
     size_t compute(const cl::CommandQueue& queue, const cl::Image2D& image, Ocl::DataBuffer<int>& rgbBins);
 
 private:
+    void init();
     void createTempHistBuffer(size_t size);
-    size_t computeTempHist(const cl::CommandQueue& queue, const cl::Image& image, size_t& count);
-    size_t accumTempHist(const cl::CommandQueue& queue, size_t count, Ocl::DataBuffer<int>& rgbBins);
+    void computeTempHist(const cl::CommandQueue& queue, const cl::Image& image, size_t& count, cl::Event& event);
+    void accumTempHist(const cl::CommandQueue& queue, size_t count, Ocl::DataBuffer<int>& rgbBins, cl::Event& waitEvent, cl::Event& event);
 
 private:
     const cl::Context& mContext;

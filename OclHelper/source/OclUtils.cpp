@@ -15,7 +15,7 @@ size_t Ocl::localGroupSize(size_t size)
     return 0;
 }
 
-size_t Ocl::kernelExecTime(const cl::CommandQueue& queue, cl::Event& event)
+size_t Ocl::kernelExecTime(const cl::CommandQueue& queue, const cl::Event& event)
 {
     cl_command_queue_properties qProp;
     queue.getInfo<cl_command_queue_properties>(CL_QUEUE_PROPERTIES, &qProp);
@@ -24,6 +24,16 @@ size_t Ocl::kernelExecTime(const cl::CommandQueue& queue, cl::Event& event)
         return (event.getProfilingInfo<CL_PROFILING_COMMAND_END>() - event.getProfilingInfo<CL_PROFILING_COMMAND_START>());
     }
     return 0;
+}
+
+size_t Ocl::kernelExecTime(const cl::CommandQueue& queue, const cl::Event* event, size_t count)
+{
+    size_t time = 0;
+    for (size_t i = 0; i < count; i++)
+    {
+        time += Ocl::kernelExecTime(queue, event[i]);
+    }
+    return time;
 }
 
 size_t Ocl::getWorkGroupSizeMultiple(const cl::CommandQueue& queue, const cl::Kernel& kernel)

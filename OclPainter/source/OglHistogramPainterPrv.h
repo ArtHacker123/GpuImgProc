@@ -5,6 +5,7 @@
 #include "OglBuffer.h"
 #include "OglPainter.h"
 #include "OglColorShader.h"
+#include "IOglGeometry.h"
 
 #include <CL/cl.hpp>
 #include "OclDataBuffer.h"
@@ -20,6 +21,7 @@ public:
 
     void setColor(GLfloat r, GLfloat g, GLfloat b);
     void draw(const cl::CommandQueue& queue, const Ocl::DataBuffer<int>& hData, int maxValue);
+    void draw(const Ogl::IGeometry::Rect& vp, const cl::CommandQueue& queue, const Ocl::DataBuffer<int>& histData, int maxValue);
 
 private:
     void compute(const cl::CommandQueue& queue, const Ocl::DataBuffer<int>& rgbBins, int maxValue);

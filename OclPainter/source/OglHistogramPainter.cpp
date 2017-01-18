@@ -23,4 +23,9 @@ void HistogramPainter::draw(const cl::CommandQueue& queue, const Ocl::DataBuffer
     mPrv->draw(queue, histData, maxValue);
 }
 
+void HistogramPainter::draw(const Ogl::IGeometry::Rect& vp, const cl::CommandQueue& queue, const Ocl::DataBuffer<int>& histData, int maxValue)
+{
+    mPrv->draw(vp, queue, histData, maxValue);
+}
+
 }

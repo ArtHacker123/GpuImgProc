@@ -26,7 +26,7 @@ void OglView::draw(uint8_t* pData)
 
     cl::ImageGL inpImgGL(mCtxtCL, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mGrayImg.texture());
     cl::ImageGL outImgGL(mCtxtCL, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D, 0, mEdgeImg.texture());
-    mCanny.process(mQueueCL, inpImgGL, outImgGL, mMinThresh, mMaxThresh);
+    size_t time = mCanny.process(mQueueCL, inpImgGL, outImgGL, mMinThresh, mMaxThresh);
 
     mGrayPainter.draw(mEdgeImg);
     //Ogl::IGeometry::Rect vp = { mBgrImg.width()/2, 0, mBgrImg.width()/2, mBgrImg.height()/2 };

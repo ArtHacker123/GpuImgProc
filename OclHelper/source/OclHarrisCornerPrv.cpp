@@ -44,6 +44,10 @@ void HarrisCornerPrv::init()
 {
     cl::Program::Sources source(1, std::make_pair(sSource, strlen(sSource)));
     mPgm = cl::Program(mContext, source);
+    
+    std::vector<cl::Device> devices = mContext.getInfo<CL_CONTEXT_DEVICES>();
+    std::string version;
+    devices[0].getInfo<std::string>(CL_DEVICE_OPENCL_C_VERSION, &version);
 
     std::ostringstream options;
     options << " -DBLK_SIZE_X=" << mLocSizeX << " -DBLK_SIZE_Y=" << mLocSizeY;

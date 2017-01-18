@@ -1,9 +1,19 @@
 #include "OclHistogramPrv.h"
+#include "OclUtils.h"
 
 using namespace Ocl;
 
 HistogramPrv::HistogramPrv(const cl::Context& ctxt)
     :mContext(ctxt)
+{
+    init();
+}
+
+HistogramPrv::~HistogramPrv()
+{
+}
+
+void HistogramPrv::init()
 {
     try
     {
@@ -22,19 +32,6 @@ HistogramPrv::HistogramPrv(const cl::Context& ctxt)
         fprintf(stderr, "%s", error.what());
         exit(0);
     }
-
-    /*cl_device_id devId = 0;
-    queue.getInfo<cl_device_id>(CL_QUEUE_DEVICE, &devId);
-
-    size_t gSize = 0;
-    cl::Device device(devId);
-    std::string name;
-    device.getInfo<std::string>(CL_DEVICE_NAME, &name);
-    mAccHist.getWorkGroupInfo<size_t>(device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, &gSize);*/
-}
-
-HistogramPrv::~HistogramPrv()
-{
 }
 
 void HistogramPrv::createTempHistBuffer(size_t size)
@@ -46,18 +43,18 @@ void HistogramPrv::createTempHistBuffer(size_t size)
     }
 }
 
-size_t HistogramPrv::computeTempHist(const cl::CommandQueue& queue, const cl::Image& image, size_t& count)
+void HistogramPrv::computeTempHist(const cl::CommandQueue& queue, const cl::Image& image, size_t& count, cl::Event& event)
 {
     size_t width, height;
     image.getImageInfo<size_t>(CL_IMAGE_WIDTH, &width);
     image.getImageInfo<size_t>(CL_IMAGE_HEIGHT, &height);
 
-    size_t wSizeX = (width / 128);
+    size_t wSizeX = (width/128);
     if ((width%128)) ++wSizeX;
-    size_t wSizeY = (height / 8);
+    size_t wSizeY = (height/8);
 
     count = (wSizeX*wSizeY);
-    size_t sizeTempHist = 3 * 256 * count;
+    size_t sizeTempHist = 3*256*count;
     createTempHistBuffer(sizeTempHist);
 
     size_t time = 0;
@@ -66,7 +63,6 @@ size_t HistogramPrv::computeTempHist(const cl::CommandQueue& queue, const cl::Im
 
     if (format.image_channel_order == CL_RGBA)
     {
-        cl::Event event;
         switch (format.image_channel_data_type)
         {
             case CL_FLOAT:
@@ -74,52 +70,47 @@ size_t HistogramPrv::computeTempHist(const cl::CommandQueue& queue, const cl::Im
                 // set the kernel arguments
                 mTempHistFloat.setArg(0, image);
                 mTempHistFloat.setArg(1, *mTempBuff);
-                queue.enqueueNDRangeKernel(mTempHistFloat, cl::NullRange, cl::NDRange(32 * wSizeX, height), cl::NDRange(32, 8), NULL, &event);
-                event.wait();
-                time = (event.getProfilingInfo<CL_PROFILING_COMMAND_END>() - event.getProfilingInfo<CL_PROFILING_COMMAND_START>());
+                queue.enqueueNDRangeKernel(mTempHistFloat, cl::NullRange, cl::NDRange(32*wSizeX, height), cl::NDRange(32, 8), NULL, &event);
                 break;
 
             case CL_UNSIGNED_INT8:
                 // set the kernel arguments
                 mTempHistUint8.setArg(0, image);
                 mTempHistUint8.setArg(1, *mTempBuff);
-                queue.enqueueNDRangeKernel(mTempHistUint8, cl::NullRange, cl::NDRange(32 * wSizeX, height), cl::NDRange(32, 8), NULL, &event);
-                event.wait();
-                time = (event.getProfilingInfo<CL_PROFILING_COMMAND_END>() - event.getProfilingInfo<CL_PROFILING_COMMAND_START>());
+                queue.enqueueNDRangeKernel(mTempHistUint8, cl::NullRange, cl::NDRange(32*wSizeX, height), cl::NDRange(32, 8), NULL, &event);
                 break;
         }
     }
-    return time;
 }
 
-size_t HistogramPrv::accumTempHist(const cl::CommandQueue& queue, size_t count, Ocl::DataBuffer<int>& rgbBins)
+void HistogramPrv::accumTempHist(const cl::CommandQueue& queue, size_t count, Ocl::DataBuffer<int>& rgbBins, cl::Event& waitEvent, cl::Event& event)
 {
     mAccHist.setArg(0, mTempBuff->buffer());
     mAccHist.setArg(1, rgbBins.buffer());
     mAccHist.setArg(2, (int)count);
-
-    cl::Event event;
-    queue.enqueueNDRangeKernel(mAccHist, cl::NullRange, cl::NDRange(3*256*64), cl::NDRange(64), NULL, &event);
-    event.wait();
-    size_t time = (event.getProfilingInfo<CL_PROFILING_COMMAND_END>()-event.getProfilingInfo<CL_PROFILING_COMMAND_START>());
-    return time;
+    std::vector<cl::Event> wList = { waitEvent };
+    queue.enqueueNDRangeKernel(mAccHist, cl::NullRange, cl::NDRange(3*256*64), cl::NDRange(64), &wList, &event);
 }
 
 size_t HistogramPrv::compute(const cl::CommandQueue& queue, const cl::ImageGL& image, Ocl::DataBuffer<int>& rgbBins)
 {
     size_t count = 0;
+    cl::Event event[2];
     std::vector<cl::Memory> gl_objs = { image };
     queue.enqueueAcquireGLObjects(&gl_objs);
-    size_t time = computeTempHist(queue, image, count);
+    computeTempHist(queue, image, count, event[0]);
+    accumTempHist(queue, count, rgbBins, event[0], event[1]);
     queue.enqueueReleaseGLObjects(&gl_objs);
-    time += accumTempHist(queue, count, rgbBins);
-    return time;
+    event[1].wait();
+    return kernelExecTime(queue, event, 2);
 }
 
 size_t HistogramPrv::compute(const cl::CommandQueue& queue, const cl::Image2D& image, Ocl::DataBuffer<int>& rgbBins)
 {
     size_t count = 0;
-    size_t time = computeTempHist(queue, image, count);
-    time += accumTempHist(queue, count, rgbBins);
-    return time;
+    cl::Event event[2];
+    computeTempHist(queue, image, count, event[0]);
+    accumTempHist(queue, count, rgbBins, event[0], event[1]);
+    event[1].wait();
+    return kernelExecTime(queue, event, 2);
 }

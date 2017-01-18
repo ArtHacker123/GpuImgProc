@@ -20,10 +20,10 @@ private:
     void init();
     void checkLocalGroupSizes();
     void createIntImages(const cl::Image& inpImg);
-    size_t gauss(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg);
-    size_t gradient(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg);
-    size_t suppress(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg);
-    size_t binaryThreshold(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, float minThresh, float maxThresh);
+    void gauss(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, cl::Event& event);
+    void gradient(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, cl::Event& waitEvent, cl::Event& event);
+    void suppress(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, cl::Event& waitEvent, cl::Event& event);
+    void binaryThreshold(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, float minThresh, float maxThresh, cl::Event& waitEvent, cl::Event& event);
 
 private:
     size_t mWidth;

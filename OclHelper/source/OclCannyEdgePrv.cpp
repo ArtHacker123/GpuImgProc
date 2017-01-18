@@ -61,34 +61,27 @@ void CannyEdgePrv::createIntImages(const cl::Image& inpImg)
     //checkLocalGroupSizes();
 }
 
-size_t CannyEdgePrv::gradient(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg)
+void CannyEdgePrv::gradient(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, cl::Event& waitEvent, cl::Event& event)
 {
-    cl::Event event;
     mGradKernel.setArg(0, inpImg);
     mGradKernel.setArg(1, outImg);
-    queue.enqueueNDRangeKernel(mGradKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
-    event.wait();
-    return kernelExecTime(queue, event);
+    std::vector<cl::Event> wait = { waitEvent };
+    queue.enqueueNDRangeKernel(mGradKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), &wait, &event);
 }
 
-size_t CannyEdgePrv::gauss(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg)
+void CannyEdgePrv::gauss(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, cl::Event& event)
 {
-    cl::Event event;
     mGaussKernel.setArg(0, inpImg);
     mGaussKernel.setArg(1, outImg);
     queue.enqueueNDRangeKernel(mGaussKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
-    event.wait();
-    return kernelExecTime(queue, event);
 }
 
-size_t CannyEdgePrv::suppress(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg)
+void CannyEdgePrv::suppress(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, cl::Event& waitEvent, cl::Event& event)
 {
-    cl::Event event;
     mNmesKernel.setArg(0, inpImg);
     mNmesKernel.setArg(1, outImg);
-    queue.enqueueNDRangeKernel(mNmesKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
-    event.wait();
-    return kernelExecTime(queue, event);
+    std::vector<cl::Event> wait = { waitEvent };
+    queue.enqueueNDRangeKernel(mNmesKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), &wait, &event);
 }
 
 void CannyEdgePrv::checkLocalGroupSizes()
@@ -97,37 +90,39 @@ void CannyEdgePrv::checkLocalGroupSizes()
     mLocSizeY = Ocl::localGroupSize(mHeight);
 }
 
-size_t CannyEdgePrv::binaryThreshold(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, float minThresh, float maxThresh)
+void CannyEdgePrv::binaryThreshold(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, float minThresh, float maxThresh, cl::Event& waitEvent, cl::Event& event)
 {
-    cl::Event event;
     mBinThreshKernel.setArg(0, inpImg);
     mBinThreshKernel.setArg(1, outImg);
     mBinThreshKernel.setArg(2, minThresh);
     mBinThreshKernel.setArg(3, maxThresh);
-    queue.enqueueNDRangeKernel(mBinThreshKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
-    event.wait();
-    return kernelExecTime(queue, event);
+    std::vector<cl::Event> wait = { waitEvent };
+    queue.enqueueNDRangeKernel(mBinThreshKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), &wait, &event);
 }
 
 size_t CannyEdgePrv::process(const cl::CommandQueue& queue, const cl::Image2D& inpImg, cl::Image2D& outImg, float minThresh, float maxThresh)
 {
     createIntImages(inpImg);
-    size_t time = gauss(queue, inpImg, *mGaussImg);
-    time += gradient(queue, *mGaussImg, *mGradImg);
-    time += suppress(queue, *mGradImg, *mNmesImg);
-    time += binaryThreshold(queue, *mNmesImg, outImg, minThresh, maxThresh);
-    return time;
+    cl::Event event[4];
+    gauss(queue, inpImg, *mGaussImg, event[0]);
+    gradient(queue, *mGaussImg, *mGradImg, event[0], event[1]);
+    suppress(queue, *mGradImg, *mNmesImg, event[1], event[2]);
+    binaryThreshold(queue, *mNmesImg, outImg, minThresh, maxThresh, event[2], event[3]);
+    event[3].wait();
+    return kernelExecTime(queue, event, 4);
 }
 
 size_t CannyEdgePrv::process(const cl::CommandQueue& queue, const cl::ImageGL& inpImg, cl::ImageGL& outImg, float minThresh, float maxThresh)
 {
+    cl::Event event[4];
     createIntImages(inpImg);
     std::vector<cl::Memory> gl_objs = { inpImg, outImg };
     queue.enqueueAcquireGLObjects(&gl_objs);
-    size_t time = gauss(queue, inpImg, *mGaussImg);
-    time += gradient(queue, *mGaussImg, *mGradImg);
-    time += suppress(queue, *mGradImg, *mNmesImg);
-    time += binaryThreshold(queue, *mNmesImg, outImg, minThresh, maxThresh);
+    gauss(queue, inpImg, *mGaussImg, event[0]);
+    gradient(queue, *mGaussImg, *mGradImg, event[0], event[1]);
+    suppress(queue, *mGradImg, *mNmesImg, event[1], event[2]);
+    binaryThreshold(queue, *mNmesImg, outImg, minThresh, maxThresh, event[2], event[3]);
+    event[3].wait();
     queue.enqueueReleaseGLObjects(&gl_objs);
-    return time;
+    return kernelExecTime(queue, event, 4);
 }
