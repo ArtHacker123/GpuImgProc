@@ -52,14 +52,7 @@ kernel void eigen(read_only image2d_t inpImg, write_only image2d_t mImg, global 
 {
     local float sh_coeffs[25];
     local float2 sh_img_data[BLK_SIZE_Y+4][BLK_SIZE_X+4];
-    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_LINEAR;
-
-    int index = (get_local_size(0)*get_local_id(1)) + get_local_id(0);
-    if (index < 25)
-    {
-        sh_coeffs[index] = p_coeffs[index];
-    }
-    barrier(CLK_LOCAL_MEM_FENCE);
+    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE|CLK_ADDRESS_CLAMP|CLK_FILTER_LINEAR;
 
     const int x = (get_group_id(0)*get_local_size(0))-2;
     const int y = (get_group_id(1)*get_local_size(1))-2;
@@ -83,22 +76,23 @@ kernel void eigen(read_only image2d_t inpImg, write_only image2d_t mImg, global 
     }
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    index = 0;
+    int index = 0;
     float ix2 = 0.0f;
     float iy2 = 0.0f;
     float ixiy = 0.0f;
-    for (int i = -2; i <= 2; i++)
+    for (int i = 0; i <= 4; i++)
     {
-        const int q = get_local_id(1) + i + 2;
-        for (int j = -2; j <= 2; j++)
+        const int q = get_local_id(1)+i;
+        for (int j = 0; j <= 4; j++)
         {
-            const int p = get_local_id(0) + j + 2;
-            ix2 += (sh_coeffs[index] * sh_img_data[q][p].x*sh_img_data[q][p].x);
-            iy2 += (sh_coeffs[index] * sh_img_data[q][p].y*sh_img_data[q][p].y);
-            ixiy += (sh_coeffs[index] * sh_img_data[q][p].x*sh_img_data[q][p].y);
+            const int p = get_local_id(0)+j;
+            ix2 += (p_coeffs[index]*sh_img_data[q][p].x*sh_img_data[q][p].x);
+            iy2 += (p_coeffs[index]*sh_img_data[q][p].y*sh_img_data[q][p].y);
+            ixiy += (p_coeffs[index]*sh_img_data[q][p].x*sh_img_data[q][p].y);
             ++index;
         }
     }
+
     float detA = (ix2*iy2) - (ixiy*ixiy);
     float traceA = (ix2 + iy2);
     float mValue = detA - (0.04*traceA*traceA);

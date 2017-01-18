@@ -18,9 +18,9 @@ HarrisCornerPrv::HarrisCornerPrv(const cl::Context& ctxt)
      mHeight(0),
      mIsLoaded(false),
      mLocSizeX(16),
-     mLocSizeY(16),
+     mLocSizeY(8),
      mContext(ctxt),
-     mCoeffBuff(mContext, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, 25),
+     mCoeffBuff(mContext, CL_MEM_READ_ONLY|CL_MEM_ALLOC_HOST_PTR, 25),
      mCompact(ctxt)
 {
     try
@@ -95,7 +95,7 @@ void HarrisCornerPrv::createIntImages(const cl::Image& inpImg)
         mEigenImg.reset(new cl::Image2D(mContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), mWidth, mHeight));
         mCornerImg.reset(new cl::Image2D(mContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), mWidth, mHeight));
     }
-    checkLocalGroupSizes();
+    //checkLocalGroupSizes();
 }
 
 size_t HarrisCornerPrv::gradient(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg)
