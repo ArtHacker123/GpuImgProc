@@ -63,6 +63,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cl2scan", "..\Tests\cl2scan
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cl2compact", "..\Tests\cl2compact\vs2015\cl2compact.vcxproj", "{D66B39DE-E294-4C7A-9118-38AA0C0E0F11}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenCL20corner", "..\Examples\Camera\OpenCL20corner\vs2015\OpenCL20corner.vcxproj", "{AECB3270-0EED-403D-87A0-2E26ACCAB906}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -173,6 +175,10 @@ Global
 		{D66B39DE-E294-4C7A-9118-38AA0C0E0F11}.Debug|x64.Build.0 = Debug|x64
 		{D66B39DE-E294-4C7A-9118-38AA0C0E0F11}.Release|x64.ActiveCfg = Release|x64
 		{D66B39DE-E294-4C7A-9118-38AA0C0E0F11}.Release|x64.Build.0 = Release|x64
+		{AECB3270-0EED-403D-87A0-2E26ACCAB906}.Debug|x64.ActiveCfg = Debug|x64
+		{AECB3270-0EED-403D-87A0-2E26ACCAB906}.Debug|x64.Build.0 = Debug|x64
+		{AECB3270-0EED-403D-87A0-2E26ACCAB906}.Release|x64.ActiveCfg = Release|x64
+		{AECB3270-0EED-403D-87A0-2E26ACCAB906}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -200,5 +206,6 @@ Global
 		{5F361CEB-8A68-4190-8CCE-DDE9900CC59C} = {113AD60D-22FD-412C-867C-6D92CAE27701}
 		{572E92AB-2CE2-4E77-95AC-083EF0146171} = {113AD60D-22FD-412C-867C-6D92CAE27701}
 		{D66B39DE-E294-4C7A-9118-38AA0C0E0F11} = {113AD60D-22FD-412C-867C-6D92CAE27701}
+		{AECB3270-0EED-403D-87A0-2E26ACCAB906} = {0FA4CD54-330F-4723-BD18-7C688388EED0}
 	EndGlobalSection
 EndGlobal
