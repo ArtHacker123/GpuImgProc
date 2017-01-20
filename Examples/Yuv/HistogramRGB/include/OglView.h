@@ -22,15 +22,15 @@ private:
     cl::CommandQueue& mQueueCL;
 
     Ocl::Histogram mHistogram;
-    Ocl::DataBuffer<int> mRgbBins;
+    Ocl::DataBuffer<cl_int> mRgbBins;
     Ogl::HistogramPainter mHistPainter;
 
     Ogl::Yuv420Image mYuvImg;
     Ogl::Image<GL_RGBA> mRgbaImg;
 
-    Ocl::DataBuffer<int> mRedBuff;
-    Ocl::DataBuffer<int> mGreenBuff;
-    Ocl::DataBuffer<int> mBlueBuff;
+    Ocl::DataBuffer<cl_int> mRedBuff;
+    Ocl::DataBuffer<cl_int> mGreenBuff;
+    Ocl::DataBuffer<cl_int> mBlueBuff;
 
     Ogl::ImagePainter< Ogl::RgbaShader, Ogl::Image<GL_RGBA> > mRgbaPainter;
 };

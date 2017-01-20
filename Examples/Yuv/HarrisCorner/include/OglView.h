@@ -25,7 +25,7 @@ private:
 
     Ogl::Yuv420Image mYuvImg;
 
-    Ocl::DataBuffer<Ocl::Pos> mCorners;
+    Ocl::DataBuffer<cl_int2> mCorners;
 
     Ocl::HarrisCorner mHarrisCorner;
     Ogl::PointPainter mCornerPainter;

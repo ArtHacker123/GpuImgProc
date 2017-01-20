@@ -35,7 +35,7 @@ private:
 
     std::unique_ptr<cl::Image2D> mHoughImg;
     std::unique_ptr<cl::Image2D> mHoughNmsImg;
-    std::unique_ptr< Ocl::DataBuffer<Ocl::Pos> > mEdgeData;
+    std::unique_ptr< Ocl::DataBuffer<cl_int2> > mEdgeData;
 
     static const char sSource[];
 };

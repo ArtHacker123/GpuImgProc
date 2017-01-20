@@ -52,7 +52,7 @@ void HoughLinesPrv::createTempBuffers(const cl::Image& inpImage)
     size_t count = (mEdgeData.get() == 0)?0:mEdgeData->count();
     if (count < maxEdges)
     {
-        mEdgeData.reset(new Ocl::DataBuffer<Ocl::Pos>(mContext, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, maxEdges));
+        mEdgeData.reset(new Ocl::DataBuffer<cl_int2>(mContext, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, maxEdges));
     }
 
     size_t imgRho = 0;

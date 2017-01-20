@@ -8,20 +8,20 @@
 
 const char sSource[] = OCL_PROGRAM_SOURCE(
 
-kernel void child_scan(global int* pdata, size_t count)
+kernel void child_scan(global int* pdata, int count)
 {
     int i = get_global_id(0);
     int data = work_group_scan_inclusive_add((i < count)?pdata[i]:0);
     if (i < count) pdata[i] = data;
 }
 
-kernel void gather_scan(global read_only int* pdata, global int* tempData, size_t offset, size_t count)
+kernel void gather_scan(global const int* pdata, global int* tempData, int offset, int count)
 {
     int i = offset+(get_local_size(0)*get_local_id(0))-1;
     tempData[get_local_id(0)] = work_group_scan_inclusive_add((i<count)?pdata[i]:0);
 }
 
-kernel void add_data(global int* pdata, global read_only int* tempData, size_t offset, size_t count)
+kernel void add_data(global int* pdata, global const int* tempData, int offset, int count)
 {
     local int shData;
     if (get_local_id(0) == 0)
@@ -33,14 +33,14 @@ kernel void add_data(global int* pdata, global read_only int* tempData, size_t o
     if (i < count) pdata[i] += shData;
 }
 
-kernel void scan(global int* pdata, global int* tempData, size_t count)
+kernel void scan(global int* pdata, global int* tempData, int count)
 {
     clk_event_t event1;
     clk_event_t event2;
     const int BLK_SIZE = 256;
     const int BLK_SIZE2 = (BLK_SIZE*BLK_SIZE);
     enqueue_kernel(get_default_queue(), CLK_ENQUEUE_FLAGS_NO_WAIT, ndrange_1D(count, BLK_SIZE), 0, 0, &event1, ^{child_scan(pdata, count);});
-    for (size_t i = BLK_SIZE; i < count; i += BLK_SIZE2)
+    for (int i = BLK_SIZE; i < count; i += BLK_SIZE2)
     {
         enqueue_kernel(get_default_queue(), CLK_ENQUEUE_FLAGS_NO_WAIT, ndrange_1D(BLK_SIZE, BLK_SIZE), 1, &event1, &event2, ^{ gather_scan(pdata, tempData, i, count); });
         enqueue_kernel(get_default_queue(), CLK_ENQUEUE_FLAGS_NO_WAIT, ndrange_1D(BLK_SIZE2, BLK_SIZE), 1, &event2, &event1, ^{ add_data(pdata, tempData, i, count); });
@@ -90,36 +90,28 @@ int main(int argc, char** argv)
         cl::Program program(context, source);
         program.build(options.str().c_str());
 
-        size_t count = 640*480;
-        cl::Buffer buffer(context, CL_MEM_READ_WRITE, sizeof(cl_int)*count);
-        cl::Buffer tempBuffer(context, CL_MEM_READ_WRITE, sizeof(cl_int)*256);
-        cl_int* pData = (int *)queue.enqueueMapBuffer(buffer, CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_int)*count);
-        for (size_t i = 0; i < count; i++)
+        int count = 640*480;
+        cl_int* pIntData = (cl_int *)clSVMAlloc(context(), CL_MEM_READ_WRITE, 256*sizeof(cl_int), sizeof(cl_long));
+        cl_int* pInpData = (cl_int *)clSVMAlloc(context(), CL_MEM_READ_WRITE, count*sizeof(cl_int), sizeof(cl_long));
+        for (int i = 0; i < count; i++)
         {
-            pData[i] = 1;
+            pInpData[i] = 1;
         }
-        queue.enqueueUnmapMemObject(buffer, pData);
 
         cl::Kernel kernel(program, "scan");
-        kernel.setArg(0, buffer);
-        kernel.setArg(1, tempBuffer);
-        kernel.setArg(2, (size_t)count);
+        clSetKernelArgSVMPointer(kernel(), 0, pInpData);
+        clSetKernelArgSVMPointer(kernel(), 1, pIntData);
+        kernel.setArg(2, count);
         cl::Event event;
         queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(1), cl::NullRange, NULL, &event);
         event.wait();
         size_t time = (event.getProfilingInfo<CL_PROFILING_COMMAND_END>()-event.getProfilingInfo<CL_PROFILING_COMMAND_START>());
         printf("\nTime: %d ns", time);
 
-        pData = (cl_int *)queue.enqueueMapBuffer(buffer, CL_TRUE, CL_MAP_READ, 0, sizeof(cl_int)*count);
-        for (size_t i = 0; i < count; i++)
-        {
-            if (pData[i] != (i+1))
-            {
-                printf("\nFailed: %d %d", i + 1, pData[i]);
-                break;
-            }
-        }
-        queue.enqueueUnmapMemObject(buffer, pData);
+        clSVMFree(context(), pIntData);
+        pIntData = 0;
+        clSVMFree(context(), pInpData);
+        pInpData = 0;
     }
 
     catch (cl::Error error)

@@ -27,11 +27,11 @@ private:
     Ogl::Image<GL_BGR> mBgrImg;
     Ogl::ImagePainter< Ogl::RgbaShader, Ogl::Image<GL_BGR> > mPainter;
 
-    Ocl::DataBuffer<int> mRgbBins;
+    Ocl::DataBuffer<cl_int> mRgbBins;
     Ocl::Histogram mHistogram;
     Ogl::HistogramPainter mHistPainter;
 
-    Ocl::DataBuffer<int> mRedBuff;
-    Ocl::DataBuffer<int> mGreenBuff;
-    Ocl::DataBuffer<int> mBlueBuff;
+    Ocl::DataBuffer<cl_int> mRedBuff;
+    Ocl::DataBuffer<cl_int> mGreenBuff;
+    Ocl::DataBuffer<cl_int> mBlueBuff;
 };

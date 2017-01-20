@@ -73,7 +73,7 @@ void test_image_compact(cl::Context& context, cl::CommandQueue& queue)
     }
     queue.enqueueUnmapMemObject(image, pData);
 
-    Ocl::DataBuffer<Ocl::Pos> outBuff(context, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, 1000);
+    Ocl::DataBuffer<cl_int2> outBuff(context, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, 1000);
 
     size_t outCount = 0;
     Ocl::Compact compact(context);
@@ -83,7 +83,7 @@ void test_image_compact(cl::Context& context, cl::CommandQueue& queue)
         size_t time = compact.process(queue, image, outBuff, 1.0f, outCount);
         if (outCount > 0)
         {
-            Ocl::Pos* pData = outBuff.map(queue, CL_TRUE, CL_MAP_READ, 0, 100);
+            cl_int2* pData = outBuff.map(queue, CL_TRUE, CL_MAP_READ, 0, 100);
             for (int i = 0; i < outCount; i++)
             {
                 printf("\n%d - (%d, %d)", i, pData[i].x, pData[i].y);

@@ -20,11 +20,11 @@ public:
     ~HistogramPainterPrv();
 
     void setColor(GLfloat r, GLfloat g, GLfloat b);
-    void draw(const cl::CommandQueue& queue, const Ocl::DataBuffer<int>& hData, int maxValue);
-    void draw(const Ogl::IGeometry::Rect& vp, const cl::CommandQueue& queue, const Ocl::DataBuffer<int>& histData, int maxValue);
+    void draw(const cl::CommandQueue& queue, const Ocl::DataBuffer<cl_int>& hData, int maxValue);
+    void draw(const Ogl::IGeometry::Rect& vp, const cl::CommandQueue& queue, const Ocl::DataBuffer<cl_int>& histData, int maxValue);
 
 private:
-    void compute(const cl::CommandQueue& queue, const Ocl::DataBuffer<int>& rgbBins, int maxValue);
+    void compute(const cl::CommandQueue& queue, const Ocl::DataBuffer<cl_int>& rgbBins, int maxValue);
 
 private:
     const cl::Context& mContext;
@@ -36,7 +36,7 @@ private:
     cl::Kernel mKernel;
     cl::Program mProgram;
 
-    static const char source[];
+    static const char sSource[];
 };
 
 };

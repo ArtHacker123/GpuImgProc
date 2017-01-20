@@ -25,8 +25,8 @@ int main(int argc, char** argv)
 		std::cout << name << std::endl;
 
         size_t dataSize = 640*480;
-		Ocl::DataBuffer<int> buff(context, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, dataSize);
-		int* pData = buff.map(queue, CL_TRUE, CL_MAP_WRITE, 0, dataSize);
+		Ocl::DataBuffer<cl_int> buff(context, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, dataSize);
+		cl_int* pData = buff.map(queue, CL_TRUE, CL_MAP_WRITE, 0, dataSize);
 		for (size_t i = 0; i < dataSize; i++)
 		{
 			pData[i] = 1;

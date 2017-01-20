@@ -48,55 +48,78 @@ kernel void gradient(read_only image2d_t inpImg, write_only image2d_t outImg)
     write_imagef(outImg, (int2)(get_global_id(0), get_global_id(1)), (float4)(ix, iy, 0.0f, 0.0f));
 }
 
-kernel void eigen(read_only image2d_t inpImg, write_only image2d_t mImg, global const float* p_coeffs)
+float gauss_smooth(local float sh_data1[BLK_SIZE_Y+4][BLK_SIZE_X+4], local float sh_data2[BLK_SIZE_Y+4][BLK_SIZE_X+4])
 {
-    local float sh_coeffs[25];
-    local float2 sh_img_data[BLK_SIZE_Y+4][BLK_SIZE_X+4];
-    const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE|CLK_ADDRESS_CLAMP|CLK_FILTER_LINEAR;
+    const int m = get_local_id(0);
+    const int n = get_local_id(1);
+    float idata = ((2.0f/159.0f)*sh_data1[n][m]*sh_data2[n][m]);
+    idata += ((4.0f/159.0f)*sh_data1[n][m+1]*sh_data2[n][m+1]);
+    idata += ((5.0f/159.0f)*sh_data1[n][m+2]*sh_data2[n][m+2]);
+    idata += ((4.0f/159.0f)*sh_data1[n][m+3]*sh_data2[n][m+3]);
+    idata += ((2.0f/159.0f)*sh_data1[n][m+4]*sh_data2[n][m+4]);
+    idata += ((4.0f/159.0f)*sh_data1[n+1][m]*sh_data2[n+1][m]);
+    idata += ((9.0f/159.0f)*sh_data1[n+1][m+1]*sh_data2[n+1][m+1]);
+    idata += ((12.0f/159.0f)*sh_data1[n+1][m+2]*sh_data2[n+1][m+2]);
+    idata += ((9.0f/159.0f)*sh_data1[n+1][m+3]*sh_data2[n+1][m+3]);
+    idata += ((4.0f/159.0f)*sh_data1[n+1][m+4]*sh_data2[n+1][m+4]);
+    idata += ((5.0f/159.0f)*sh_data1[n+2][m]*sh_data2[n+2][m]);
+    idata += ((12.0f/159.0f)*sh_data1[n+2][m+1]*sh_data2[n+2][m+1]);
+    idata += ((15.0f/159.0f)*sh_data1[n+2][m+2]*sh_data2[n+2][m+2]);
+    idata += ((12.0f/159.0f)*sh_data1[n+2][m+3]*sh_data2[n+2][m+3]);
+    idata += ((5.0f/159.0f)*sh_data1[n+2][m+4]*sh_data2[n+2][m+4]);
+    idata += ((4.0f/159.0f)*sh_data1[n+3][m]*sh_data2[n+3][m]);
+    idata += ((9.0f/159.0f)*sh_data1[n+3][m+1]*sh_data2[n+3][m+1]);
+    idata += ((12.0f/159.0f)*sh_data1[n+3][m+2]*sh_data2[n+3][m+2]);
+    idata += ((9.0f/159.0f)*sh_data1[n+3][m+3]*sh_data2[n+3][m+3]);
+    idata += ((4.0f/159.0f)*sh_data1[n+3][m+4]*sh_data2[n+3][m+4]);
+    idata += ((2.0f/159.0f)*sh_data1[n+4][m]*sh_data2[n+4][m]);
+    idata += ((4.0f/159.0f)*sh_data1[n+4][m+1]*sh_data2[n+4][m+1]);
+    idata += ((5.0f/159.0f)*sh_data1[n+4][m+2]*sh_data2[n+4][m+2]);
+    idata += ((4.0f/159.0f)*sh_data1[n+4][m+3]*sh_data2[n+4][m+3]);
+    idata += ((2.0f/159.0f)*sh_data1[n+4][m+4]*sh_data2[n+4][m+4]);
+    return idata;
+}
 
-    const int x = (get_group_id(0)*get_local_size(0))-2;
-    const int y = (get_group_id(1)*get_local_size(1))-2;
-
-    for (int j = 0; j < 2; j++)
+kernel void eigen(read_only image2d_t inpImg, write_only image2d_t outImg)
+{
+    local float sh_img_data_x[BLK_SIZE_Y+4][BLK_SIZE_X+4];
+    local float sh_img_data_y[BLK_SIZE_Y+4][BLK_SIZE_X+4];
+    
     {
-        int n = get_local_id(1) + (j*get_local_size(1));
-        if (n < (BLK_SIZE_Y+4))
+        const int x = (get_group_id(0)*get_local_size(0)) - 2;
+        const int y = (get_group_id(1)*get_local_size(1)) - 2;
+        const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE|CLK_ADDRESS_CLAMP|CLK_FILTER_LINEAR;
+
+        for (int j = 0; j < 2; j++)
         {
-            for (int i = 0; i < 2; i++)
+            int n = get_local_id(1) + (j*get_local_size(1));
+            if (n < (BLK_SIZE_Y + 4))
             {
-                int m = get_local_id(0) + (i*get_local_size(0));
-                if (m < (BLK_SIZE_X+4))
+                for (int i = 0; i < 2; i++)
                 {
-                    int2 coord = (int2)(x + m, y + n);
-                    sh_img_data[n][m] = read_imagef(inpImg, sampler, coord).xy;
-                    coord.x += get_local_size(0);
+                    int m = get_local_id(0) + (i*get_local_size(0));
+                    if (m < (BLK_SIZE_X + 4))
+                    {
+                        int2 coord = (int2)(x + m, y + n);
+                        float2 idata = read_imagef(inpImg, sampler, coord).xy;
+                        sh_img_data_x[n][m] = idata.x;
+                        sh_img_data_y[n][m] = idata.y;
+                        coord.x += get_local_size(0);
+                    }
                 }
             }
         }
     }
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    int index = 0;
-    float ix2 = 0.0f;
-    float iy2 = 0.0f;
-    float ixiy = 0.0f;
-    for (int i = 0; i <= 4; i++)
-    {
-        const int q = get_local_id(1)+i;
-        for (int j = 0; j <= 4; j++)
-        {
-            const int p = get_local_id(0)+j;
-            ix2 += (p_coeffs[index]*sh_img_data[q][p].x*sh_img_data[q][p].x);
-            iy2 += (p_coeffs[index]*sh_img_data[q][p].y*sh_img_data[q][p].y);
-            ixiy += (p_coeffs[index]*sh_img_data[q][p].x*sh_img_data[q][p].y);
-            ++index;
-        }
-    }
+    float ix2 = gauss_smooth(sh_img_data_x, sh_img_data_x);
+    float iy2 = gauss_smooth(sh_img_data_y, sh_img_data_y);
+    float ixiy = gauss_smooth(sh_img_data_x, sh_img_data_y);
 
     float detA = (ix2*iy2) - (ixiy*ixiy);
     float traceA = (ix2 + iy2);
     float mValue = detA - (0.04*traceA*traceA);
-    write_imagef(mImg, (int2)(get_global_id(0), get_global_id(1)), mValue);
+    write_imagef(outImg, (int2)(get_global_id(0), get_global_id(1)), mValue);
 }
 
 kernel void suppress_non_max(read_only image2d_t inpImg, write_only image2d_t outImg, float limit)

@@ -12,12 +12,12 @@ Compact::~Compact()
 {
 }
 
-size_t Compact::process(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<Ocl::Pos>& coords, float threshold, size_t& count)
+size_t Compact::process(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<cl_int2>& coords, float threshold, size_t& count)
 {
     return mPrv->process(queue, inpImage, coords, threshold, count);
 }
 
-size_t Compact::process_cartesian(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<Ocl::Pos>& coords, float threshold, size_t& count)
+size_t Compact::process_cartesian(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<cl_int2>& coords, float threshold, size_t& count)
 {
     return mPrv->process_cartesian(queue, inpImage, coords, threshold, count);
 }

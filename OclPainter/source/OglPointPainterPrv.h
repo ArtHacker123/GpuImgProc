@@ -17,7 +17,7 @@ public:
     ~PointPainterPrv();
 
 public:
-    void draw(const cl::CommandQueue& queue, Ocl::DataBuffer<Ocl::Pos>& points, size_t count, size_t width, size_t height);
+    void draw(const cl::CommandQueue& queue, Ocl::DataBuffer<cl_int2>& points, size_t count, size_t width, size_t height);
 
 private:
 	size_t mMaxPoints;

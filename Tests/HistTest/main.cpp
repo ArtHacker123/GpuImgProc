@@ -2,7 +2,6 @@
 
 #include "OclHistogram.h"
 
-void test_histogram(cl::Context& context, cl::CommandQueue& queue);
 void test_histogram_rgb(cl::Context& context, cl::CommandQueue& queue);
 
 int main()
@@ -27,7 +26,6 @@ int main()
 		devices[0].getInfo<std::string>(CL_DEVICE_NAME, &name);
 		std::cout << name << std::endl;
 
-		//test_histogram(context, queue);
 		test_histogram_rgb(context, queue);
 	}
 
@@ -44,7 +42,7 @@ void test_histogram_rgb(cl::Context& context, cl::CommandQueue& queue)
 	size_t width = 352;
 	size_t height = 288;
 	cl::Image2D img(context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_RGBA, CL_UNSIGNED_INT8), width, height);
-	Ocl::DataBuffer<int> hist_data(context, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, 3*256);
+	Ocl::DataBuffer<cl_int> hist_data(context, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, 3*256);
 
 	size_t row_pitch = 0;
 	size_t slice_pitch = 0;
@@ -80,7 +78,7 @@ void test_histogram_rgb(cl::Context& context, cl::CommandQueue& queue)
 	size_t start = 0;
 	int sum;
 	bool flag = true;
-    int* img_data = hist_data.map(queue, CL_TRUE, CL_MAP_READ, 0, 256*3);
+    cl_int* img_data = hist_data.map(queue, CL_TRUE, CL_MAP_READ, 0, 256*3);
 	for (size_t j = 0; j < 3; j++)
 	{
 		sum = 0;

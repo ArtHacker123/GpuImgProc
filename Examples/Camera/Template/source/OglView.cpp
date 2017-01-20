@@ -9,8 +9,8 @@ kernel void test_kernel(read_only image2d_t inpImg, write_only image2d_t outImg)
 {
     int2 coord = (int2)(get_global_id(0), get_global_id(1));
     float3 idata = read_imagef(inpImg, coord).xyz;
-    float gray = (idata.x+idata.y+idata.z)/3.0f;
-    write_imagef(outImg, coord, gray);
+    float4 odata = (float4)(1.0f-idata.x, 1.0f-idata.y, 1.0f-idata.z, 1.0f);
+    write_imagef(outImg, coord, odata);
 }
 
 );
@@ -19,7 +19,7 @@ OglView::OglView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queu
     :mCtxtCL(ctxt),
      mQueueCL(queue),
      mBgrImg(w, h, GL_RGBA32F, GL_UNSIGNED_BYTE),
-     mGrayImg(w, h, GL_R32F, GL_FLOAT)
+     mInvImg(w, h, GL_RGBA32F, GL_FLOAT)
 {
     cl::Program::Sources source(1, std::make_pair(sSource, strlen(sSource)));
     mProgram = cl::Program(mCtxtCL, source);
@@ -36,7 +36,7 @@ void OglView::draw(uint8_t* pData)
     mBgrImg.load(pData);
 
     cl::ImageGL inpImgGL(mCtxtCL, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mBgrImg.texture());
-    cl::ImageGL outImgGL(mCtxtCL, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D, 0, mGrayImg.texture());
+    cl::ImageGL outImgGL(mCtxtCL, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D, 0, mInvImg.texture());
 
     std::vector<cl::Memory> gl_objs = { inpImgGL, outImgGL };
 
@@ -50,7 +50,7 @@ void OglView::draw(uint8_t* pData)
 
     mRgbaPainter.draw(mBgrImg);
     Ogl::IGeometry::Rect vp = { mBgrImg.width()/2, 0, mBgrImg.width()/2, mBgrImg.height()/2 };
-    mGrayPainter.draw(vp, mGrayImg);
+    mRgbaPainter.draw(vp, mInvImg);
 }
 
 void OglView::resize(GLsizei w, GLsizei h)

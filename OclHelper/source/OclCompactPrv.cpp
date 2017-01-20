@@ -76,7 +76,7 @@ void CompactPrv::workGroupMultipleAdjust(const cl::CommandQueue& queue)
     }
 }
 
-size_t CompactPrv::process(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<Ocl::Pos>& out, float value, size_t& outCount)
+size_t CompactPrv::process(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<cl_int2>& out, float value, size_t& outCount)
 {
     size_t width, height;
     size_t maxOutSize = out.count();
@@ -112,7 +112,7 @@ size_t CompactPrv::process(const cl::CommandQueue& queue, const cl::Image& inpIm
     return time;
 }
 
-size_t CompactPrv::process_cartesian(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<Ocl::Pos>& coords, float threshold, size_t& count)
+size_t CompactPrv::process_cartesian(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<cl_int2>& coords, float threshold, size_t& count)
 {
     size_t width, height;
     size_t maxOutSize = coords.count();

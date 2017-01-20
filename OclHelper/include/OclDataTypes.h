@@ -1,25 +1,21 @@
 #pragma once
 
+#include <CL/cl.hpp>
+
 namespace Ocl
 {
 
-struct Pos
-{
-    int x;
-    int y;
-};
-
 struct HoughData
 {
-    int rho;
-    int angle;
-    int strength;
+    cl_int rho;
+    cl_int angle;
+    cl_int strength;
 };
 
 struct OptFlowData
 {
-    int x;
-    int y;
+    cl_int x;
+    cl_int y;
     float u;
     float v;
 };
