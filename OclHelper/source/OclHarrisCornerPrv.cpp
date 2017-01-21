@@ -47,18 +47,6 @@ void HarrisCornerPrv::init()
     mCornerKernel = cl::Kernel(mPgm, "nms");
 }
 
-void HarrisCornerPrv::checkLocalGroupSizes()
-{
-    size_t xSize = Ocl::localGroupSize(mWidth);
-    size_t ySize = Ocl::localGroupSize(mHeight);
-    if (xSize != mLocSizeX || ySize != mLocSizeY)
-    {
-        mLocSizeX = xSize;
-        mLocSizeY = ySize;
-        init();
-    }
-}
-
 void HarrisCornerPrv::createIntImages(const cl::Image& inpImg)
 {
     size_t w = 0, h = 0;
@@ -77,7 +65,6 @@ void HarrisCornerPrv::createIntImages(const cl::Image& inpImg)
         mEigenImg.reset(new cl::Image2D(mContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), mWidth, mHeight));
         mCornerImg.reset(new cl::Image2D(mContext, CL_MEM_READ_WRITE, cl::ImageFormat(CL_R, CL_FLOAT), mWidth, mHeight));
     }
-    //checkLocalGroupSizes();
 }
 
 size_t HarrisCornerPrv::gradient(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg)

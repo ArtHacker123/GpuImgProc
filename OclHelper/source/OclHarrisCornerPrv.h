@@ -18,7 +18,6 @@ public:
 
 private:
     void init();
-    void checkLocalGroupSizes();
     void createIntImages(const cl::Image& inpImg);
     size_t eigen(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg);
     size_t gradient(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg);
