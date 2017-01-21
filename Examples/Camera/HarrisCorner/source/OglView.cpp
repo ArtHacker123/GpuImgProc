@@ -26,7 +26,7 @@ void OglView::draw(uint8_t* pData)
 
     size_t count = 0;
     cl::ImageGL imgGL(mCtxtCL, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mGrayImg.texture());
-    mHarrisCorner.process(mQueueCL, imgGL, mCorners, mRvalue, count);
+    size_t time = mHarrisCorner.process(mQueueCL, imgGL, mCorners, mRvalue, count);
 
     mBgrPainter.draw(mBgrImg);
     mCornerPainter.draw(mQueueCL, mCorners, count, mBgrImg.width(), mBgrImg.height());

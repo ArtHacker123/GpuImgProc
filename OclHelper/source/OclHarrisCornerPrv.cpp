@@ -44,7 +44,7 @@ void HarrisCornerPrv::init()
 
     mGradKernel = cl::Kernel(mPgm, "gradient");
     mEigenKernel = cl::Kernel(mPgm, "eigen");
-    mCornerKernel = cl::Kernel(mPgm, "suppress_non_max");
+    mCornerKernel = cl::Kernel(mPgm, "nms");
 }
 
 void HarrisCornerPrv::checkLocalGroupSizes()

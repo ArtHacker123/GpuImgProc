@@ -30,44 +30,25 @@ kernel void extractCoords(global int2 *p_pos_corner, int count, global float2* c
 
 kernel void gradient(read_only image2d_t inpImg, write_only image2d_t outImg)
 {
+    const int x = get_global_id(0);
+    const int y = get_global_id(1);
     const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE|CLK_ADDRESS_CLAMP|CLK_FILTER_LINEAR;
-    local float sh_img_data[BLK_SIZE_Y+2][BLK_SIZE_X+2];
 
-    const int x = (get_group_id(0)*get_local_size(0))-1;
-    const int y = (get_group_id(1)*get_local_size(1))-1;
+    float ix = -read_imagef(inpImg, sampler, (int2)(x, y)).x;
+    float iy = read_imagef(inpImg, sampler, (int2)(x, y)).x;
+    iy += (2.0f*read_imagef(inpImg, sampler, (int2)(x+1, y)).x);
+    ix += read_imagef(inpImg, sampler, (int2)(x+2, y)).x;
+    iy += read_imagef(inpImg, sampler, (int2)(x+2, y)).x;
 
-    for (int j = 0; j < 2; j++)
-    {
-        int n = get_local_id(1)+(j*get_local_size(1));
-        if (n < (BLK_SIZE_Y+2))
-        {
-            for (int i = 0; i < 2; i++)
-            {
-                int m = get_local_id(0)+(i*get_local_size(0));
-                if (m < (BLK_SIZE_X+2))
-                {
-                    int2 coord = (int2)(x+m, y+n);
-                    sh_img_data[n][m] = read_imagef(inpImg, sampler, coord).x;
-                    coord.x += get_local_size(0);
-                }
-            }
-        }
-    }
-    barrier(CLK_LOCAL_MEM_FENCE);
+    ix -= (2.0f*read_imagef(inpImg, sampler, (int2)(x, y+1)).x);
+    ix += (2.0f*read_imagef(inpImg, sampler, (int2)(x+2, y+1)).x);
 
-    const int p = get_local_id(0)+1;
-    const int q = get_local_id(1)+1;
-    float ix = sh_img_data[q-1][p+1];
-    ix += sh_img_data[q+1][p+1];
-    ix -= sh_img_data[q-1][p-1];
-    ix -= sh_img_data[q+1][p-1];
-    ix += 2.0f*(sh_img_data[q][p+1]-sh_img_data[q][p-1]);
-    float iy = sh_img_data[q-1][p-1];
-    iy -= sh_img_data[q+1][p-1];
-    iy += sh_img_data[q-1][p+1];
-    iy -= sh_img_data[q+1][p+1];
-    iy += 2.0f*(sh_img_data[q-1][p]-sh_img_data[q+1][p]);
-    write_imagef(outImg, (int2)(get_global_id(0), get_global_id(1)), (float4)(ix, iy, 0.0f, 0.0f));
+    ix -= read_imagef(inpImg, sampler, (int2)(x, y+2)).x;
+    iy -= read_imagef(inpImg, sampler, (int2)(x, y+2)).x;
+    iy -= (2.0f*read_imagef(inpImg, sampler, (int2)(x+1, y+2)).x);
+    ix += read_imagef(inpImg, sampler, (int2)(x+2, y+2)).x;
+    iy -= read_imagef(inpImg, sampler, (int2)(x+2, y+2)).x;
+    write_imagef(outImg, (int2)(x, y), (float4)(ix, iy, 0.0f, 0.0f));
 }
 
 float gauss_smooth(local float sh_data1[BLK_SIZE_Y+4][BLK_SIZE_X+4], local float sh_data2[BLK_SIZE_Y+4][BLK_SIZE_X+4])
@@ -146,47 +127,65 @@ kernel void eigen(read_only image2d_t inpImg, write_only image2d_t outImg)
 
 kernel void nms(read_only image2d_t inpImg, write_only image2d_t outImg, float limit)
 {
-    local float shImgData[BLK_SIZE_Y+2][BLK_SIZE_X+2];
+    const int x = get_global_id(0);
+    const int y = get_global_id(1);
     const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE|CLK_ADDRESS_CLAMP|CLK_FILTER_LINEAR;
 
-    const int x = (get_group_id(0)*get_local_size(0))-1;
-    const int y = (get_group_id(1)*get_local_size(1))-1;
-
-    for (int j = 0; j < 2; j++)
+    float data = read_imagef(inpImg, sampler, (int2)(x, y)).x;
+    if (read_imagef(inpImg, sampler, (int2)(x - 1, y)).x >= data)
     {
-        int n = get_local_id(1)+(j*get_local_size(1));
-        if (n < (BLK_SIZE_Y+2))
-        {
-            for (int i = 0; i < 2; i++)
-            {
-                int m = get_local_id(0)+(i*get_local_size(0));
-                if (m < (BLK_SIZE_X+2))
-                {
-                    int2 coord = (int2)(x+m, y+n);
-                    shImgData[n][m] = read_imagef(inpImg, sampler, coord).x;
-                    coord.x += get_local_size(0);
-                }
-            }
-        }
+        data = 0.0f;
+        goto exit;
     }
-    barrier(CLK_LOCAL_MEM_FENCE);
 
-    const int p = get_local_id(0)+1;
-    const int q = get_local_id(1)+1;
-    float data = shImgData[q][p];
-    if (shImgData[q][p-1] >= data) data = 0.0f;
-    if (shImgData[q][p+1] >= data) data = 0.0f;
-    if (shImgData[q-1][p-1] >= data) data = 0.0f;
-    if (shImgData[q-1][p] >= data) data = 0.0f;
-    if (shImgData[q-1][p+1] >= data) data = 0.0f;
-    if (shImgData[q+1][p-1] >= data) data = 0.0f;
-    if (shImgData[q+1][p] >= data) data = 0.0f;
-    if (shImgData[q+1][p+1] >= data) data = 0.0f;
+    if (read_imagef(inpImg, sampler, (int2)(x-1, y-1)).x >= data)
+    {
+        data = 0.0f;
+        goto exit;
+    }
+
+    if (read_imagef(inpImg, sampler, (int2)(x-1, y+1)).x >= data)
+    {
+        data = 0.0f;
+        goto exit;
+    }
+
+    if (read_imagef(inpImg, sampler, (int2)(x, y-1)).x >= data)
+    {
+        data = 0.0f;
+        goto exit;
+    }
+
+    if (read_imagef(inpImg, sampler, (int2)(x, y+1)).x >= data)
+    {
+        data = 0.0f;
+        goto exit;
+    }
+
+    if (read_imagef(inpImg, sampler, (int2)(x+1, y-1)).x >= data)
+    {
+        data = 0.0f;
+        goto exit;
+    }
+
+    if (read_imagef(inpImg, sampler, (int2)(x+1, y)).x >= data)
+    {
+        data = 0.0f;
+        goto exit;
+    }
+
+    if (read_imagef(inpImg, sampler, (int2)(x+1, y+1)).x >= data)
+    {
+        data = 0.0f;
+        goto exit;
+    }
+
     if (data >= limit)
     {
         data = 1.0f;
     }
-    write_imagef(outImg, (int2)(get_global_id(0), get_global_id(1)), data);
+exit:
+    write_imagef(outImg, (int2)(x, y), data);
 }
 
 kernel void childScan(global int* pdata, int count)

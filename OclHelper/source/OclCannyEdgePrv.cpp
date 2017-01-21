@@ -35,7 +35,7 @@ void CannyEdgePrv::init()
 
     mGradKernel = cl::Kernel(mPgm, "gradient");
     mGaussKernel = cl::Kernel(mPgm, "gauss");
-    mNmesKernel = cl::Kernel(mPgm, "non_max_edge_suppress");
+    mNmesKernel = cl::Kernel(mPgm, "nmes");
     mBinThreshKernel = cl::Kernel(mPgm, "binary_threshold");
 }
 
