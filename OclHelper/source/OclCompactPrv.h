@@ -1,7 +1,7 @@
 #pragma once
 
 #include "OclDataTypes.h"
-#include "OclScan.h"
+#include "OclDataBuffer.h"
 
 #include <memory>
 
@@ -22,7 +22,9 @@ public:
 
 private:
     void init(size_t warpSize);
+    void adjustEventSize(size_t count);
     void createIntBuffer(size_t buffSize);
+    void doScan(const cl::CommandQueue& queue);
     void workGroupMultipleAdjust(const cl::CommandQueue& queue);
 
 private:
@@ -30,9 +32,16 @@ private:
     const size_t mScanBlkSize;
     const size_t mReduceBlkSize;
 
+    size_t mEvtCount;
+    size_t mWlistCount;
+
     const cl::Context& mContext;
 
     cl::Program mProgram;
+
+    cl::Kernel mAdd;
+    cl::Kernel mScan;
+    cl::Kernel mGather;
 
     cl::Kernel mReduceFloatX;
     cl::Kernel mCompactFloatX;
@@ -45,9 +54,11 @@ private:
     cl::Kernel mCompactHoughData;
 
     Ocl::DataBuffer<int> mOutSize;
+    Ocl::DataBuffer<int> mBuffTemp;
     std::unique_ptr< Ocl::DataBuffer<int> > mBuffReduce;
 
-    Ocl::Scan mScan;
+    std::vector<cl::Event> mEvents;
+    std::vector< std::vector<cl::Event> > mWaitList;
 
     static const char sSource[];
 };

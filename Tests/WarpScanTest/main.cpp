@@ -35,18 +35,21 @@ int main(int argc, char** argv)
 
 		Ocl::Scan scan(context);
 		size_t time = scan.process(queue, buff);
-		printf("\nTime: %d ns", time);
+		std::cout << "Time: " << time << " ns" << std::endl;
 		
+        bool flag = true;
 		pData = buff.map(queue, CL_TRUE, CL_MAP_READ, 0, dataSize);;
-		for (size_t i = 0; i < dataSize; i++)
+		for (size_t i = 0; (i < dataSize) && flag; i++)
 		{
 			if (pData[i] != (int)(i + 1))
 			{
 				std::cerr << "Failed " << i << ", " << pData[i];
-				break;
+                flag = false;
 			}
 		}
 		buff.unmap(queue, pData);
+
+        std::cout << "Prefix Sum " << (flag ? "Success" : "Failed") << std::endl;
 	}
 
 	catch (cl::Error error)

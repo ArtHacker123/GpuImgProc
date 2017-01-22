@@ -10,7 +10,7 @@ ScanPrv::ScanPrv(const cl::Context& ctxt)
      mDepth(8),
      mBlkSize(1<<8),
      mContext(ctxt),
-     mIntBuff(mContext, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, (size_t)(mBlkSize*sizeof(int)))
+     mBuffTemp(mContext, CL_MEM_READ_WRITE, mBlkSize)
 {
     try
     {
@@ -37,14 +37,14 @@ void ScanPrv::init(size_t warpSize)
     mProgram = cl::Program(mContext, source);
     mProgram.build(options.str().c_str());
 
-    mScanKernel = cl::Kernel(mProgram, "prefix_sum");
-    mAddResKernel = cl::Kernel(mProgram, "add_data");
-    mGatherScanKernel = cl::Kernel(mProgram, "gather_scan");
+    mAdd = cl::Kernel(mProgram, "add");
+    mScan = cl::Kernel(mProgram, "scan");
+    mGather = cl::Kernel(mProgram, "gather");
 }
 
 void ScanPrv::workGroupMultipleAdjust(const cl::CommandQueue& queue)
 {
-    size_t wgmSize = Ocl::getWorkGroupSizeMultiple(queue, mScanKernel);
+    size_t wgmSize = Ocl::getWorkGroupSizeMultiple(queue, mScan);
     //Intel HD4xxx series GPU's warp_size is not 32
     if (wgmSize != mWgrpSize)
     {
@@ -54,41 +54,56 @@ void ScanPrv::workGroupMultipleAdjust(const cl::CommandQueue& queue)
     }
 }
 
+void ScanPrv::adjustEventSize(size_t count)
+{
+    size_t evtSize = 2*(2+(count/(mBlkSize*mBlkSize)));
+    if (mEvents.size() < evtSize)
+    {
+        mEvents.resize(evtSize);
+        mWaitList.resize(evtSize);
+        for (size_t i = 0; i < evtSize; i++)
+        {
+            mWaitList[i].resize(1);
+        }
+    }
+}
+
 size_t ScanPrv::process(const cl::CommandQueue& queue, Ocl::DataBuffer<int>& buffer)
 {
-    cl::Event event;
+    int evtCount = 0;
+    int wListCount = 0;
     size_t buffSize = buffer.count();
 
+    adjustEventSize(buffSize);
     workGroupMultipleAdjust(queue);
-
-    mScanKernel.setArg(0, buffer.buffer());
-    mScanKernel.setArg(1, (int)buffSize);
 
     size_t gSize = (buffSize/mBlkSize);
     gSize += ((buffSize%mBlkSize) == 0) ? 0 : 1;
     gSize *= mBlkSize;
-    queue.enqueueNDRangeKernel(mScanKernel, cl::NullRange, cl::NDRange(gSize/2), cl::NDRange(mBlkSize/2), NULL, &event);
-    event.wait();
-    size_t time = kernelExecTime(queue, event);
+
+    mScan.setArg(0, buffer.buffer());
+    mScan.setArg(1, buffer.buffer());
+    mScan.setArg(2, (int)buffSize);
+    queue.enqueueNDRangeKernel(mScan, cl::NullRange, cl::NDRange(gSize), cl::NDRange(mBlkSize), NULL, &mEvents[evtCount]);
 
     for (size_t i = mBlkSize; i < buffSize; i += (mBlkSize*mBlkSize))
     {
-        mGatherScanKernel.setArg(0, buffer);
-        mGatherScanKernel.setArg(1, (int)i);
-        mGatherScanKernel.setArg(2, (int)buffSize);
-        mGatherScanKernel.setArg(3, mIntBuff);
-        queue.enqueueNDRangeKernel(mGatherScanKernel, cl::NullRange, cl::NDRange(mBlkSize/2), cl::NDRange(mBlkSize/2), NULL, &event);
-        event.wait();
-        time += kernelExecTime(queue, event);
+        mGather.setArg(0, buffer.buffer());
+        mGather.setArg(1, mBuffTemp.buffer());
+        mGather.setArg(2, (int)(i-1));
+        mGather.setArg(3, (int)buffSize);
+        mWaitList[wListCount][0] = mEvents[evtCount++];
+        queue.enqueueNDRangeKernel(mGather, cl::NullRange, cl::NDRange(mBlkSize), cl::NDRange(mBlkSize), &mWaitList[wListCount], &mEvents[evtCount]);
+        wListCount++;
 
-        mAddResKernel.setArg(0, buffer);
-        mAddResKernel.setArg(1, (int)i);
-        mAddResKernel.setArg(2, (int)buffSize);
-        mAddResKernel.setArg(3, mIntBuff);
-        queue.enqueueNDRangeKernel(mAddResKernel, cl::NullRange, cl::NDRange(mBlkSize*mBlkSize/4), cl::NDRange(mBlkSize/4), NULL, &event);
-        event.wait();
-        time += kernelExecTime(queue, event);
+        mAdd.setArg(0, mBuffTemp.buffer());
+        mAdd.setArg(1, buffer.buffer());
+        mAdd.setArg(2, (int)i);
+        mAdd.setArg(3, (int)buffSize);
+        mWaitList[wListCount][0] = mEvents[evtCount++];
+        queue.enqueueNDRangeKernel(mAdd, cl::NullRange, cl::NDRange(mBlkSize*mBlkSize), cl::NDRange(mBlkSize), &mWaitList[wListCount], &mEvents[evtCount]);
+        wListCount++;
     }
-    //printf("\nKernel Time: %llf us", ((double)time)/1000.0);
-    return time;
+    mEvents[evtCount].wait();
+    return Ocl::kernelExecTime(queue, &mEvents[0], evtCount+1);
 }
