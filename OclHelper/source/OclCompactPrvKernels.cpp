@@ -114,7 +114,7 @@ inline void bscan(int i, local volatile int* shData, local volatile int* shDataT
     wscan(i, shData);
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    if (i < 8) shDataT[i] = shData[(WARP_SIZE*i)+(WARP_SIZE-1)];
+    if (i < (SH_MEM_SIZE/WARP_SIZE)) shDataT[i] = shData[(WARP_SIZE*i)+(WARP_SIZE-1)];
     barrier(CLK_LOCAL_MEM_FENCE);
 
     if (i < WARP_SIZE) wscan(i, shDataT);
