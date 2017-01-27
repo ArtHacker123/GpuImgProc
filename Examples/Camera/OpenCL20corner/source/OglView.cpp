@@ -1,9 +1,10 @@
+#include <CL/cl2.hpp>
+
 #include "OglView.h"
 #include "OglImageFormat.h"
 #include "OclUtils.h"
 
 #include <sstream>
-#include <CL/cl2.hpp>
 
 #define MAX_CORNER_COUNT 1000
 
@@ -50,8 +51,7 @@ void OglView::init()
         std::ostringstream options;
         options << "-cl-std=CL2.0 -DBLK_SIZE_X=" << 32 << " -DBLK_SIZE_Y=" << 8;
 
-        cl::Program::Sources source(1, std::make_pair(sSource, strlen(sSource)));
-        mProgram = cl::Program(mCtxtCL, source);
+        mProgram = cl::Program(mCtxtCL, std::string(sSource));
         mProgram.build(options.str().c_str());
 
         mKernel = cl::Kernel(mProgram, "harrisCorner");
@@ -73,9 +73,9 @@ void OglView::detectCorners(const cl::ImageGL& inpImg)
     mKernel.setArg(0, inpImg);
     mKernel.setArg(1, mIntImg1);
     mKernel.setArg(2, mIntImg2);
-    clSetKernelArgSVMPointer(mKernel(), 3, m_pCornerData);
-    clSetKernelArgSVMPointer(mKernel(), 4, m_pIntBuffData);
-    clSetKernelArgSVMPointer(mKernel(), 5, m_pCornerParam);
+    mKernel.setArg(3, m_pCornerData);
+    mKernel.setArg(4, m_pIntBuffData);
+    mKernel.setArg(5, m_pCornerParam);
     mQueueCL.enqueueAcquireGLObjects(&gl_objs);
     mQueueCL.enqueueNDRangeKernel(mKernel, cl::NullRange, cl::NDRange(1), cl::NDRange(1), NULL, &event);
     event.wait();
