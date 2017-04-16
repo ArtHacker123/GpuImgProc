@@ -13,17 +13,19 @@ public:
     ~CannyEdgePrv();
 
 public:
-    size_t process(const cl::CommandQueue& queue, const cl::Image2D& img, cl::Image2D& outImage, float minThresh, float maxThresh);
-    size_t process(const cl::CommandQueue& queue, const cl::ImageGL& inImage, cl::ImageGL& outImage, float minThresh, float maxThresh);
+    void process(const cl::CommandQueue& queue, const cl::Image2D& img, cl::Image2D& outImage, float minThresh, float maxThresh,
+                 std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent);
+    void process(const cl::CommandQueue& queue, const cl::ImageGL& inImage, cl::ImageGL& outImage, float minThresh, float maxThresh,
+                 std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent);
 
 private:
     void init();
     void checkLocalGroupSizes();
     void createIntImages(const cl::Image& inpImg);
-    void gauss(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, cl::Event& event);
-    void gradient(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, cl::Event& waitEvent, cl::Event& event);
-    void suppress(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, cl::Event& waitEvent, cl::Event& event);
-    void binaryThreshold(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, float minThresh, float maxThresh, cl::Event& waitEvent, cl::Event& event);
+    void gradient(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, std::vector<cl::Event>& events);
+    void suppress(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, std::vector<cl::Event>& events);
+    void binaryThreshold(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, float minThresh, float maxThresh, std::vector<cl::Event>& events);
+    void gauss(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent);
 
 private:
     size_t mWidth;
@@ -42,6 +44,8 @@ private:
     std::unique_ptr<cl::Image2D> mGradImg;
     std::unique_ptr<cl::Image2D> mGaussImg;
     std::unique_ptr<cl::Image2D> mNmesImg;
+
+    std::vector<cl::Event> mWaitEvent[3];
 
     static const char sSource[];
 };

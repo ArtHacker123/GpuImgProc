@@ -12,12 +12,14 @@ CannyEdge::~CannyEdge()
 {
 }
 
-size_t CannyEdge::process(const cl::CommandQueue& queue, const cl::Image2D& inImage, cl::Image2D& outImage, float minThresh, float maxThresh)
+void CannyEdge::process(const cl::CommandQueue& queue, const cl::Image2D& inImage, cl::Image2D& outImage, float minThresh, float maxThresh,
+                        std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent)
 {
-    return mPrv->process(queue, inImage, outImage, minThresh, maxThresh);
+    mPrv->process(queue, inImage, outImage, minThresh, maxThresh, events, pWaitEvent);
 }
 
-size_t CannyEdge::process(const cl::CommandQueue& queue, const cl::ImageGL& inImage, cl::ImageGL& outImage, float minThresh, float maxThresh)
+void CannyEdge::process(const cl::CommandQueue& queue, const cl::ImageGL& inImage, cl::ImageGL& outImage, float minThresh, float maxThresh,
+                        std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent)
 {
-    return mPrv->process(queue, inImage, outImage, minThresh, maxThresh);
+    mPrv->process(queue, inImage, outImage, minThresh, maxThresh, events, pWaitEvent);
 }
