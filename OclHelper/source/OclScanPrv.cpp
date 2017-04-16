@@ -33,8 +33,7 @@ void ScanPrv::init(size_t warpSize)
     std::ostringstream options;
     options << "-DWARP_SIZE=" << warpSize << " -DSH_MEM_SIZE=" << (1 << mDepth);
 
-    cl::Program::Sources source(1, std::make_pair(sSource, strlen(sSource)));
-    mProgram = cl::Program(mContext, source);
+    mProgram = cl::Program(mContext, sSource);
     mProgram.build(options.str().c_str());
 
     mAdd = cl::Kernel(mProgram, "add");
@@ -54,12 +53,16 @@ void ScanPrv::workGroupMultipleAdjust(const cl::CommandQueue& queue)
     }
 }
 
-void ScanPrv::adjustEventSize(size_t count)
+void ScanPrv::adjustEventSize(size_t count, std::vector<cl::Event>& event)
 {
     size_t evtSize = 2*(2+(count/(mBlkSize*mBlkSize)));
-    if (mEvents.size() < evtSize)
+    if (event.capacity() < (event.size() + evtSize))
     {
-        mEvents.resize(evtSize);
+        event.reserve(1024);
+    }
+
+    if (mWaitList.size() < evtSize)
+    {
         mWaitList.resize(evtSize);
         for (size_t i = 0; i < evtSize; i++)
         {
@@ -68,13 +71,13 @@ void ScanPrv::adjustEventSize(size_t count)
     }
 }
 
-size_t ScanPrv::process(const cl::CommandQueue& queue, Ocl::DataBuffer<int>& buffer)
+void ScanPrv::process(const cl::CommandQueue& queue, Ocl::DataBuffer<int>& buffer,
+                        std::vector<cl::Event>& event, std::vector<cl::Event>* pWaitEvent)
 {
-    int evtCount = 0;
     int wListCount = 0;
     size_t buffSize = buffer.count();
 
-    adjustEventSize(buffSize);
+    adjustEventSize(buffSize, event);
     workGroupMultipleAdjust(queue);
 
     size_t gSize = (buffSize/mBlkSize);
@@ -84,7 +87,8 @@ size_t ScanPrv::process(const cl::CommandQueue& queue, Ocl::DataBuffer<int>& buf
     mScan.setArg(0, buffer.buffer());
     mScan.setArg(1, buffer.buffer());
     mScan.setArg(2, (int)buffSize);
-    queue.enqueueNDRangeKernel(mScan, cl::NullRange, cl::NDRange(gSize), cl::NDRange(mBlkSize), NULL, &mEvents[evtCount]);
+    event.resize(event.size()+1);
+    queue.enqueueNDRangeKernel(mScan, cl::NullRange, cl::NDRange(gSize), cl::NDRange(mBlkSize), pWaitEvent, &event.back());
 
     for (size_t i = mBlkSize; i < buffSize; i += (mBlkSize*mBlkSize))
     {
@@ -92,18 +96,18 @@ size_t ScanPrv::process(const cl::CommandQueue& queue, Ocl::DataBuffer<int>& buf
         mGather.setArg(1, mBuffTemp.buffer());
         mGather.setArg(2, (int)(i-1));
         mGather.setArg(3, (int)buffSize);
-        mWaitList[wListCount][0] = mEvents[evtCount++];
-        queue.enqueueNDRangeKernel(mGather, cl::NullRange, cl::NDRange(mBlkSize), cl::NDRange(mBlkSize), &mWaitList[wListCount], &mEvents[evtCount]);
+        mWaitList[wListCount][0] = event.back();
+        event.resize(event.size()+1);
+        queue.enqueueNDRangeKernel(mGather, cl::NullRange, cl::NDRange(mBlkSize), cl::NDRange(mBlkSize), &mWaitList[wListCount], &event.back());
         wListCount++;
 
         mAdd.setArg(0, mBuffTemp.buffer());
         mAdd.setArg(1, buffer.buffer());
         mAdd.setArg(2, (int)i);
         mAdd.setArg(3, (int)buffSize);
-        mWaitList[wListCount][0] = mEvents[evtCount++];
-        queue.enqueueNDRangeKernel(mAdd, cl::NullRange, cl::NDRange(mBlkSize*mBlkSize), cl::NDRange(mBlkSize), &mWaitList[wListCount], &mEvents[evtCount]);
+        mWaitList[wListCount][0] = event.back();
+        event.resize(event.size()+1);
+        queue.enqueueNDRangeKernel(mAdd, cl::NullRange, cl::NDRange(mBlkSize*mBlkSize), cl::NDRange(mBlkSize), &mWaitList[wListCount], &event.back());
         wListCount++;
     }
-    mEvents[evtCount].wait();
-    return Ocl::kernelExecTime(queue, &mEvents[0], evtCount+1);
 }

@@ -28,12 +28,18 @@ size_t Ocl::kernelExecTime(const cl::CommandQueue& queue, const cl::Event& event
 
 size_t Ocl::kernelExecTime(const cl::CommandQueue& queue, const cl::Event* event, size_t count)
 {
-    size_t time = 0;
-    for (size_t i = 0; i < count; i++)
+    cl_command_queue_properties qProp;
+    queue.getInfo<cl_command_queue_properties>(CL_QUEUE_PROPERTIES, &qProp);
+    if (qProp & CL_QUEUE_PROFILING_ENABLE)
     {
-        time += Ocl::kernelExecTime(queue, event[i]);
+        size_t time = 0;
+        for (size_t i = 0; i < count; i++)
+        {
+            time += (event[i].getProfilingInfo<CL_PROFILING_COMMAND_END>() - event[i].getProfilingInfo<CL_PROFILING_COMMAND_START>());
+        }
+        return time;
     }
-    return time;
+    return 0;
 }
 
 size_t Ocl::getWorkGroupSizeMultiple(const cl::CommandQueue& queue, const cl::Kernel& kernel)

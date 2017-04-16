@@ -15,8 +15,8 @@ public:
     HarrisCorner(const cl::Context& ctxt);
     ~HarrisCorner();
 
-    size_t process(const cl::CommandQueue& queue, const cl::Image2D& inImage, DataBuffer<cl_int2>& corners, float value, size_t& count);
-    size_t process(const cl::CommandQueue& queue, const cl::ImageGL& inImage, DataBuffer<cl_int2>& corners, float value, size_t& count);
+    void process(const cl::CommandQueue& queue, const cl::Image2D& inImage, DataBuffer<cl_int2>& corners, float value, Ocl::DataBuffer<cl_int>& count, std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent = 0);
+    void process(const cl::CommandQueue& queue, const cl::ImageGL& inImage, DataBuffer<cl_int2>& corners, float value, Ocl::DataBuffer<cl_int>& count, std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent = 0);
 
 private:
     std::unique_ptr<Ocl::HarrisCornerPrv> mPrv;

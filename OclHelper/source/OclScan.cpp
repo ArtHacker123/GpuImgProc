@@ -12,7 +12,8 @@ Scan::~Scan()
 {
 }
 
-size_t Scan::process(const cl::CommandQueue& queue, Ocl::DataBuffer<int>& buffer)
+void Scan::process(const cl::CommandQueue& queue, Ocl::DataBuffer<int>& buffer,
+                    std::vector<cl::Event>& event, std::vector<cl::Event>* pWaitEvent)
 {
-    return mPrv->process(queue, buffer);
+    mPrv->process(queue, buffer, event, pWaitEvent);
 }

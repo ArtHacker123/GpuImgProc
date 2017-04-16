@@ -25,6 +25,8 @@ void HistogramPrv::init()
         mAccHist = cl::Kernel(mPgm, "accum_histogram_rgb");
         mTempHistFloat = cl::Kernel(mPgm, "histogram_temp_rgb_float");
         mTempHistUint8 = cl::Kernel(mPgm, "histogram_temp_rgb_uint8");
+
+        mWaitEvent.resize(1);
     }
 
     catch (cl::Error error)
@@ -43,7 +45,7 @@ void HistogramPrv::createTempHistBuffer(size_t size)
     }
 }
 
-void HistogramPrv::computeTempHist(const cl::CommandQueue& queue, const cl::Image& image, size_t& count, cl::Event& event)
+void HistogramPrv::computeTempHist(const cl::CommandQueue& queue, const cl::Image& image, size_t& count, std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent)
 {
     size_t width, height;
     image.getImageInfo<size_t>(CL_IMAGE_WIDTH, &width);
@@ -67,50 +69,49 @@ void HistogramPrv::computeTempHist(const cl::CommandQueue& queue, const cl::Imag
         {
             case CL_FLOAT:
             case CL_UNORM_INT8:
+                events.resize(events.size()+1);
                 // set the kernel arguments
                 mTempHistFloat.setArg(0, image);
                 mTempHistFloat.setArg(1, *mTempBuff);
-                queue.enqueueNDRangeKernel(mTempHistFloat, cl::NullRange, cl::NDRange(32*wSizeX, height), cl::NDRange(32, 8), NULL, &event);
+                queue.enqueueNDRangeKernel(mTempHistFloat, cl::NullRange, cl::NDRange(32*wSizeX, height), cl::NDRange(32, 8), pWaitEvent, &events.back());
                 break;
 
             case CL_UNSIGNED_INT8:
+                events.resize(events.size()+1);
                 // set the kernel arguments
                 mTempHistUint8.setArg(0, image);
                 mTempHistUint8.setArg(1, *mTempBuff);
-                queue.enqueueNDRangeKernel(mTempHistUint8, cl::NullRange, cl::NDRange(32*wSizeX, height), cl::NDRange(32, 8), NULL, &event);
+                queue.enqueueNDRangeKernel(mTempHistUint8, cl::NullRange, cl::NDRange(32*wSizeX, height), cl::NDRange(32, 8), pWaitEvent, &events.back());
                 break;
         }
     }
 }
 
-void HistogramPrv::accumTempHist(const cl::CommandQueue& queue, size_t count, Ocl::DataBuffer<int>& rgbBins, cl::Event& waitEvent, cl::Event& event)
+void HistogramPrv::accumTempHist(const cl::CommandQueue& queue, size_t count, Ocl::DataBuffer<int>& rgbBins, std::vector<cl::Event>& events)
 {
     mAccHist.setArg(0, mTempBuff->buffer());
     mAccHist.setArg(1, rgbBins.buffer());
     mAccHist.setArg(2, (int)count);
-    std::vector<cl::Event> wList = { waitEvent };
-    queue.enqueueNDRangeKernel(mAccHist, cl::NullRange, cl::NDRange(3*256*64), cl::NDRange(64), &wList, &event);
+    mWaitEvent[0] = events.back();
+    events.resize(events.size()+1);
+    queue.enqueueNDRangeKernel(mAccHist, cl::NullRange, cl::NDRange(3*256*64), cl::NDRange(64), &mWaitEvent, &events.back());
 }
 
-size_t HistogramPrv::compute(const cl::CommandQueue& queue, const cl::ImageGL& image, Ocl::DataBuffer<int>& rgbBins)
+void HistogramPrv::compute(const cl::CommandQueue& queue, const cl::ImageGL& image, Ocl::DataBuffer<int>& rgbBins,
+    std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent)
 {
     size_t count = 0;
-    cl::Event event[2];
     std::vector<cl::Memory> gl_objs = { image };
     queue.enqueueAcquireGLObjects(&gl_objs);
-    computeTempHist(queue, image, count, event[0]);
-    accumTempHist(queue, count, rgbBins, event[0], event[1]);
+    computeTempHist(queue, image, count, events, pWaitEvent);
+    accumTempHist(queue, count, rgbBins, events);
     queue.enqueueReleaseGLObjects(&gl_objs);
-    event[1].wait();
-    return kernelExecTime(queue, event, 2);
 }
 
-size_t HistogramPrv::compute(const cl::CommandQueue& queue, const cl::Image2D& image, Ocl::DataBuffer<int>& rgbBins)
+void HistogramPrv::compute(const cl::CommandQueue& queue, const cl::Image2D& image, Ocl::DataBuffer<int>& rgbBins,
+                           std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent)
 {
     size_t count = 0;
-    cl::Event event[2];
-    computeTempHist(queue, image, count, event[0]);
-    accumTempHist(queue, count, rgbBins, event[0], event[1]);
-    event[1].wait();
-    return kernelExecTime(queue, event, 2);
+    computeTempHist(queue, image, count, events, pWaitEvent);
+    accumTempHist(queue, count, rgbBins, events);
 }

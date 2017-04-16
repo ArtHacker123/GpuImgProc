@@ -12,12 +12,14 @@ Histogram::~Histogram()
 {
 }
 
-size_t Histogram::compute(const cl::CommandQueue& queue, const cl::ImageGL& image, Ocl::DataBuffer<int>& rgbBins)
+void Histogram::compute(const cl::CommandQueue& queue, const cl::ImageGL& image, Ocl::DataBuffer<int>& rgbBins,
+                          std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent)
 {
-    return mPrv->compute(queue, image, rgbBins);
+    mPrv->compute(queue, image, rgbBins, events, pWaitEvent);
 }
 
-size_t Histogram::compute(const cl::CommandQueue& queue, const cl::Image2D& image, Ocl::DataBuffer<int>& rgbBins)
+void Histogram::compute(const cl::CommandQueue& queue, const cl::Image2D& image, Ocl::DataBuffer<int>& rgbBins,
+                          std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent)
 {
-    return mPrv->compute(queue, image, rgbBins);
+    mPrv->compute(queue, image, rgbBins, events, pWaitEvent);
 }

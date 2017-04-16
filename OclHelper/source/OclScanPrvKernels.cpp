@@ -2,7 +2,7 @@
 
 #define OCL_PROGRAM_SOURCE(s) #s
 
-const char Ocl::ScanPrv::sSource[] = OCL_PROGRAM_SOURCE(
+const std::string Ocl::ScanPrv::sSource = OCL_PROGRAM_SOURCE(
 
 inline void wscan(int i, local volatile int* sh_data)
 {

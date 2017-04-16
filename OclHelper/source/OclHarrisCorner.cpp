@@ -12,12 +12,12 @@ HarrisCorner::~HarrisCorner()
 {
 }
 
-size_t HarrisCorner::process(const cl::CommandQueue& queue, const cl::Image2D& inImage, DataBuffer<cl_int2>& corners, float value, size_t& count)
+void HarrisCorner::process(const cl::CommandQueue& queue, const cl::Image2D& inImage, DataBuffer<cl_int2>& corners, float value, Ocl::DataBuffer<cl_int>& count, std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent)
 {
-    return mPrv->process(queue, inImage, corners, value, count);
+    mPrv->process(queue, inImage, corners, value, count, events, pWaitEvent);
 }
 
-size_t HarrisCorner::process(const cl::CommandQueue& queue, const cl::ImageGL& inImage, DataBuffer<cl_int2>& corners, float value, size_t& count)
+void HarrisCorner::process(const cl::CommandQueue& queue, const cl::ImageGL& inImage, DataBuffer<cl_int2>& corners, float value, Ocl::DataBuffer<cl_int>& count, std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent)
 {
-    return mPrv->process(queue, inImage, corners, value, count);
+    mPrv->process(queue, inImage, corners, value, count, events, pWaitEvent);
 }

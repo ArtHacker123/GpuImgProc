@@ -57,8 +57,9 @@ kernel void non_max_suppress(read_only image2d_t inpImg, write_only image2d_t ou
     write_imageui(outImg, (int2)(get_global_id(0), get_global_id(1)), data);
 }
 
-kernel void hough_line_transform(global const int2* p_coords, const int count, const int max_rho, write_only image2d_t outImg, local int* sh_rho)
+kernel void hough_line_transform(global const int2* p_coords, global const int* p_count, const int max_rho, write_only image2d_t outImg, local int* sh_rho)
 {
+    local int sh_count;
     local float sh_sin_theta;
     local float sh_cos_theta;
 
@@ -68,6 +69,7 @@ kernel void hough_line_transform(global const int2* p_coords, const int count, c
         float angle = (M_PI_F/180.0f)*(float)get_group_id(0);
         sh_sin_theta = sin(angle);
         sh_cos_theta = cos(angle);
+        sh_count = *p_count;
     }
 
     while (i < max_rho)
@@ -78,7 +80,7 @@ kernel void hough_line_transform(global const int2* p_coords, const int count, c
     barrier(CLK_LOCAL_MEM_FENCE);
 
     i = get_local_id(0);
-    while (i < count)
+    while (i < sh_count)
     {
         int2 data = p_coords[i];
         i += get_local_size(0);

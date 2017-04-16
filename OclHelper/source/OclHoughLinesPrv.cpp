@@ -14,6 +14,7 @@ size_t comp_rho(size_t x, size_t y)
 HoughLinesPrv::HoughLinesPrv(const cl::Context& ctxt)
     :mRho(0),
      mContext(ctxt),
+     mEdgeCount(mContext, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, 1),
      mCompact(mContext)
 {
     try
@@ -40,6 +41,10 @@ void HoughLinesPrv::init()
 
     mNmsKernel = cl::Kernel(mPgm, "non_max_suppress");
     mHoughKernel = cl::Kernel(mPgm, "hough_line_transform");
+
+    mWaitEvent[0].resize(1);
+    mWaitEvent[1].resize(1);
+    mWaitEvent[2].resize(1);
 }
 
 void HoughLinesPrv::createTempBuffers(const cl::Image& inpImage)
@@ -69,53 +74,51 @@ void HoughLinesPrv::createTempBuffers(const cl::Image& inpImage)
     }
 }
 
-size_t HoughLinesPrv::computeHLT(const cl::CommandQueue& queue, size_t count)
+void HoughLinesPrv::computeHLT(const cl::CommandQueue& queue, Ocl::DataBuffer<cl_int>& count, std::vector<cl::Event>& events)
 {
-    cl::Event event;
     size_t shMemSize = mRho*sizeof(int);
     mHoughKernel.setArg(0, mEdgeData->buffer());
-    mHoughKernel.setArg(1, (int)count);
+    mHoughKernel.setArg(1, count.buffer());
     mHoughKernel.setArg(2, (int)mRho);
     mHoughKernel.setArg(3, *mHoughImg);
     mHoughKernel.setArg(4, shMemSize, 0);
-    queue.enqueueNDRangeKernel(mHoughKernel, cl::NullRange, cl::NDRange(360*256), cl::NDRange(256), NULL, &event);
-    event.wait();
-    return kernelExecTime(queue, event);
+    mWaitEvent[0][0] = events.back();
+    events.resize(events.size()+1);
+    queue.enqueueNDRangeKernel(mHoughKernel, cl::NullRange, cl::NDRange(360*256), cl::NDRange(256), &mWaitEvent[0], &events.back());
 }
 
-size_t HoughLinesPrv::nonMaxSuppress(const cl::CommandQueue& queue, size_t threshold)
+void HoughLinesPrv::nonMaxSuppress(const cl::CommandQueue& queue, size_t threshold, std::vector<cl::Event>& events)
 {
-    cl::Event event;
     mNmsKernel.setArg(0, *mHoughImg);
     mNmsKernel.setArg(1, *mHoughNmsImg);
     mNmsKernel.setArg(2, (int)threshold);
     size_t width = (mRho/8)+(((mRho%8)==0)?0:1);
-    queue.enqueueNDRangeKernel(mNmsKernel, cl::NullRange, cl::NDRange(8*width, 360), cl::NDRange(8, 8), NULL, &event);
-    event.wait();
-    return kernelExecTime(queue, event);
+    mWaitEvent[1][0] = events.back();
+    events.resize(events.size()+1);
+    queue.enqueueNDRangeKernel(mNmsKernel, cl::NullRange, cl::NDRange(8*width, 360), cl::NDRange(8, 8), &mWaitEvent[1], &events.back());
 }
 
-size_t HoughLinesPrv::process(const cl::CommandQueue& queue, const cl::Image2D& inpImage, size_t minSize, Ocl::DataBuffer<Ocl::HoughData>& hData, size_t& houghCount)
+void HoughLinesPrv::process(const cl::CommandQueue& queue, const cl::Image2D& inpImage, size_t minSize, Ocl::DataBuffer<Ocl::HoughData>& hData, Ocl::DataBuffer<cl_int>& houghCount,
+    std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent)
 {
-    size_t edgeCount = 0;
     createTempBuffers(inpImage);
-    size_t time = mCompact.process_cartesian(queue, inpImage, *mEdgeData, 1.0, edgeCount);
-    time += computeHLT(queue, edgeCount);
-    time += nonMaxSuppress(queue, minSize);
-    time += mCompact.process(queue, *mHoughNmsImg, hData, (int)minSize, houghCount);
-    return time;
+    mCompact.process_cartesian(queue, inpImage, *mEdgeData, 1.0, mEdgeCount, events, pWaitEvent);
+    computeHLT(queue, mEdgeCount, events);
+    nonMaxSuppress(queue, minSize, events);
+    mWaitEvent[2][0] = events.back();
+    mCompact.process(queue, *mHoughNmsImg, hData, (int)minSize, houghCount, events, &mWaitEvent[2]);
 }
 
-size_t HoughLinesPrv::process(const cl::CommandQueue& queue, const cl::ImageGL& inpImage, size_t minSize, Ocl::DataBuffer<Ocl::HoughData>& hData, size_t& houghCount)
+void HoughLinesPrv::process(const cl::CommandQueue& queue, const cl::ImageGL& inpImage, size_t minSize, Ocl::DataBuffer<Ocl::HoughData>& hData, Ocl::DataBuffer<cl_int>& houghCount,
+    std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent)
 {
-    size_t edgeCount = 0;
     createTempBuffers(inpImage);
     std::vector<cl::Memory> gl_objs = { inpImage };
     queue.enqueueAcquireGLObjects(&gl_objs);
-    size_t time = mCompact.process_cartesian(queue, inpImage, *mEdgeData, 1.0, edgeCount);
+    mCompact.process_cartesian(queue, inpImage, *mEdgeData, 1.0, mEdgeCount, events, pWaitEvent);
     queue.enqueueReleaseGLObjects(&gl_objs);
-    time += computeHLT(queue, edgeCount);
-    time += nonMaxSuppress(queue, minSize);
-    time += mCompact.process(queue, *mHoughNmsImg, hData, (int)minSize, houghCount);
-    return time;
+    computeHLT(queue, mEdgeCount, events);
+    nonMaxSuppress(queue, minSize, events);
+    mWaitEvent[2][0] = events.back();
+    mCompact.process(queue, *mHoughNmsImg, hData, (int)minSize, houghCount, events, &mWaitEvent[2]);
 }

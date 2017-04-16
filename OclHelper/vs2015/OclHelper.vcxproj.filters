@@ -119,10 +119,10 @@
     <ClCompile Include="..\source\OclHistogram.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\source\OclHistogramPrv.cpp">
+    <ClCompile Include="..\source\OclHistogramPrvKernels.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\source\OclHistogramPrvKernels.cpp">
+    <ClCompile Include="..\source\OclHistogramPrv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

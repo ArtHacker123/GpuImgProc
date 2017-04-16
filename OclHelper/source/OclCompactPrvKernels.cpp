@@ -4,7 +4,7 @@
 
 using namespace Ocl;
 
-const char CompactPrv::sSource[] = OCL_PROGRAM_SOURCE(
+const std::string CompactPrv::sSource = OCL_PROGRAM_SOURCE(
 
 typedef struct _OptFlowData
 {

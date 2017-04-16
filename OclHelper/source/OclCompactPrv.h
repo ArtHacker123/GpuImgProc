@@ -15,16 +15,16 @@ public:
     ~CompactPrv();
 
 public:
-    size_t process(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<cl_int2>& coords, float threshold, size_t& count);
-    size_t process_cartesian(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<cl_int2>& coords, float threshold, size_t& count);
-    size_t process(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<Ocl::OptFlowData>& flowData, float threshold, size_t& count);
-    size_t process(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<Ocl::HoughData>& houghData, size_t threshold, size_t& count);
+    void process(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<cl_int2>& coords, float threshold, Ocl::DataBuffer<cl_int>& count, std::vector<cl::Event>& event, std::vector<cl::Event>* pWaitEvent = 0);
+    void process_cartesian(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<cl_int2>& coords, float threshold, Ocl::DataBuffer<cl_int>& count, std::vector<cl::Event>& event, std::vector<cl::Event>* pWaitEvent = 0);
+    void process(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<Ocl::OptFlowData>& flowData, float threshold, Ocl::DataBuffer<cl_int>& count, std::vector<cl::Event>& event, std::vector<cl::Event>* pWaitEvent = 0);
+    void process(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<Ocl::HoughData>& houghData, size_t threshold, Ocl::DataBuffer<cl_int>& count, std::vector<cl::Event>& event, std::vector<cl::Event>* pWaitEvent = 0);
 
 private:
     void init(size_t warpSize);
-    void adjustEventSize(size_t count);
-    void createIntBuffer(size_t buffSize);
-    void doScan(const cl::CommandQueue& queue);
+    void adjustEventSize(size_t count, std::vector<cl::Event>& event);
+    void createIntBuffer(size_t buffSize, std::vector<cl::Event>& event);
+    void doScan(const cl::CommandQueue& queue, std::vector<cl::Event>& event);
     void workGroupMultipleAdjust(const cl::CommandQueue& queue);
 
 private:
@@ -32,7 +32,6 @@ private:
     const size_t mScanBlkSize;
     const size_t mReduceBlkSize;
 
-    size_t mEvtCount;
     size_t mWlistCount;
 
     const cl::Context& mContext;
@@ -53,14 +52,12 @@ private:
     cl::Kernel mReduceIntX;
     cl::Kernel mCompactHoughData;
 
-    Ocl::DataBuffer<int> mOutSize;
     Ocl::DataBuffer<int> mBuffTemp;
     std::unique_ptr< Ocl::DataBuffer<int> > mBuffReduce;
 
-    std::vector<cl::Event> mEvents;
     std::vector< std::vector<cl::Event> > mWaitList;
 
-    static const char sSource[];
+    static const std::string sSource;
 };
 
 };

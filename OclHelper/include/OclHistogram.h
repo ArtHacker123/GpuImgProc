@@ -14,8 +14,10 @@ public:
     Histogram(const cl::Context& ctxt);
     ~Histogram();
 
-    size_t compute(const cl::CommandQueue& queue, const cl::ImageGL& image, Ocl::DataBuffer<int>& rgbBins);
-    size_t compute(const cl::CommandQueue& queue, const cl::Image2D& image, Ocl::DataBuffer<int>& rgbBins);
+    void compute(const cl::CommandQueue& queue, const cl::ImageGL& image, Ocl::DataBuffer<int>& rgbBins,
+                 std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent = 0);
+    void compute(const cl::CommandQueue& queue, const cl::Image2D& image, Ocl::DataBuffer<int>& rgbBins,
+                 std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent = 0);
 
 private:
     std::unique_ptr<Ocl::HistogramPrv> mPrv;

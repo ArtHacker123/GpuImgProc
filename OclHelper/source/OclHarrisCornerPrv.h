@@ -13,15 +13,15 @@ public:
     ~HarrisCornerPrv();
 
 public:
-    size_t process(const cl::CommandQueue& queue, const cl::Image2D& img, DataBuffer<cl_int2>& corners, float value, size_t& count);
-    size_t process(const cl::CommandQueue& queue, const cl::ImageGL& inImage, DataBuffer<cl_int2>& corners, float value, size_t& count);
+    void process(const cl::CommandQueue& queue, const cl::Image2D& img, DataBuffer<cl_int2>& corners, float value, Ocl::DataBuffer<cl_int>& count, std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent = 0);
+    void process(const cl::CommandQueue& queue, const cl::ImageGL& inImage, DataBuffer<cl_int2>& corners, float value, Ocl::DataBuffer<cl_int>& count, std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent = 0);
 
 private:
     void init();
     void createIntImages(const cl::Image& inpImg);
-    size_t eigen(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg);
-    size_t gradient(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg);
-    size_t suppress(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, float value);
+    void eigen(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, std::vector<cl::Event>& events);
+    void suppress(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, float value, std::vector<cl::Event>& events);
+    void gradient(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent);
 
 private:
     size_t mWidth;
@@ -41,6 +41,9 @@ private:
     std::unique_ptr<cl::Image2D> mCornerImg;
 
     Ocl::Compact mCompact;
+
+    size_t mWlistCount;
+    std::vector< std::vector<cl::Event> > mWaitList;
 
     static const char sSource[];
 };

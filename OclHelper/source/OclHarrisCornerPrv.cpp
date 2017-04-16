@@ -10,7 +10,8 @@ HarrisCornerPrv::HarrisCornerPrv(const cl::Context& ctxt)
      mLocSizeX(16),
      mLocSizeY(8),
      mContext(ctxt),
-     mCompact(ctxt)
+     mCompact(ctxt),
+     mWlistCount(0)
 {
     try
     {
@@ -45,6 +46,12 @@ void HarrisCornerPrv::init()
     mGradKernel = cl::Kernel(mPgm, "gradient");
     mEigenKernel = cl::Kernel(mPgm, "eigen");
     mCornerKernel = cl::Kernel(mPgm, "nms");
+    
+    mWaitList.resize(5);
+    for (size_t i = 0; i < 5; i++)
+    {
+        mWaitList[i].resize(1);
+    }
 }
 
 void HarrisCornerPrv::createIntImages(const cl::Image& inpImg)
@@ -67,56 +74,56 @@ void HarrisCornerPrv::createIntImages(const cl::Image& inpImg)
     }
 }
 
-size_t HarrisCornerPrv::gradient(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg)
+void HarrisCornerPrv::gradient(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent)
 {
-    cl::Event event;
     mGradKernel.setArg(0, inpImg);
     mGradKernel.setArg(1, outImg);
-    queue.enqueueNDRangeKernel(mGradKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
-    event.wait();
-    return kernelExecTime(queue, event);
+    events.resize(events.size()+1);
+    queue.enqueueNDRangeKernel(mGradKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), pWaitEvent, &events.back());
 }
 
-size_t HarrisCornerPrv::eigen(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg)
+void HarrisCornerPrv::eigen(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, std::vector<cl::Event>& events)
 {
-    cl::Event event;
     mEigenKernel.setArg(0, inpImg);
     mEigenKernel.setArg(1, outImg);
-    queue.enqueueNDRangeKernel(mEigenKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
-    event.wait();
-    return kernelExecTime(queue, event);
+    mWaitList[mWlistCount][0] = events.back();
+    events.resize(events.size()+1);
+    queue.enqueueNDRangeKernel(mEigenKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), &mWaitList[mWlistCount], &events.back());
+    ++mWlistCount;
 }
 
-size_t HarrisCornerPrv::suppress(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, float value)
+void HarrisCornerPrv::suppress(const cl::CommandQueue& queue, const cl::Image& inpImg, cl::Image& outImg, float value, std::vector<cl::Event>& events)
 {
-    cl::Event event;
     mCornerKernel.setArg(0, inpImg);
     mCornerKernel.setArg(1, outImg);
     mCornerKernel.setArg(2, value);
-    queue.enqueueNDRangeKernel(mCornerKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), NULL, &event);
-    event.wait();
-    return kernelExecTime(queue, event);
+    mWaitList[mWlistCount][0] = events.back();
+    events.resize(events.size()+1);
+    queue.enqueueNDRangeKernel(mCornerKernel, cl::NullRange, cl::NDRange(mWidth, mHeight), cl::NDRange(mLocSizeX, mLocSizeY), &mWaitList[mWlistCount], &events.back());
+    ++mWlistCount;
 }
 
-size_t HarrisCornerPrv::process(const cl::CommandQueue& queue, const cl::Image2D& inpImg, Ocl::DataBuffer<cl_int2>& corners, float value, size_t& count)
+void HarrisCornerPrv::process(const cl::CommandQueue& queue, const cl::Image2D& inpImg, Ocl::DataBuffer<cl_int2>& corners, float value, Ocl::DataBuffer<cl_int>& count, std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent)
 {
+    mWlistCount = 0;
     createIntImages(inpImg);
-    size_t time = gradient(queue, inpImg, *mIxIyImg);
-    time += eigen(queue, *mIxIyImg, *mEigenImg);
-    time += suppress(queue, *mEigenImg, *mCornerImg, value);
-    time += mCompact.process(queue, *mCornerImg, corners, 1.0f, count);
-    return time;
+    gradient(queue, inpImg, *mIxIyImg, events, pWaitEvent);
+    eigen(queue, *mIxIyImg, *mEigenImg, events);
+    suppress(queue, *mEigenImg, *mCornerImg, value, events);
+    mWaitList[mWlistCount][0] = events.back();
+    mCompact.process(queue, *mCornerImg, corners, 1.0f, count, events, &mWaitList[mWlistCount]);
 }
 
-size_t HarrisCornerPrv::process(const cl::CommandQueue& queue, const cl::ImageGL& inpImg, Ocl::DataBuffer<cl_int2>& corners, float value, size_t& count)
+void HarrisCornerPrv::process(const cl::CommandQueue& queue, const cl::ImageGL& inpImg, Ocl::DataBuffer<cl_int2>& corners, float value, Ocl::DataBuffer<cl_int>& count, std::vector<cl::Event>& events, std::vector<cl::Event>* pWaitEvent)
 {
+    mWlistCount = 0;
     createIntImages(inpImg);
     std::vector<cl::Memory> gl_objs = { inpImg };
     queue.enqueueAcquireGLObjects(&gl_objs);
-    size_t time = gradient(queue, inpImg, *mIxIyImg);
+    gradient(queue, inpImg, *mIxIyImg, events, pWaitEvent);
     queue.enqueueReleaseGLObjects(&gl_objs);
-    time += eigen(queue, *mIxIyImg, *mEigenImg);
-    time += suppress(queue, *mEigenImg, *mCornerImg, value);
-    time += mCompact.process(queue, *mCornerImg, corners, 1.0f, count);
-    return time;
+    eigen(queue, *mIxIyImg, *mEigenImg, events);
+    suppress(queue, *mEigenImg, *mCornerImg, value, events);
+    mWaitList[mWlistCount][0] = events.back();
+    mCompact.process(queue, *mCornerImg, corners, 1.0f, count, events, &mWaitList[mWlistCount]);
 }

@@ -12,22 +12,26 @@ Compact::~Compact()
 {
 }
 
-size_t Compact::process(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<cl_int2>& coords, float threshold, size_t& count)
+void Compact::process(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<cl_int2>& coords,
+                    float threshold, Ocl::DataBuffer<cl_int>& count, std::vector<cl::Event>& event, std::vector<cl::Event>* pWaitEvent)
 {
-    return mPrv->process(queue, inpImage, coords, threshold, count);
+    mPrv->process(queue, inpImage, coords, threshold, count, event, pWaitEvent);
 }
 
-size_t Compact::process_cartesian(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<cl_int2>& coords, float threshold, size_t& count)
+void Compact::process_cartesian(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<cl_int2>& coords,
+                     float threshold, Ocl::DataBuffer<cl_int>& count, std::vector<cl::Event>& event, std::vector<cl::Event>* pWaitEvent)
 {
-    return mPrv->process_cartesian(queue, inpImage, coords, threshold, count);
+    mPrv->process_cartesian(queue, inpImage, coords, threshold, count, event, pWaitEvent);
 }
 
-size_t Compact::process(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<Ocl::OptFlowData>& flowData, float threshold, size_t& count)
+void Compact::process(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<Ocl::OptFlowData>& flowData, 
+                        float threshold, Ocl::DataBuffer<cl_int>& count, std::vector<cl::Event>& event, std::vector<cl::Event>* pWaitEvent)
 {
-    return mPrv->process(queue, inpImage, flowData, threshold, count);
+    mPrv->process(queue, inpImage, flowData, threshold, count, event, pWaitEvent);
 }
 
-size_t Compact::process(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<Ocl::HoughData>& houghData, size_t threshold, size_t& count)
+void Compact::process(const cl::CommandQueue& queue, const cl::Image& inpImage, Ocl::DataBuffer<Ocl::HoughData>& houghData,
+                        size_t threshold, Ocl::DataBuffer<cl_int>& count, std::vector<cl::Event>& event, std::vector<cl::Event>* pWaitEvent)
 {
-    return mPrv->process(queue, inpImage, houghData, threshold, count);
+    mPrv->process(queue, inpImage, houghData, threshold, count, event, pWaitEvent);
 }

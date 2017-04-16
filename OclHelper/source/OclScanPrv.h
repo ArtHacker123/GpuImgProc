@@ -14,12 +14,13 @@ public:
     ~ScanPrv();
 
 public:
-    size_t process(const cl::CommandQueue& queue, Ocl::DataBuffer<int>& buffer);
+    void process(const cl::CommandQueue& queue, Ocl::DataBuffer<int>& buffer,
+                    std::vector<cl::Event>& event, std::vector<cl::Event>* pWaitEvent = 0);
 
 private:
     void init(size_t warpSize);
-    void adjustEventSize(size_t count);
     void workGroupMultipleAdjust(const cl::CommandQueue& queue);
+    void adjustEventSize(size_t count, std::vector<cl::Event>& event);
 
 private:
     size_t mWgrpSize;
@@ -28,8 +29,6 @@ private:
     const cl::Context& mContext;
 
     Ocl::DataBuffer<cl_int> mBuffTemp;
-
-    std::vector<cl::Event> mEvents;
     std::vector< std::vector<cl::Event> > mWaitList;
 
     cl::Program mProgram;
@@ -38,7 +37,7 @@ private:
     cl::Kernel mScan;
     cl::Kernel mGather;
 
-    static const char sSource[];
+    static const std::string sSource;
 };
 
 };
