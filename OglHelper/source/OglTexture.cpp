@@ -62,3 +62,16 @@ void Texture2D::load(void* pData)
     }
     glBindTexture(GL_TEXTURE_2D, 0);
 }
+
+void Texture2D::load(void* pData, GLint x, GLint y, GLsizei w, GLsizei h)
+{
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, mTexture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, mFormat, mType, pData);
+    if (mPyramid)
+    {
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+}

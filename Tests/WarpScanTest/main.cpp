@@ -1,22 +1,13 @@
 #include <iostream>
 
 #include "OclScan.h"
+#include "OclUtils.h"
 
 int main(int argc, char** argv)
 {
 	try
 	{
-		std::vector<cl::Platform> platforms;
-		cl::Platform::get(&platforms);
-		if (platforms.size() == 0)
-		{
-			std::cout << "Platform size 0\n";
-			return -1;
-		}
-
-		cl_context_properties properties[] = { CL_CONTEXT_PLATFORM, (cl_context_properties)(platforms[0])(), 0 };
-		cl::Context context(CL_DEVICE_TYPE_GPU, properties); 
-		 
+        cl::Context context(CL_DEVICE_TYPE_GPU);
 		std::vector<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
 		cl::CommandQueue queue(context, devices[0], CL_QUEUE_PROFILING_ENABLE);
 
@@ -34,7 +25,10 @@ int main(int argc, char** argv)
 		buff.unmap(queue, pData);
 
 		Ocl::Scan scan(context);
-		size_t time = scan.process(queue, buff);
+        std::vector<cl::Event> events;
+		scan.process(queue, buff, events);
+        events.back().wait();
+        size_t time = Ocl::kernelExecTime(queue, events.data(), events.size());
 		std::cout << "Time: " << time << " ns" << std::endl;
 		
         bool flag = true;

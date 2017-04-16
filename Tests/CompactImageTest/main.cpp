@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "OclCompact.h"
+#include "OclUtils.h"
 
 void test_image_compact(cl::Context& context, cl::CommandQueue& queue);
 
@@ -8,17 +9,7 @@ int main(int argc, char** argv)
 {
     try
     {
-        std::vector<cl::Platform> platforms;
-        cl::Platform::get(&platforms);
-        if (platforms.size() == 0)
-        {
-            std::cout << "Platform size 0\n";
-            return -1;
-        }
-
-        cl_context_properties properties[] = { CL_CONTEXT_PLATFORM, (cl_context_properties)(platforms[0])(), 0 };
-        cl::Context context(CL_DEVICE_TYPE_GPU, properties); 
-         
+        cl::Context context(CL_DEVICE_TYPE_GPU);
         std::vector<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
         cl::CommandQueue queue(context, devices[0], CL_QUEUE_PROFILING_ENABLE);
 
@@ -75,12 +66,19 @@ void test_image_compact(cl::Context& context, cl::CommandQueue& queue)
 
     Ocl::DataBuffer<cl_int2> outBuff(context, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, 1000);
 
-    size_t outCount = 0;
     Ocl::Compact compact(context);
+    std::vector<cl::Event> events;
+    Ocl::DataBuffer<cl_int> outCountBuff(context, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, 1);
 
-    for (size_t i = 0; i < 5; i++)
+    for (size_t i = 0; i < 1; i++)
     {
-        size_t time = compact.process(queue, image, outBuff, 1.0f, outCount);
+        compact.process(queue, image, outBuff, 1.0f, outCountBuff, events);
+        events.back().wait();
+        size_t time = Ocl::kernelExecTime(queue, events.data(), events.size());
+
+        cl_int outCount = 0;
+        queue.enqueueReadBuffer(outCountBuff.buffer(), CL_TRUE, 0, sizeof(cl_int), &outCount);
+
         if (outCount > 0)
         {
             cl_int2* pData = outBuff.map(queue, CL_TRUE, CL_MAP_READ, 0, 100);

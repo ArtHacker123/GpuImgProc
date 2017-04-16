@@ -15,6 +15,7 @@ public:
     ~Texture2D();
 
     void load(void* pData);
+    void load(void* pData, GLint x, GLint y, GLsizei w, GLsizei h);
     void bind(GLenum tex) const;
     static void unbind(GLenum tex);
 

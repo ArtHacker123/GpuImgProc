@@ -33,7 +33,8 @@ OptFlowPrv::OptFlowPrv(const cl::Context& ctxt, GLsizei levels)
      mUvImg(0),
      mIxImg(levels),
      mIyImg(levels),
-     mCompact(ctxt)
+     mCompact(ctxt),
+     mCount(ctxt, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, 1)
 {
     mIxIyShader.reset(new Ogl::IxIyShader);
     mOptFlowShader.reset(new Ogl::OptFlowShader);
@@ -150,11 +151,15 @@ bool OptFlowPrv::process(const cl::CommandQueue& queue, Ocl::DataBuffer<Ocl::Opt
     {
         return false;
     }
+    std::vector<cl::Event> events;
+    events.reserve(1024);
     process((const Ogl::IImage&)currImg, (const Ogl::IImage&)prevImg, rvalue, minFlowDist);
     cl::ImageGL imgGL(mCtxtCL, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mNmsImg->texture());
     std::vector<cl::Memory> gl_objs = { imgGL };
     queue.enqueueAcquireGLObjects(&gl_objs);
-    mCompact.process(queue, imgGL, flowData, minFlowDist, outCount);
+    mCompact.process(queue, imgGL, flowData, minFlowDist, mCount, events);
     queue.enqueueReleaseGLObjects(&gl_objs);
+    events.back().wait();
+    queue.enqueueReadBuffer(mCount.buffer(), CL_TRUE, 0, sizeof(cl_int), &outCount);
     return true;
 }

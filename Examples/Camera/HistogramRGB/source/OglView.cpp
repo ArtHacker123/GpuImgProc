@@ -1,5 +1,6 @@
 #include "OglView.h"
 #include "OglImageFormat.h"
+#include "OclUtils.h"
 
 OglView::OglView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queue)
     :mCtxtCL(ctxt),
@@ -20,10 +21,15 @@ OglView::~OglView()
 
 void OglView::draw(uint8_t* pData)
 {
+    std::vector<cl::Event> events;
+    events.reserve(1024);
+
     mBgrImg.load(pData);
 
     cl::ImageGL imgGL(mCtxtCL, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mBgrImg.texture());
-    size_t time = mHistogram.compute(mQueueCL, imgGL, mRgbBins);
+    mHistogram.compute(mQueueCL, imgGL, mRgbBins, events);
+    events.back().wait();
+    size_t time = Ocl::kernelExecTime(mQueueCL, events.data(), events.size());
 
     mPainter.draw(mBgrImg);
 

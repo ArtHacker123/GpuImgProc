@@ -32,6 +32,7 @@ private:
     Ogl::Image<GL_RED> mGrayImg;
 
     Ocl::DataBuffer<cl_int2> mCorners;
+    Ocl::DataBuffer<cl_int> mCornerCount;
 
     Ocl::HarrisCorner mHarrisCorner;
     Ogl::PointPainter mCornerPainter;

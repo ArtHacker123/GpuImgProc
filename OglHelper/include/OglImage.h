@@ -19,7 +19,8 @@ public:
 
     GLuint texture() const { return mTexture.texture(); };
 
-    void load(void* pData) { return mTexture.load(pData); };
+    void load(void* pData) { mTexture.load(pData); };
+    void load(void* pData, GLint x, GLint y, GLsizei w, GLsizei h) { mTexture.load(pData, x, y, w, h); };
     void bind(GLenum tex) const { mTexture.bind(tex); };
     void unbind(GLenum tex) const { Ogl::Texture2D::unbind(tex); };
 
@@ -41,6 +42,7 @@ public:
     const Ogl::Image<GL_RED>& vImage() { return mV; };
 
     void load(void* pData);
+    void load(void* pData, GLint x, GLint y, GLsizei w, GLsizei h);
     void bind(GLenum tex) const;
     void unbind(GLenum tex) const;
 

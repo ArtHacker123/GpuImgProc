@@ -90,36 +90,35 @@ void TestView::initGL()
     Ogl::UseWinGlContext use(*mCtxtGL);
 
     glewInit();
+    std::vector<cl::Platform> platforms;
+    cl::Platform::get(&platforms);
 
-    try
+    for (size_t i = 0; i < platforms.size(); i++)
     {
-        std::vector<cl::Platform> platforms;
-        cl::Platform::get(&platforms);
-        if (platforms.size() == 0)
+        try
         {
-            AfxMessageBox(_T("No support for OpenCL"));
-            exit(0);
+            cl_context_properties props[] =
+            { CL_GL_CONTEXT_KHR, (cl_context_properties)wglGetCurrentContext(),
+                CL_WGL_HDC_KHR, (cl_context_properties)wglGetCurrentDC(),
+                CL_CONTEXT_PLATFORM, (cl_context_properties)(platforms[i])(), 0 };
+
+            mCtxtCL.reset(new cl::Context(CL_DEVICE_TYPE_GPU, props));
+            std::vector<cl::Device> devices = mCtxtCL->getInfo<CL_CONTEXT_DEVICES>();
+            int err = 0;
+            cl_queue_properties qprop[] = { CL_QUEUE_PROPERTIES, 
+                (cl_command_queue_properties)(CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE|CL_QUEUE_ON_DEVICE|CL_QUEUE_ON_DEVICE_DEFAULT|CL_QUEUE_PROFILING_ENABLE), 
+                0 };
+            clCreateCommandQueueWithProperties((*mCtxtCL)(), devices[0](), qprop, &err);
+            mQueueCL.reset(new cl::CommandQueue(*mCtxtCL, devices[0], CL_QUEUE_PROFILING_ENABLE));
+            break;
         }
 
-        cl_context_properties props[] = 
-            { CL_GL_CONTEXT_KHR, (cl_context_properties)wglGetCurrentContext(),
-              CL_WGL_HDC_KHR, (cl_context_properties)wglGetCurrentDC(),
-              CL_CONTEXT_PLATFORM, (cl_context_properties)(platforms[0])(), 0 };
-
-        mCtxtCL.reset(new cl::Context(CL_DEVICE_TYPE_GPU, props));
-        std::vector<cl::Device> devices = mCtxtCL->getInfo<CL_CONTEXT_DEVICES>();
-
-        int err = 0;
-        cl_queue_properties qprop[] = { CL_QUEUE_PROPERTIES, (cl_command_queue_properties)(CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE|CL_QUEUE_ON_DEVICE|CL_QUEUE_ON_DEVICE_DEFAULT|CL_QUEUE_PROFILING_ENABLE), 0 };
-        clCreateCommandQueueWithProperties((*mCtxtCL)(), devices[0](), qprop, &err);
-
-        mQueueCL.reset(new cl::CommandQueue(*mCtxtCL, devices[0], CL_QUEUE_PROFILING_ENABLE));
-    }
-
-    catch (cl::Error error)
-    {
-        AfxMessageBox(_T("No support for OpenCL"));
-        exit(0);
+        catch (cl::Error error)
+        {
+            std::string name;
+            platforms[i].getInfo(CL_PLATFORM_NAME, &name);
+            printf("\nOpenCL context Creation Failed for %s", name.c_str());
+        }
     }
 
     mCamera.open(0);

@@ -1,5 +1,6 @@
 #include "OglView.h"
 #include "OglImageFormat.h"
+#include "OclUtils.h"
 
 #define THRESHOLD_CHANGE 0.001f
 
@@ -14,6 +15,7 @@ OglView::OglView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queu
      mEdgeImg(w, h, GL_R32F, GL_FLOAT),
      mCanny(mCtxtCL),
      mHoughLines(mCtxtCL),
+     mLineCount(mCtxtCL, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, 1),
      mHoughData(mCtxtCL, CL_MEM_READ_WRITE, 1000),
      mHoughLinePainter(mCtxtCL, 1000)
 {
@@ -31,13 +33,18 @@ void OglView::draw(uint8_t* pData)
     cl::ImageGL inpImgGL(mCtxtCL, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mGrayImg.texture());
     cl::ImageGL outImgGL(mCtxtCL, CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0, mEdgeImg.texture());
 
-    size_t time = mCanny.process(mQueueCL, inpImgGL, outImgGL, mMinThresh, mMaxThresh);    
-    
-    size_t lines = 0;
-    time += mHoughLines.process(mQueueCL, outImgGL, mSize, mHoughData, lines);
+    std::vector<cl::Event> events;
+    events.reserve(1024);
+    mCanny.process(mQueueCL, inpImgGL, outImgGL, mMinThresh, mMaxThresh, events);
+    std::vector<cl::Event> mWaitEvent = { events.back() };
+    mHoughLines.process(mQueueCL, outImgGL, mSize, mHoughData, mLineCount, events, &mWaitEvent);
+    events.back().wait();
+    size_t time = Ocl::kernelExecTime(mQueueCL, events.data(), events.size());
 
     mRgbaPainter.draw(mBgrImg);
     //mGrayPainter.draw(mEdgeImg);
+    size_t lines = 0;
+    mQueueCL.enqueueReadBuffer(mLineCount.buffer(), CL_TRUE, 0, sizeof(cl_int), &lines);
     mHoughLinePainter.draw(mQueueCL, mHoughData, lines, mEdgeImg.width(), mEdgeImg.height());
 
     //Ogl::IGeometry::Rect vp = { mBgrImg.width()/2, 0, mBgrImg.width()/2, mBgrImg.height()/2 };

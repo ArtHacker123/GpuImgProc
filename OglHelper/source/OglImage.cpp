@@ -37,6 +37,16 @@ void Yuv420Image::load(void* pData)
     mV.load(pVdata);
 }
 
+void Yuv420Image::load(void* pData, GLint x, GLint y, GLsizei w, GLsizei h)
+{
+    size_t size = w*h;
+    uint8_t* pUdata = (uint8_t*)pData + size;
+    uint8_t* pVdata = pUdata + (size >> 2);
+    mY.load(pData, x, y, w, h);
+    mU.load(pUdata, x>>1, y>>1, w>>1, h>>1);
+    mV.load(pVdata, x>>1, y>>1, w>>1, h>>1);
+}
+
 Nv12Image::Nv12Image(GLsizei w, GLsizei h, void* pData, bool bPyramid)
     :mY(w, h, GL_RED, GL_UNSIGNED_BYTE, pData, bPyramid),
      mUV(w, h/2, GL_RG, GL_UNSIGNED_BYTE, (pData==0)?0:((uint8_t*)pData+(w*h)), bPyramid)

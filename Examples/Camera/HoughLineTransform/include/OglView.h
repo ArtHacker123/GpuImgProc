@@ -38,6 +38,7 @@ private:
 
     Ocl::CannyEdge mCanny;
     Ocl::HoughLines mHoughLines;
+    Ocl::DataBuffer<cl_int> mLineCount;
     Ocl::DataBuffer<Ocl::HoughData> mHoughData;
 
     Ogl::HoughLinePainter mHoughLinePainter;
