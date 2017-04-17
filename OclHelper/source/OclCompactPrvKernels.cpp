@@ -164,7 +164,7 @@ kernel void compact_cartesian_coords_float_x(read_only image2d_t image, float va
     const int y = get_global_id(1);
     int i = (get_local_id(1)*get_local_size(0))+get_local_id(0);
     sh_data[i] = (read_imagef(image, (int2)(x, y)).x >= value) ? 1 : 0;
-    bscan(i, sh_data, sh_data[SH_MEM_SIZE]);
+    bscan(i, sh_data, &sh_data[SH_MEM_SIZE]);
 
     if (i == 0)
     {

@@ -52,6 +52,7 @@ private:
     std::unique_ptr<Ogl::OptFlowNmsShader> mNmsShader;
 
     Ocl::Compact mCompact;
+    Ocl::DataBuffer <cl_int> mCount;
 
     static const GLenum mBuffs[];
     static const std::vector<GLushort> index;

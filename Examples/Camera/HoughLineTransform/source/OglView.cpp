@@ -43,7 +43,7 @@ void OglView::draw(uint8_t* pData)
 
     mRgbaPainter.draw(mBgrImg);
     //mGrayPainter.draw(mEdgeImg);
-    size_t lines = 0;
+    cl_int lines = 0;
     mQueueCL.enqueueReadBuffer(mLineCount.buffer(), CL_TRUE, 0, sizeof(cl_int), &lines);
     mHoughLinePainter.draw(mQueueCL, mHoughData, lines, mEdgeImg.width(), mEdgeImg.height());
 
