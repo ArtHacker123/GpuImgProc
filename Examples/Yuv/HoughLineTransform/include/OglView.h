@@ -34,6 +34,7 @@ private:
 
     Ocl::CannyEdge mCanny;
     Ocl::HoughLines mHoughLines;
+    Ocl::DataBuffer<cl_int> mLineCount;
 
     Ogl::Yuv420Image mYuvImg;
     Ogl::Image<GL_RED> mEdgeImg;

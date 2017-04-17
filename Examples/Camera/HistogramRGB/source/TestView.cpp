@@ -89,7 +89,6 @@ void TestView::initGL()
     Ogl::UseWinGlContext use(*mCtxtGL);
 
     glewInit();
-
     std::vector<cl::Platform> platforms;
     cl::Platform::get(&platforms);
 

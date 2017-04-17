@@ -8,6 +8,7 @@ OglView::OglView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queu
      mQueueCL(queue),
      mYuvImg(w, h),
      mCorners(mCtxtCL, CL_MEM_READ_WRITE, MAX_CORNER_COUNT),
+     mCornerCount(mCtxtCL, CL_MEM_READ_WRITE, 1),
      mHarrisCorner(mCtxtCL),
      mCornerPainter(mCtxtCL, MAX_CORNER_COUNT)
 {
@@ -23,9 +24,14 @@ void OglView::draw(uint8_t* pData)
 {
     mYuvImg.load(pData);
 
-    size_t count = 0;
     cl::ImageGL imgGL(mCtxtCL, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mYuvImg.yImage().texture());
-    mHarrisCorner.process(mQueueCL, imgGL, mCorners, mRvalue, count);
+
+    std::vector<cl::Event> events;
+    mHarrisCorner.process(mQueueCL, imgGL, mCorners, mRvalue, mCornerCount, events);
+    events.back().wait();
+
+    cl_int count = 0;
+    mQueueCL.enqueueReadBuffer(mCornerCount.buffer(), CL_TRUE, 0, sizeof(cl_int), &count);
 
     mYuvPainter.draw(mYuvImg);
     mCornerPainter.draw(mQueueCL, mCorners, count, mYuvImg.width(), mYuvImg.height());

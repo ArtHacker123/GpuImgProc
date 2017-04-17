@@ -1,4 +1,5 @@
 #include "OglView.h"
+#include "OclUtils.h"
 
 #define THRESHOLD_CHANGE 0.001f
 
@@ -26,7 +27,10 @@ void OglView::draw(uint8_t* pData)
     cl::ImageGL outImgGL(mCtxtCL, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D, 0, mEdgeImg.texture());
     cl::ImageGL inpImgGL(mCtxtCL, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mYuvImg.yImage().texture());
 
-    size_t time = mCanny.process(mQueueCL, inpImgGL, outImgGL, mMinThresh, mMaxThresh);
+    std::vector<cl::Event> events;
+    mCanny.process(mQueueCL, inpImgGL, outImgGL, mMinThresh, mMaxThresh, events);
+    events.back().wait();
+    size_t time = Ocl::kernelExecTime(mQueueCL, events.data(), events.size());
 
     mLumaPainter.draw(mEdgeImg);
     Ogl::IGeometry::Rect vp = { mYuvImg.width()>>1, 0, mYuvImg.width()>>1, mYuvImg.height()>>1 };

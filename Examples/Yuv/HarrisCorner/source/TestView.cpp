@@ -106,35 +106,33 @@ void TestView::initGL()
     Ogl::UseWinGlContext use(*mCtxtGL);
 
     glewInit();
+    std::vector<cl::Platform> platforms;
+    cl::Platform::get(&platforms);
 
-    try
+    for (size_t i = 0; i < platforms.size(); i++)
     {
-        std::vector<cl::Platform> platforms;
-        cl::Platform::get(&platforms);
-        if (platforms.size() == 0)
+        try
         {
-            AfxMessageBox(_T("No support for OpenCL"));
-            exit(0);
+            cl_context_properties props[] =
+            { CL_GL_CONTEXT_KHR, (cl_context_properties)wglGetCurrentContext(),
+                CL_WGL_HDC_KHR, (cl_context_properties)wglGetCurrentDC(),
+                CL_CONTEXT_PLATFORM, (cl_context_properties)(platforms[i])(), 0 };
+
+            mCtxtCL.reset(new cl::Context(CL_DEVICE_TYPE_GPU, props));
+            std::vector<cl::Device> devices = mCtxtCL->getInfo<CL_CONTEXT_DEVICES>();
+            mQueueCL.reset(new cl::CommandQueue(*mCtxtCL, devices[0], CL_QUEUE_PROFILING_ENABLE));
+            break;
         }
 
-        cl_context_properties props[] =
-        { CL_GL_CONTEXT_KHR, (cl_context_properties)wglGetCurrentContext(),
-            CL_WGL_HDC_KHR, (cl_context_properties)wglGetCurrentDC(),
-            CL_CONTEXT_PLATFORM, (cl_context_properties)(platforms[0])(), 0 };
-
-        mCtxtCL.reset(new cl::Context(CL_DEVICE_TYPE_GPU, props));
-        std::vector<cl::Device> devices = mCtxtCL->getInfo<CL_CONTEXT_DEVICES>();
-        mQueueCL.reset(new cl::CommandQueue(*mCtxtCL, devices[0], CL_QUEUE_PROFILING_ENABLE));
-
-        mViewGL.reset(new OglView(mWidth, mHeight, *mCtxtCL, *mQueueCL));
+        catch (cl::Error error)
+        {
+            std::string name;
+            platforms[i].getInfo(CL_PLATFORM_NAME, &name);
+            printf("\nOpenCL context Creation Failed for %s", name.c_str());
+        }
     }
 
-    catch (cl::Error error)
-    {
-        CStringA str = error.what();
-        AfxMessageBox(CString("OpenCL Error: "+str));
-        exit(0);
-    }
+    mViewGL.reset(new OglView(mWidth, mHeight, *mCtxtCL, *mQueueCL));
 }
 
 int TestView::OnCreate(LPCREATESTRUCT lpCreateStruct)

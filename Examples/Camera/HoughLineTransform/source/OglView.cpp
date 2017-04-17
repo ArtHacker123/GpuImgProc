@@ -36,8 +36,8 @@ void OglView::draw(uint8_t* pData)
     std::vector<cl::Event> events;
     events.reserve(1024);
     mCanny.process(mQueueCL, inpImgGL, outImgGL, mMinThresh, mMaxThresh, events);
-    std::vector<cl::Event> mWaitEvent = { events.back() };
-    mHoughLines.process(mQueueCL, outImgGL, mSize, mHoughData, mLineCount, events, &mWaitEvent);
+    std::vector<cl::Event> waitEvent = { events.back() };
+    mHoughLines.process(mQueueCL, outImgGL, mSize, mHoughData, mLineCount, events, &waitEvent);
     events.back().wait();
     size_t time = Ocl::kernelExecTime(mQueueCL, events.data(), events.size());
 

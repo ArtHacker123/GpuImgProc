@@ -10,6 +10,7 @@ OglView::OglView(GLsizei w, GLsizei h, cl::Context& ctxt, cl::CommandQueue& queu
      mQueueCL(queue),
      mCanny(mCtxtCL),
      mHoughLines(mCtxtCL),
+     mLineCount(mCtxtCL, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR, 1),
      mYuvImg(w, h),
      mEdgeImg(w, h, GL_R32F, GL_FLOAT),
      mHoughData(mCtxtCL, CL_MEM_READ_WRITE, 2000),
@@ -30,12 +31,18 @@ void OglView::draw(uint8_t* pData)
     cl::ImageGL outImgGL(mCtxtCL, CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0, mEdgeImg.texture());
     cl::ImageGL inpImgGL(mCtxtCL, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mYuvImg.yImage().texture());
 
-    size_t time = mCanny.process(mQueueCL, inpImgGL, outImgGL, mMinThresh, mMaxThresh);
+    std::vector<cl::Event> events;
+    events.reserve(1024);
+    mCanny.process(mQueueCL, inpImgGL, outImgGL, mMinThresh, mMaxThresh, events);
 
-    size_t houghCount = 0;
-    time += mHoughLines.process(mQueueCL, outImgGL, mSize, mHoughData, houghCount);
+    std::vector<cl::Event> waitEvent = { events.back() };
+    mHoughLines.process(mQueueCL, outImgGL, mSize, mHoughData, mLineCount, events, &waitEvent);
+    events.back().wait();
 
     mYuvPainter.draw(mYuvImg);
+
+    cl_int houghCount = 0;
+    mQueueCL.enqueueReadBuffer(mLineCount.buffer(), CL_TRUE, 0, sizeof(cl_int), &houghCount);
     mHoughLinePainter.draw(mQueueCL, mHoughData, houghCount, mEdgeImg.width(), mEdgeImg.height());
     //Ogl::IGeometry::Rect vp = { mYuvImg.width()>>1, 0, mYuvImg.width()>>1, mYuvImg.height()>>1 };
     //mLumaPainter.draw(vp, mEdgeImg);

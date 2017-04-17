@@ -28,7 +28,9 @@ void OglView::draw(uint8_t* pData)
     Ogl::ImageFormat::convert(mRgbaImg, mYuvImg);
 
     cl::ImageGL imgGL(mCtxtCL, CL_MEM_READ_ONLY, GL_TEXTURE_2D, 0, mRgbaImg.texture());
-    size_t time = mHistogram.compute(mQueueCL, imgGL, mRgbBins);
+    std::vector<cl::Event> events;
+    mHistogram.compute(mQueueCL, imgGL, mRgbBins, events);
+    events.back().wait();
 
     mRgbaPainter.draw(mRgbaImg);
 
